@@ -15,36 +15,46 @@ def print_hi(name):
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+#Se crea el objeto cliente FDSN para obtener datos y el inventario
+host = ("http://163.178.171.47:8080")  # Local FDSN client
+client = Client(host)
 
-    host = ("http://163.178.171.47:8080")  # Local FDSN client
-    client = Client(host)
+#objeto con el el catalogo de las estaciones
+myNumStations = client.get_stations(network="MF", station="*", level="station")
 
+
+
+def cantidad_Estaciones(myNumStations):
     # iterando por el inventario para determinar la cantidad de estaciones
-    numStations =0
-    myNumStations = client.get_stations(network="MF",station="*", level="station")
+    numStations = 0
     for (k, v) in sorted(myNumStations.get_contents().items()):
         if k == "stations":
-            numStations =len(v) #v termina con el número de estaciones presentes en el inventory
+            numStations = len(v)  # v termina con el número de estaciones presentes en el inventory
 
+    return numStations
+
+def lista_Estaciones(numStations, myNumStations):
     #Lista para guardar los códigos de las estaciones del inventory
     lista = []
     #Iterando por el inventory para obtener la lista de estaciones
     for i in range(numStations):
         #print(i)
         lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
+    return lista
 
 
 
 
+def calculoPGA(lista,tiempo):
+    inicio= tiempo - datetime.timedelta(minutes=5)  #resta 5 minutos a la hora fija
+
+    fin =tiempo + datetime.timedelta(minutes=5)     #suma 5 minutos a la hora fija
 
     #recorriendo lista para solicitar datos con el código de cada estación
     for d in range(len(lista)):
         try:    # falla si no hay datos para la estacion en el tiempo dado
             inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
-            st = client.get_waveforms("MF", lista[d], "", "HN*", UTCDateTime("2024-01-31T06:44:00"), UTCDateTime("2024-01-31T06:48:00"),
+            st = client.get_waveforms("MF", lista[d], "", "HN*", inicio, fin,
                                       attach_response=True)
         except:
             print("No hay datos para la estación "+lista[d])
@@ -56,27 +66,21 @@ if __name__ == '__main__':
             except:
                 print("Error en lectura de datos para la estación "+lista[d])
             else:
-                tr1 = strNew[0]
-                tr1filter=tr1.copy()
+                #guardar el stream en archivo mseed
+                strNew.write("/home/stuart/waves/"+lista[d]+".mseed")
+                #tr1 = strNew[0]
+                #tr1filter=tr1.copy()
                 #tr1.plot()
-                tr1filter = tr1filter.filter("bandpass", freqmin=0.05, freqmax=25)
+                #tr1filter = tr1filter.filter("bandpass", freqmin=0.05, freqmax=25)
                 #tr1filter.plot()
-                sta_id = tr1.get_id()
+                #sta_id = tr1.get_id()
 
-                #aceleracion para una componente
-                #print(tr1filter.stats)
-                pga1= abs(max(tr1filter.data))
-                #print(pga1*100)
-
-                #st.plot()
-                #strNew.plot()
-                #print(strNew)
-
+                #Iteracion para filtrar e imprimir el resultado del pga
                 for trx in strNew:
                   trx.filter("bandpass", freqmin=0.05, freqmax=25)
-                  print(trx.stats.station, trx.stats.channel,abs(max(trx.data))*100)
+                  print(trx.stats.station, trx.stats.channel,abs(max(trx.data))*100) #guardar esto en base de datos
 
-                #trx.plot()
+
 
 
     #response = tr1.stats.response
@@ -85,5 +89,14 @@ if __name__ == '__main__':
     #print(in_unit)
     #response.plot(0.001,output="ACC")
     #st.plot()
+
+
+
+# Press the green button in the gutter to run the script.
+if __name__ == '__main__':
+    print_hi('PyCharm')
+    numStations = cantidad_Estaciones(myNumStations)
+    listaEstaciones = lista_Estaciones(numStations,myNumStations)
+    calculoPGA(listaEstaciones,UTCDateTime("2024-01-31T06:46:00")) #enviando una hora fija
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
