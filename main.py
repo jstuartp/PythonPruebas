@@ -57,8 +57,8 @@ def calculoPGA(lista,tiempo):
 
 
     #recorriendo lista para solicitar datos con el código de cada estación
-    for d in range(len(lista)):
-    #for d in range(0,5):
+    #for d in range(len(lista)):
+    for d in range(0,4):
         #inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
         datos = []
 
@@ -80,8 +80,10 @@ def calculoPGA(lista,tiempo):
             except:
                 print("Error en lectura de datos para la estación "+lista[d])
             else:
-                #guardar el stream en archivo mseed
-                #strNew.write("/home/stuart/waves/"+tiempo.strftime("%m-%d-%Y_%H:%M:%S")+"_"+lista[d]+".mseed")
+                #string con la ruta del archivo para referenciar en base de datos
+                rutaArchivo ="/home/stuart/waves/"+tiempo.strftime("%m-%d-%Y_%H:%M:%S")+"_"+lista[d]+".mseed"
+                # guardar el stream en archivo mseed
+                strNew.write(rutaArchivo,format="MSEED")
                 #datos["estaciones"] = lista[d]
                 #datos["latitud"] = coord["latitude"]
                 #datos["longitud"] = coord["longitude"]
@@ -97,9 +99,9 @@ def calculoPGA(lista,tiempo):
                 for trx in strNew:
                   trx.filter("bandpass", freqmin=0.05, freqmax=25)
                   chan.append(abs(max(trx.data))*100)
+
                   #print(trx.stats.station, trx.stats.channel,abs(max(trx.data))*100)
                 print("Datos procesados para la estación "+lista[d])
-
                 datos.append(tiempo.strftime("%d/%m/%Y %H:%M:%S"))
                 datos.append(lista[d])
                 datos.append(coord["latitude"])
@@ -107,6 +109,7 @@ def calculoPGA(lista,tiempo):
                 datos.append(chan[0])
                 datos.append(chan[1])
                 datos.append(chan[2])
+                datos.append(rutaArchivo)
                 matriz.append(datos)
                 #print(matriz)
                 #datos["hne"] = chan[0]
@@ -128,7 +131,7 @@ def conection(datos):
     try:
         with (conn.cursor() as cursor):
             # Create a new record
-            sql = "INSERT INTO `pga` (`fecha`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`) VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s)"
+            sql = "INSERT INTO `pga` (`fecha`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`, `rutaWaveform`) VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s)"
             #print(values)
             cursor.executemany(sql,datos)
 
@@ -155,7 +158,7 @@ def conection(datos):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    #print_hi('PyCharm')
     numStations = cantidad_Estaciones(myNumStations)
     listaEstaciones = lista_Estaciones(numStations,myNumStations)
     datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-05T00:49:06")) #enviando una hora fija

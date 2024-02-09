@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="Scrip de prueba versión 2">
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="Scrip de prueba versión 3, guarda a base de datos">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -83,7 +83,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1706822870944</updated>
-      <workItem from="1706822872845" duration="49226000" />
+      <workItem from="1706822872845" duration="53751000" />
     </task>
     <task id="LOCAL-00001" summary="Scrip de prueba versión 1">
       <option name="closed" value="true" />
@@ -101,7 +101,15 @@
       <option name="project" value="LOCAL" />
       <updated>1707168819127</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Scrip de prueba versión 3, guarda a base de datos">
+      <option name="closed" value="true" />
+      <created>1707426987502</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1707426987502</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -110,7 +118,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Scrip de prueba versión 1" />
     <MESSAGE value="Scrip de prueba versión 2" />
-    <option name="LAST_COMMIT_MESSAGE" value="Scrip de prueba versión 2" />
+    <MESSAGE value="Scrip de prueba versión 3, guarda a base de datos" />
+    <option name="LAST_COMMIT_MESSAGE" value="Scrip de prueba versión 3, guarda a base de datos" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -124,6 +133,6 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/pythonProject1$main.coverage" NAME="main Coverage Results" MODIFIED="1707426590952" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/pythonProject1$main.coverage" NAME="main Coverage Results" MODIFIED="1707495174876" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
