@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="Scrip de prueba versión 3, guarda a base de datos">
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="Scrip de prueba versión 4,conectando con php">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -83,7 +83,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1706822870944</updated>
-      <workItem from="1706822872845" duration="53751000" />
+      <workItem from="1706822872845" duration="55718000" />
     </task>
     <task id="LOCAL-00001" summary="Scrip de prueba versión 1">
       <option name="closed" value="true" />
@@ -109,7 +109,15 @@
       <option name="project" value="LOCAL" />
       <updated>1707426987502</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Scrip de prueba versión 4,conectando con php">
+      <option name="closed" value="true" />
+      <created>1707514681998</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1707514681998</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -119,14 +127,15 @@
     <MESSAGE value="Scrip de prueba versión 1" />
     <MESSAGE value="Scrip de prueba versión 2" />
     <MESSAGE value="Scrip de prueba versión 3, guarda a base de datos" />
-    <option name="LAST_COMMIT_MESSAGE" value="Scrip de prueba versión 3, guarda a base de datos" />
+    <MESSAGE value="Scrip de prueba versión 4,conectando con php" />
+    <option name="LAST_COMMIT_MESSAGE" value="Scrip de prueba versión 4,conectando con php" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main.py</url>
-          <line>17</line>
+          <line>18</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>

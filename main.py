@@ -10,6 +10,7 @@ from obspy import read_inventory
 import datetime
 import numpy as np
 import pymysql
+import sys
 
 
 
@@ -161,7 +162,10 @@ if __name__ == '__main__':
     #print_hi('PyCharm')
     numStations = cantidad_Estaciones(myNumStations)
     listaEstaciones = lista_Estaciones(numStations,myNumStations)
-    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-05T00:49:06")) #enviando una hora fija
+    date = sys.argv[1]
+    print(date)
+    datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
+    #datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-05T00:49:06")) #enviando una hora fija
     conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
