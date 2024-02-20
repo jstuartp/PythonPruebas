@@ -43,48 +43,85 @@ def lista_Estaciones(numStations, myNumStations):
     #Iterando por el inventory para obtener la lista de estaciones
     for i in range(numStations):
         #print(i)
-        lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
+        #if myNumStations.networks[0].stations[i].code == "HSJM": #definir una sola estacion
+            lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
+
     return lista
+
+#guarda los archivos mseed +- 5 minutos del evento dado
+def Guarda_waves(lista,tiempo):
+    inicio = tiempo - datetime.timedelta(minutes=5)  # resta 5 minutos a la hora fija
+
+    fin = tiempo + datetime.timedelta(minutes=5)  # suma 5 minutos a la hora fija
+
+    for d in range(len(lista)):
+        # for d in range(0,4):
+
+        try:  # falla si no hay datos para la estacion en el tiempo dado
+
+            st = client.get_waveforms("MF", lista[d], "**", "HN*", inicio, fin,
+                                      attach_response=True)
+        except:
+            print("No hay datos para la estación " + lista[d])
+        else:  # de existir datos continua con el calculo
+            #st.merge()
+            # copia para quitar respuesta
+            strNew = st.copy()
+            try:
+                rutaArchivo = "/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed"
+                # guardar el stream en archivo mseed
+                strNew.write(rutaArchivo, format="MSEED")
+
+            except:
+                print("Error en lectura de datos para la estación " + lista[d])
+
 
 
 
 
 def calculoPGA(lista,tiempo):
-    inicio= tiempo - datetime.timedelta(minutes=5)  #resta 5 minutos a la hora fija
+    #inicio= tiempo - datetime.timedelta(minutes=5)  #resta 5 minutos a la hora fija
 
-    fin =tiempo + datetime.timedelta(minutes=5)     #suma 5 minutos a la hora fija
+    #fin =tiempo + datetime.timedelta(minutes=5)     #suma 5 minutos a la hora fija
     #datos = [] #crear estructura para guardar los datos antes de enviarlos a la base
     matriz = []
 
 
+
     #recorriendo lista para solicitar datos con el código de cada estación
-    #for d in range(len(lista)):
-    for d in range(0,4):
+    for d in range(len(lista)):
+    #for d in range(0,15):
         #inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
         datos = []
 
 
-
         try:    # falla si no hay datos para la estacion en el tiempo dado
             inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
-            st = client.get_waveforms("MF", lista[d], "", "HN*", inicio, fin,
-                                      attach_response=True)
-            coord = inventory.get_coordinates("MF." + lista[d] + "..HNZ")
+            st = read("/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed")
+
 
         except:
             print("No hay datos para la estación "+lista[d])
         else:    #de existir datos continua con el calculo
             st.merge()
+            #copia para quitar respuesta
             strNew =st.copy()
+            #copia cruda
+            stRaw = st.copy()
             try:
+                strNew.detrend("demean")
                 strNew = strNew.remove_response(inventory,output="ACC")
+                #stRaw.detrend("demean")
+                #stRaw.detrend("linear")
             except:
                 print("Error en lectura de datos para la estación "+lista[d])
             else:
                 #string con la ruta del archivo para referenciar en base de datos
                 rutaArchivo ="/home/stuart/waves/"+tiempo.strftime("%m-%d-%Y_%H:%M:%S")+"_"+lista[d]+".mseed"
+                #rutaArchivoRaw = "/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + "RAW.mseed"
                 # guardar el stream en archivo mseed
-                strNew.write(rutaArchivo,format="MSEED")
+                #strNew.write(rutaArchivo,format="MSEED")
+                #stRaw.write(rutaArchivoRaw, format="MSEED")
                 #datos["estaciones"] = lista[d]
                 #datos["latitud"] = coord["latitude"]
                 #datos["longitud"] = coord["longitude"]
@@ -97,21 +134,32 @@ def calculoPGA(lista,tiempo):
 
                 #Iteracion para filtrar e imprimir el resultado del pga
                 chan=[]
+
                 for trx in strNew:
+                  #print(trx.stats.station, trx.stats.channel,max(abs(trx.data))*100)
                   trx.filter("bandpass", freqmin=0.05, freqmax=25)
-                  chan.append(abs(max(trx.data))*100)
+                  chan.append(max(abs(trx.data))*100)
 
                   #print(trx.stats.station, trx.stats.channel,abs(max(trx.data))*100)
-                print("Datos procesados para la estación "+lista[d])
+
+                try:
+                    coord = inventory.get_coordinates("MF." + lista[d] + ".00.HNZ")
+                except:
+                    coord = inventory.get_coordinates("MF." + lista[d] + "..HNZ")
                 datos.append(tiempo.strftime("%d/%m/%Y %H:%M:%S"))
                 datos.append(lista[d])
                 datos.append(coord["latitude"])
                 datos.append(coord["longitude"])
-                datos.append(chan[0])
-                datos.append(chan[1])
-                datos.append(chan[2])
-                datos.append(rutaArchivo)
-                matriz.append(datos)
+                try:
+                    datos.append(chan[0])
+                    datos.append(chan[1])
+                    datos.append(chan[2])
+                except:
+                    print("Faltan canales para procesar la estación "+ lista[d])
+                else:
+                    datos.append(rutaArchivo)
+                    matriz.append(datos)
+                    print("Datos procesados para la estación " + lista[d])
                 #print(matriz)
                 #datos["hne"] = chan[0]
                 #datos["hnn"] = chan[1]
@@ -162,10 +210,11 @@ if __name__ == '__main__':
     #print_hi('PyCharm')
     numStations = cantidad_Estaciones(myNumStations)
     listaEstaciones = lista_Estaciones(numStations,myNumStations)
-    date = sys.argv[1]
-    print(date)
-    datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
-    #datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-05T00:49:06")) #enviando una hora fija
+    #date = sys.argv[1]
+    #print(date)
+    #Guarda_waves(listaEstaciones,UTCDateTime("2024-02-12T05:55:00"))
+    #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
+    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-12T05:55:00")) #enviando una hora fija
     conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
