@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="scrip recive parametros por linea de comandos">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,7 +84,7 @@
       <updated>1706822870944</updated>
       <workItem from="1706822872845" duration="56354000" />
       <workItem from="1708009370628" duration="1228000" />
-      <workItem from="1708093107301" duration="13272000" />
+      <workItem from="1708093107301" duration="13980000" />
     </task>
     <task id="LOCAL-00001" summary="Scrip de prueba versión 1">
       <option name="closed" value="true" />
@@ -127,7 +126,15 @@
       <option name="project" value="LOCAL" />
       <updated>1707759177723</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="scrip recive parametros por linea de comandos">
+      <option name="closed" value="true" />
+      <created>1708448645555</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1708448645555</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
