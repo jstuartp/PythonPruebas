@@ -81,10 +81,7 @@ def Guarda_waves(lista,tiempo):
 
 
 def calculoPGA(lista,tiempo):
-    #inicio= tiempo - datetime.timedelta(minutes=5)  #resta 5 minutos a la hora fija
 
-    #fin =tiempo + datetime.timedelta(minutes=5)     #suma 5 minutos a la hora fija
-    #datos = [] #crear estructura para guardar los datos antes de enviarlos a la base
     matriz = []
 
 
@@ -97,10 +94,11 @@ def calculoPGA(lista,tiempo):
 
 
         try:    # falla si no hay datos para la estacion en el tiempo dado
-            inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
+            #inventario leido de FDSN SEISCOMP
+            #inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
+            #inventario leido de archivo stationXML
+            inventory = read_inventory("/home/stuart/Descargas/CCDN.xml")
             st = read("/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed")
-
-
 
         except:
             print("No hay datos para la estación "+lista[d])
@@ -112,10 +110,9 @@ def calculoPGA(lista,tiempo):
             stRaw = st.copy()
             try:
                 strNew.detrend("demean")
-                stRaw.detrend("linear")
+                strNew.detrend("linear")
                 strNew = strNew.remove_response(inventory,output="ACC")
-                #stRaw.detrend("demean")
-                #stRaw.detrend("linear")
+
             except:
                 print("Error en lectura de datos para la estación "+lista[d])
             else:
@@ -124,16 +121,7 @@ def calculoPGA(lista,tiempo):
                 rutaArchivoProcesado = "/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + "_ProcesadoNEW.mseed"
                 # guardar el stream en archivo mseed
                 strNew.write(rutaArchivoProcesado,format="MSEED")
-                #stRaw.write(rutaArchivoRaw, format="MSEED")
-                #datos["estaciones"] = lista[d]
-                #datos["latitud"] = coord["latitude"]
-                #datos["longitud"] = coord["longitude"]
-                #tr1 = strNew[0]
-                #tr1filter=tr1.copy()
-                #tr1.plot()
-                #tr1filter = tr1filter.filter("bandpass", freqmin=0.05, freqmax=25)
-                #tr1filter.plot()
-                #sta_id = tr1.get_id()
+
 
                 #Iteracion para filtrar e imprimir el resultado del pga
                 chan=[]
@@ -143,7 +131,7 @@ def calculoPGA(lista,tiempo):
                   trx.filter("bandpass", freqmin=0.05, freqmax=25)
                   chan.append(max(abs(trx.data))*100)
 
-                  #print(trx.stats.station, trx.stats.channel,abs(max(trx.data))*100)
+                  print(trx.stats.station, trx.stats.channel,abs(max(trx.data))*100)
 
                 try:
                     coord = inventory.get_coordinates("MF." + lista[d] + ".00.HNZ")
@@ -215,9 +203,9 @@ if __name__ == '__main__':
     listaEstaciones = lista_Estaciones(numStations,myNumStations)
     #date = sys.argv[1]
     #print(date)
-    Guarda_waves(listaEstaciones,UTCDateTime("2024-02-24T10:10:00"))
+    #Guarda_waves(listaEstaciones,UTCDateTime("2024-02-24T10:10:00"))
     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
     datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-24T10:10:00")) #enviando una hora fija
-    conection(datos)
+    #conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
