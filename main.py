@@ -43,7 +43,7 @@ def lista_Estaciones(numStations, myNumStations):
     #Iterando por el inventory para obtener la lista de estaciones
     for i in range(numStations):
         #print(i)
-        if myNumStations.networks[0].stations[i].code == "CORS": #definir una sola estacion
+        #if myNumStations.networks[0].stations[i].code == "CTEC": #definir una sola estacion
             lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
 
     return lista
@@ -171,14 +171,23 @@ def calculoPGA(lista,tiempo):
 
 
 def conection(datos):
-    conn = pymysql.connect(
+    conn = pymysql.connect( #conexión casa Stuart
+        host='localhost',
+        user='root',
+        password='root',
+        db='tabla_pga',
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    """
+    conn = pymysql.connect(  #conexion compu lis
         host='localhost',
         user='stuart',
         password='jspz2383',
         db='tabla_pga',
         charset='utf8mb4',
         cursorclass=pymysql.cursors.DictCursor
-    )
+    )"""
 
     try:
         with (conn.cursor() as cursor):
@@ -215,9 +224,9 @@ if __name__ == '__main__':
     listaEstaciones = lista_Estaciones(numStations,myNumStations)
     #date = sys.argv[1]
     #print(date)
-    Guarda_waves(listaEstaciones,UTCDateTime("2024-02-24T10:10:00"))
+    Guarda_waves(listaEstaciones,UTCDateTime("2024-02-27T20:11:00"))
     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
-    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-24T10:10:00")) #enviando una hora fija
+    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-27T20:11:00")) #enviando una hora fija
     conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

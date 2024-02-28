@@ -43,7 +43,7 @@ def lista_Estaciones(numStations, myNumStations):
     #Iterando por el inventory para obtener la lista de estaciones
     for i in range(numStations):
         #print(i)
-        if myNumStations.networks[0].stations[i].code == "CORS": #definir una sola estacion
+        if myNumStations.networks[0].stations[i].code == "CTEC": #definir una sola estacion
             lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
 
     return lista
@@ -91,13 +91,14 @@ def calculoPGA(lista,tiempo):
     #for d in range(0,15):
         #inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
         datos = []
+        inventory = read_inventory("/home/stuart/Descargas/130SMHR.xml")
 
 
         try:    # falla si no hay datos para la estacion en el tiempo dado
             #inventario leido de FDSN SEISCOMP
             #inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
             #inventario leido de archivo stationXML
-            inventory = read_inventory("/home/stuart/Descargas/CCDN.xml")
+            #inventory = read_inventory("/home/stuart/Descargas/130SMHR.xml")
             st = read("/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed")
 
         except:
@@ -106,11 +107,13 @@ def calculoPGA(lista,tiempo):
             st.merge()
             #copia para quitar respuesta
             strNew =st.copy()
+            strNew.detrend("demean")
+            strNew = strNew.remove_response(inventory, output="ACC")
+
             #copia cruda
             stRaw = st.copy()
             try:
-                strNew.detrend("demean")
-                strNew.detrend("linear")
+                #strNew.detrend("linear")
                 strNew = strNew.remove_response(inventory,output="ACC")
 
             except:
@@ -120,7 +123,7 @@ def calculoPGA(lista,tiempo):
                 rutaArchivo ="/home/stuart/waves/"+tiempo.strftime("%m-%d-%Y_%H:%M:%S")+"_"+lista[d]+".mseed"
                 rutaArchivoProcesado = "/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + "_ProcesadoNEW.mseed"
                 # guardar el stream en archivo mseed
-                strNew.write(rutaArchivoProcesado,format="MSEED")
+                #strNew.write(rutaArchivoProcesado,format="MSEED")
 
 
                 #Iteracion para filtrar e imprimir el resultado del pga
@@ -205,7 +208,7 @@ if __name__ == '__main__':
     #print(date)
     #Guarda_waves(listaEstaciones,UTCDateTime("2024-02-24T10:10:00"))
     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
-    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-24T10:10:00")) #enviando una hora fija
+    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-27T20:11:00")) #enviando una hora fija
     #conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

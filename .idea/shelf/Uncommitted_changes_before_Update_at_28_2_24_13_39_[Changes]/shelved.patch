@@ -1,0 +1,125 @@
+Index: main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># This is a sample Python script.\nfrom time import strftime\n\nfrom matplotlib.pyplot import plot\n# Press Mayús+F10 to execute it or replace it with your code.\n# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.\nfrom obspy.clients.fdsn import Client\nfrom obspy import read, UTCDateTime\nfrom obspy import read_inventory\nimport datetime\nimport numpy as np\nimport pymysql\nimport sys\n\n\n\ndef print_hi(name):\n    # Use a breakpoint in the code line below to debug your script.\n    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.\n\n\n#Se crea el objeto cliente FDSN para obtener datos y el inventario\nhost = (\"http://163.178.171.47:8080\")  # Local FDSN client\nclient = Client(host)\n\n#objeto con el el catalogo de las estaciones\nmyNumStations = client.get_stations(network=\"MF\", station=\"*\", level=\"station\")\n\n\n\ndef cantidad_Estaciones(myNumStations):\n    # iterando por el inventario para determinar la cantidad de estaciones\n    numStations = 0\n    for (k, v) in sorted(myNumStations.get_contents().items()):\n        if k == \"stations\":\n            numStations = len(v)  # v termina con el número de estaciones presentes en el inventory\n\n    return numStations\n\ndef lista_Estaciones(numStations, myNumStations):\n    #Lista para guardar los códigos de las estaciones del inventory\n    lista = []\n    #Iterando por el inventory para obtener la lista de estaciones\n    for i in range(numStations):\n        #print(i)\n        #if myNumStations.networks[0].stations[i].code == \"HSJM\": #definir una sola estacion\n            lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones\n\n    return lista\n\n#guarda los archivos mseed +- 5 minutos del evento dado\ndef Guarda_waves(lista,tiempo):\n    inicio = tiempo - datetime.timedelta(minutes=5)  # resta 5 minutos a la hora fija\n\n    fin = tiempo + datetime.timedelta(minutes=5)  # suma 5 minutos a la hora fija\n\n    for d in range(len(lista)):\n        # for d in range(0,4):\n\n        try:  # falla si no hay datos para la estacion en el tiempo dado\n\n            st = client.get_waveforms(\"MF\", lista[d], \"**\", \"HN*\", inicio, fin,\n                                      attach_response=True)\n        except:\n            print(\"No hay datos para la estación \" + lista[d])\n        else:  # de existir datos continua con el calculo\n            #st.merge()\n            # copia para quitar respuesta\n            strNew = st.copy()\n            try:\n                rutaArchivo = \"/home/stuart/waves/\" + tiempo.strftime(\"%m-%d-%Y_%H:%M:%S\") + \"_\" + lista[d] + \".mseed\"\n                # guardar el stream en archivo mseed\n                strNew.write(rutaArchivo, format=\"MSEED\")\n\n            except:\n                print(\"Error en lectura de datos para la estación \" + lista[d])\n\n\n\n\n\ndef calculoPGA(lista,tiempo):\n    #inicio= tiempo - datetime.timedelta(minutes=5)  #resta 5 minutos a la hora fija\n\n    #fin =tiempo + datetime.timedelta(minutes=5)     #suma 5 minutos a la hora fija\n    #datos = [] #crear estructura para guardar los datos antes de enviarlos a la base\n    matriz = []\n\n\n\n    #recorriendo lista para solicitar datos con el código de cada estación\n    for d in range(len(lista)):\n    #for d in range(0,15):\n        #inventory = client.get_stations(network=\"MF\", station=lista[d], level=\"RESP\")\n        datos = []\n\n\n        try:    # falla si no hay datos para la estacion en el tiempo dado\n            inventory = client.get_stations(network=\"MF\", station=lista[d], level=\"RESP\")\n            st = read(\"/home/stuart/waves/\" + tiempo.strftime(\"%m-%d-%Y_%H:%M:%S\") + \"_\" + lista[d] + \".mseed\")\n\n\n        except:\n            print(\"No hay datos para la estación \"+lista[d])\n        else:    #de existir datos continua con el calculo\n            st.merge()\n            #copia para quitar respuesta\n            strNew =st.copy()\n            #copia cruda\n            stRaw = st.copy()\n            try:\n                strNew.detrend(\"demean\")\n                strNew = strNew.remove_response(inventory,output=\"ACC\")\n                #stRaw.detrend(\"demean\")\n                #stRaw.detrend(\"linear\")\n            except:\n                print(\"Error en lectura de datos para la estación \"+lista[d])\n            else:\n                #string con la ruta del archivo para referenciar en base de datos\n                rutaArchivo =\"/home/stuart/waves/\"+tiempo.strftime(\"%m-%d-%Y_%H:%M:%S\")+\"_\"+lista[d]+\".mseed\"\n                #rutaArchivoRaw = \"/home/stuart/waves/\" + tiempo.strftime(\"%m-%d-%Y_%H:%M:%S\") + \"_\" + lista[d] + \"RAW.mseed\"\n                # guardar el stream en archivo mseed\n                #strNew.write(rutaArchivo,format=\"MSEED\")\n                #stRaw.write(rutaArchivoRaw, format=\"MSEED\")\n                #datos[\"estaciones\"] = lista[d]\n                #datos[\"latitud\"] = coord[\"latitude\"]\n                #datos[\"longitud\"] = coord[\"longitude\"]\n                #tr1 = strNew[0]\n                #tr1filter=tr1.copy()\n                #tr1.plot()\n                #tr1filter = tr1filter.filter(\"bandpass\", freqmin=0.05, freqmax=25)\n                #tr1filter.plot()\n                #sta_id = tr1.get_id()\n\n                #Iteracion para filtrar e imprimir el resultado del pga\n                chan=[]\n\n                for trx in strNew:\n                  #print(trx.stats.station, trx.stats.channel,max(abs(trx.data))*100)\n                  trx.filter(\"bandpass\", freqmin=0.05, freqmax=25)\n                  chan.append(max(abs(trx.data))*100)\n\n                  #print(trx.stats.station, trx.stats.channel,abs(max(trx.data))*100)\n\n                try:\n                    coord = inventory.get_coordinates(\"MF.\" + lista[d] + \".00.HNZ\")\n                except:\n                    coord = inventory.get_coordinates(\"MF.\" + lista[d] + \"..HNZ\")\n                datos.append(tiempo.strftime(\"%d/%m/%Y %H:%M:%S\"))\n                datos.append(lista[d])\n                datos.append(coord[\"latitude\"])\n                datos.append(coord[\"longitude\"])\n                try:\n                    datos.append(chan[0])\n                    datos.append(chan[1])\n                    datos.append(chan[2])\n                except:\n                    print(\"Faltan canales para procesar la estación \"+ lista[d])\n                else:\n                    datos.append(rutaArchivo)\n                    matriz.append(datos)\n                    print(\"Datos procesados para la estación \" + lista[d])\n                #print(matriz)\n                #datos[\"hne\"] = chan[0]\n                #datos[\"hnn\"] = chan[1]\n                #datos[\"hnz\"] = chan[2]\n    return matriz\n\n\ndef conection(datos):\n    conn = pymysql.connect(\n        host='localhost',\n        user='stuart',\n        password='jspz2383',\n        db='tabla_pga',\n        charset='utf8mb4',\n        cursorclass=pymysql.cursors.DictCursor\n    )\n\n    try:\n        with (conn.cursor() as cursor):\n            # Create a new record\n            sql = \"INSERT INTO `pga` (`fecha`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`, `rutaWaveform`) VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s)\"\n            #print(values)\n            cursor.executemany(sql,datos)\n\n        # Commit changes\n        conn.commit()\n\n        print(\"PGA guardado en la Base de Datos\")\n    finally:\n        conn.close()\n\n\n\n\n\n\n    #response = tr1.stats.response\n    #sensi = tr1.stats.response.instrument_sensitivity.value\n    #in_unit = tr1.stats.response.instrument_sensitivity.input_units\n    #print(in_unit)\n    #response.plot(0.001,output=\"ACC\")\n    #st.plot()\n\n\n\n# Press the green button in the gutter to run the script.\nif __name__ == '__main__':\n    #print_hi('PyCharm')\n    numStations = cantidad_Estaciones(myNumStations)\n    listaEstaciones = lista_Estaciones(numStations,myNumStations)\n    #date = sys.argv[1]\n    #print(date)\n    #Guarda_waves(listaEstaciones,UTCDateTime(\"2024-02-12T05:55:00\"))\n    #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro\n    datos=calculoPGA(listaEstaciones,UTCDateTime(\"2024-02-12T05:55:00\")) #enviando una hora fija\n    conection(datos)\n\n# See PyCharm help at https://www.jetbrains.com/help/pycharm/\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/main.py b/main.py
+--- a/main.py	(revision 324e24b0da3c0d1ed3e371cb7a27a56dfa77a537)
++++ b/main.py	(date 1708635601274)
+@@ -43,7 +43,7 @@
+     #Iterando por el inventory para obtener la lista de estaciones
+     for i in range(numStations):
+         #print(i)
+-        #if myNumStations.networks[0].stations[i].code == "HSJM": #definir una sola estacion
++        if myNumStations.networks[0].stations[i].code == "SISD": #definir una sola estacion
+             lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
+ 
+     return lista
+@@ -108,6 +108,11 @@
+             strNew =st.copy()
+             #copia cruda
+             stRaw = st.copy()
++
++            if isinstance(strNew, np.ma.core.MaskedArray):
++                strNew = strNew.split()
++                print("LO DETECTO")
++
+             try:
+                 strNew.detrend("demean")
+                 strNew = strNew.remove_response(inventory,output="ACC")
+@@ -135,6 +140,7 @@
+                 #Iteracion para filtrar e imprimir el resultado del pga
+                 chan=[]
+ 
++
+                 for trx in strNew:
+                   #print(trx.stats.station, trx.stats.channel,max(abs(trx.data))*100)
+                   trx.filter("bandpass", freqmin=0.05, freqmax=25)
+@@ -168,6 +174,8 @@
+ 
+ 
+ def conection(datos):
++    #conexión pc lis
++    """""
+     conn = pymysql.connect(
+         host='localhost',
+         user='stuart',
+@@ -176,6 +184,17 @@
+         charset='utf8mb4',
+         cursorclass=pymysql.cursors.DictCursor
+     )
++    """"" #conexión casa stuart
++    conn = pymysql.connect(
++        host='localhost',
++        user='root',
++        password='root',
++        db='tabla_pga',
++        charset='utf8mb4',
++        cursorclass=pymysql.cursors.DictCursor
++    )
++
++
+ 
+     try:
+         with (conn.cursor() as cursor):
+@@ -212,9 +231,9 @@
+     listaEstaciones = lista_Estaciones(numStations,myNumStations)
+     #date = sys.argv[1]
+     #print(date)
+-    #Guarda_waves(listaEstaciones,UTCDateTime("2024-02-12T05:55:00"))
++    #Guarda_waves(listaEstaciones,UTCDateTime("2024-02-17T02:29:00"))
+     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
+-    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-12T05:55:00")) #enviando una hora fija
++    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-17T02:29:00")) #enviando una hora fija
+     conection(datos)
+ 
+ # See PyCharm help at https://www.jetbrains.com/help/pycharm/
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"AutoImportSettings\">\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\n  </component>\n  <component name=\"ChangeListManager\">\n    <list default=\"true\" id=\"7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89\" name=\"Changes\" comment=\"scrip recive parametros por linea de comandos\">\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/main.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/main.py\" afterDir=\"false\" />\n    </list>\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\n  </component>\n  <component name=\"Git.Settings\">\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\n  </component>\n  <component name=\"ProblemsViewState\">\n    <option name=\"selectedTabId\" value=\"ProjectErrors\" />\n  </component>\n  <component name=\"ProjectColorInfo\">{\n  &quot;associatedIndex&quot;: 3\n}</component>\n  <component name=\"ProjectId\" id=\"2bmamzLmrNvqOa8fySJjDlC33OT\" />\n  <component name=\"ProjectLevelVcsManager\" settingsEditedManually=\"true\" />\n  <component name=\"ProjectViewState\">\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\n    <option name=\"showLibraryContents\" value=\"true\" />\n  </component>\n  <component name=\"PropertiesComponent\">{\n  &quot;keyToString&quot;: {\n    &quot;Python.main.executor&quot;: &quot;Run&quot;,\n    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\n    &quot;git-widget-placeholder&quot;: &quot;master&quot;,\n    &quot;last_opened_file_path&quot;: &quot;/home/stuart/PycharmProjects/pythonProject1&quot;,\n    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,\n    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,\n    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,\n    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,\n    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,\n    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;\n  }\n}</component>\n  <component name=\"RunManager\">\n    <configuration name=\"main\" type=\"PythonConfigurationType\" factoryName=\"Python\" nameIsGenerated=\"true\">\n      <module name=\"pythonProject1\" />\n      <option name=\"ENV_FILES\" value=\"\" />\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <envs>\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\n      </envs>\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"$PROJECT_DIR$\" />\n      <option name=\"IS_MODULE_SDK\" value=\"true\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" runner=\"coverage.py\" />\n      <option name=\"SCRIPT_NAME\" value=\"$PROJECT_DIR$/main.py\" />\n      <option name=\"PARAMETERS\" value=\"\" />\n      <option name=\"SHOW_COMMAND_LINE\" value=\"false\" />\n      <option name=\"EMULATE_TERMINAL\" value=\"false\" />\n      <option name=\"MODULE_MODE\" value=\"false\" />\n      <option name=\"REDIRECT_INPUT\" value=\"false\" />\n      <option name=\"INPUT_FILE\" value=\"\" />\n      <method v=\"2\" />\n    </configuration>\n  </component>\n  <component name=\"SharedIndexes\">\n    <attachedChunks>\n      <set>\n        <option value=\"bundled-python-sdk-5a2391486177-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13763.11\" />\n      </set>\n    </attachedChunks>\n  </component>\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\n  <component name=\"TaskManager\">\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\n      <changelist id=\"7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89\" name=\"Changes\" comment=\"\" />\n      <created>1706822870944</created>\n      <option name=\"number\" value=\"Default\" />\n      <option name=\"presentableId\" value=\"Default\" />\n      <updated>1706822870944</updated>\n      <workItem from=\"1706822872845\" duration=\"56354000\" />\n      <workItem from=\"1708009370628\" duration=\"1228000\" />\n      <workItem from=\"1708093107301\" duration=\"13272000\" />\n    </task>\n    <task id=\"LOCAL-00001\" summary=\"Scrip de prueba versión 1\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1707161572367</created>\n      <option name=\"number\" value=\"00001\" />\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1707161572367</updated>\n    </task>\n    <task id=\"LOCAL-00002\" summary=\"Scrip de prueba versión 2\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1707168819127</created>\n      <option name=\"number\" value=\"00002\" />\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1707168819127</updated>\n    </task>\n    <task id=\"LOCAL-00003\" summary=\"Scrip de prueba versión 3, guarda a base de datos\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1707426987502</created>\n      <option name=\"number\" value=\"00003\" />\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1707426987502</updated>\n    </task>\n    <task id=\"LOCAL-00004\" summary=\"Scrip de prueba versión 4,conectando con php\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1707514681998</created>\n      <option name=\"number\" value=\"00004\" />\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1707514681998</updated>\n    </task>\n    <task id=\"LOCAL-00005\" summary=\"scrip recive parametros por linea de comandos\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1707759177723</created>\n      <option name=\"number\" value=\"00005\" />\n      <option name=\"presentableId\" value=\"LOCAL-00005\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1707759177723</updated>\n    </task>\n    <option name=\"localTasksCounter\" value=\"6\" />\n    <servers />\n  </component>\n  <component name=\"TypeScriptGeneratedFilesManager\">\n    <option name=\"version\" value=\"3\" />\n  </component>\n  <component name=\"VcsManagerConfiguration\">\n    <MESSAGE value=\"Scrip de prueba versión 1\" />\n    <MESSAGE value=\"Scrip de prueba versión 2\" />\n    <MESSAGE value=\"Scrip de prueba versión 3, guarda a base de datos\" />\n    <MESSAGE value=\"Scrip de prueba versión 4,conectando con php\" />\n    <MESSAGE value=\"scrip recive parametros por linea de comandos\" />\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"scrip recive parametros por linea de comandos\" />\n  </component>\n  <component name=\"XDebuggerManager\">\n    <breakpoint-manager>\n      <breakpoints>\n        <line-breakpoint enabled=\"true\" suspend=\"THREAD\" type=\"python-line\">\n          <url>file://$PROJECT_DIR$/main.py</url>\n          <line>18</line>\n          <option name=\"timeStamp\" value=\"1\" />\n        </line-breakpoint>\n      </breakpoints>\n    </breakpoint-manager>\n  </component>\n  <component name=\"com.intellij.coverage.CoverageDataManagerImpl\">\n    <SUITE FILE_PATH=\"coverage/pythonProject1$main.coverage\" NAME=\"main Coverage Results\" MODIFIED=\"1708106673702\" SOURCE_PROVIDER=\"com.intellij.coverage.DefaultCoverageFileProvider\" RUNNER=\"coverage.py\" COVERAGE_BY_TEST_ENABLED=\"true\" COVERAGE_TRACING_ENABLED=\"false\" WORKING_DIRECTORY=\"$PROJECT_DIR$\" />\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision 324e24b0da3c0d1ed3e371cb7a27a56dfa77a537)
++++ b/.idea/workspace.xml	(date 1709149190850)
+@@ -7,6 +7,7 @@
+     <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="scrip recive parametros por linea de comandos">
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/myplot.png" beforeDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+@@ -34,7 +35,7 @@
+     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+-    &quot;last_opened_file_path&quot;: &quot;/home/stuart/PycharmProjects/pythonProject1&quot;,
++    &quot;last_opened_file_path&quot;: &quot;/home/stuart/PycharmProjects/PythonScript&quot;,
+     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+@@ -53,8 +54,9 @@
+         <env name="PYTHONUNBUFFERED" value="1" />
+       </envs>
+       <option name="SDK_HOME" value="" />
++      <option name="SDK_NAME" value="Python 3.11 (PythonPruebas)" />
+       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+-      <option name="IS_MODULE_SDK" value="true" />
++      <option name="IS_MODULE_SDK" value="false" />
+       <option name="ADD_CONTENT_ROOTS" value="true" />
+       <option name="ADD_SOURCE_ROOTS" value="true" />
+       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+@@ -71,7 +73,7 @@
+   <component name="SharedIndexes">
+     <attachedChunks>
+       <set>
+-        <option value="bundled-python-sdk-5a2391486177-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13763.11" />
++        <option value="bundled-python-sdk-5a2391486177-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.13763.11" />
+       </set>
+     </attachedChunks>
+   </component>

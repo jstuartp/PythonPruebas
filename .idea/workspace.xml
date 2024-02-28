@@ -5,13 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="scrip recive parametros por linea de comandos">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Full.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/myplot.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/myplotE.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/myplotN.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/myplotZ.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scrip2.py" beforeDir="false" afterPath="$PROJECT_DIR$/scrip2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
