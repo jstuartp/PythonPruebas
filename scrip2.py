@@ -43,7 +43,7 @@ def lista_Estaciones(numStations, myNumStations):
     #Iterando por el inventory para obtener la lista de estaciones
     for i in range(numStations):
         #print(i)
-        if myNumStations.networks[0].stations[i].code == "CTEC": #definir una sola estacion
+        if myNumStations.networks[0].stations[i].code == "CCDN": #definir una sola estacion
             lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
 
     return lista
@@ -61,7 +61,7 @@ def Guarda_waves(lista,tiempo):
         try:  # falla si no hay datos para la estacion en el tiempo dado
 
             st = client.get_waveforms("MF", lista[d], "**", "HN*", inicio, fin,
-                                      attach_response=True)
+                                      )
         except:
             print("No hay datos para la estación " + lista[d])
         else:  # de existir datos continua con el calculo
@@ -91,7 +91,7 @@ def calculoPGA(lista,tiempo):
     #for d in range(0,15):
         #inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
         datos = []
-        inventory = read_inventory("/home/stuart/Descargas/130SMHR.xml")
+        inventory = read_inventory("/home/stuart/Descargas/CCDN_MF_stream1.xml")
 
 
         try:    # falla si no hay datos para la estacion en el tiempo dado
@@ -108,13 +108,13 @@ def calculoPGA(lista,tiempo):
             #copia para quitar respuesta
             strNew =st.copy()
             strNew.detrend("demean")
-            strNew = strNew.remove_response(inventory, output="ACC")
+            strNew = strNew.remove_response(inventory)
 
             #copia cruda
             stRaw = st.copy()
             try:
                 #strNew.detrend("linear")
-                strNew = strNew.remove_response(inventory,output="ACC")
+                strNew = strNew.remove_response(inventory)
 
             except:
                 print("Error en lectura de datos para la estación "+lista[d])
@@ -131,19 +131,16 @@ def calculoPGA(lista,tiempo):
 
                 for trx in strNew:
                   #print(trx.stats.station, trx.stats.channel,max(abs(trx.data))*100)
-                  trx.filter("bandpass", freqmin=0.05, freqmax=25)
-                  chan.append(max(abs(trx.data))*100)
+                  #trx.filter("bandpass", freqmin=0.05, freqmax=25)
+                  chan.append(max(abs(trx.data)))
 
-                  print(trx.stats.station, trx.stats.channel,abs(max(trx.data))*100)
+                  print(trx.stats.station, trx.stats.channel,max(abs(trx.data)))
 
-                try:
-                    coord = inventory.get_coordinates("MF." + lista[d] + ".00.HNZ")
-                except:
-                    coord = inventory.get_coordinates("MF." + lista[d] + "..HNZ")
+
                 datos.append(tiempo.strftime("%d/%m/%Y %H:%M:%S"))
                 datos.append(lista[d])
-                datos.append(coord["latitude"])
-                datos.append(coord["longitude"])
+                #datos.append(coord["latitude"])
+                #datos.append(coord["longitude"])
                 try:
                     datos.append(chan[0])
                     datos.append(chan[1])
@@ -185,6 +182,22 @@ def conection(datos):
     finally:
         conn.close()
 
+def prueba():
+    st = read("/home/stuart/waves/02-24-2024_10:10:00_CCDN.mseed")
+    inventory = read_inventory("/home/stuart/Descargas/CCDN_MF_stream1.xml")
+    st.remove_response(inventory)
+    tr = st[0]
+    tr1 = st[1]
+    tr2 = st[2]
+    tr.filter("bandpass", freqmin=0.05, freqmax=25)
+    tr1.filter("bandpass", freqmin=0.05, freqmax=25)
+    tr2.filter("bandpass", freqmin=0.05, freqmax=25)
+    #tr.remove_response(inventory=inventory)
+    print(tr.stats.station, tr.stats.channel, max(abs((tr.data*980))))
+    print(tr1.stats.station, tr1.stats.channel, max(abs((tr1.data*980))))
+    print(tr2.stats.station, tr2.stats.channel, max(abs((tr2.data*980))))
+
+
 
 
 
@@ -208,7 +221,8 @@ if __name__ == '__main__':
     #print(date)
     #Guarda_waves(listaEstaciones,UTCDateTime("2024-02-24T10:10:00"))
     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
-    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-27T20:11:00")) #enviando una hora fija
+    #datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-24T10:10:00")) #enviando una hora fija
     #conection(datos)
+    prueba()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

@@ -1,0 +1,141 @@
+Index: scrip2.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># This is a sample Python script.\nfrom time import strftime\n\nfrom matplotlib.pyplot import plot\n# Press Mayús+F10 to execute it or replace it with your code.\n# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.\nfrom obspy.clients.fdsn import Client\nfrom obspy import read, UTCDateTime\nfrom obspy import read_inventory\nimport datetime\nimport numpy as np\nimport pymysql\nimport sys\n\n\n\ndef print_hi(name):\n    # Use a breakpoint in the code line below to debug your script.\n    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.\n\n\n#Se crea el objeto cliente FDSN para obtener datos y el inventario\nhost = (\"http://163.178.171.47:8080\")  # Local FDSN client\nclient = Client(host)\n\n#objeto con el el catalogo de las estaciones\nmyNumStations = client.get_stations(network=\"MF\", station=\"*\", level=\"station\")\n\n\n\ndef cantidad_Estaciones(myNumStations):\n    # iterando por el inventario para determinar la cantidad de estaciones\n    numStations = 0\n    for (k, v) in sorted(myNumStations.get_contents().items()):\n        if k == \"stations\":\n            numStations = len(v)  # v termina con el número de estaciones presentes en el inventory\n\n    return numStations\n\ndef lista_Estaciones(numStations, myNumStations):\n    #Lista para guardar los códigos de las estaciones del inventory\n    lista = []\n    #Iterando por el inventory para obtener la lista de estaciones\n    for i in range(numStations):\n        #print(i)\n        if myNumStations.networks[0].stations[i].code == \"CORS\": #definir una sola estacion\n            lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones\n\n    return lista\n\n#guarda los archivos mseed +- 5 minutos del evento dado\ndef Guarda_waves(lista,tiempo):\n    inicio = tiempo - datetime.timedelta(minutes=5)  # resta 5 minutos a la hora fija\n\n    fin = tiempo + datetime.timedelta(minutes=5)  # suma 5 minutos a la hora fija\n\n    for d in range(len(lista)):\n        # for d in range(0,4):\n\n\n        try:  # falla si no hay datos para la estacion en el tiempo dado\n\n            st = client.get_waveforms(\"MF\", lista[d], \"**\", \"HN*\", inicio, fin,\n                                      attach_response=True)\n        except:\n            print(\"No hay datos para la estación \" + lista[d])\n        else:  # de existir datos continua con el calculo\n            #st.merge()\n            # copia para quitar respuesta\n            strNew = st.copy()\n            try:\n                rutaArchivo = \"/home/stuart/waves/\" + tiempo.strftime(\"%m-%d-%Y_%H:%M:%S\") + \"_\" + lista[d] + \".mseed\"\n                # guardar el stream en archivo mseed\n                strNew.write(rutaArchivo, format=\"MSEED\")\n\n            except:\n                print(\"Error en lectura de datos para la estación \" + lista[d])\n\n\n\n\n\ndef calculoPGA(lista,tiempo):\n\n    matriz = []\n\n\n\n    #recorriendo lista para solicitar datos con el código de cada estación\n    for d in range(len(lista)):\n    #for d in range(0,15):\n        #inventory = client.get_stations(network=\"MF\", station=lista[d], level=\"RESP\")\n        datos = []\n\n\n        try:    # falla si no hay datos para la estacion en el tiempo dado\n            #inventario leido de FDSN SEISCOMP\n            #inventory = client.get_stations(network=\"MF\", station=lista[d], level=\"RESP\")\n            #inventario leido de archivo stationXML\n            inventory = read_inventory(\"/home/stuart/Descargas/CCDN.xml\")\n            st = read(\"/home/stuart/waves/\" + tiempo.strftime(\"%m-%d-%Y_%H:%M:%S\") + \"_\" + lista[d] + \".mseed\")\n\n        except:\n            print(\"No hay datos para la estación \"+lista[d])\n        else:    #de existir datos continua con el calculo\n            st.merge()\n            #copia para quitar respuesta\n            strNew =st.copy()\n            #copia cruda\n            stRaw = st.copy()\n            try:\n                strNew.detrend(\"demean\")\n                strNew.detrend(\"linear\")\n                strNew = strNew.remove_response(inventory,output=\"ACC\")\n\n            except:\n                print(\"Error en lectura de datos para la estación \"+lista[d])\n            else:\n                #string con la ruta del archivo para referenciar en base de datos\n                rutaArchivo =\"/home/stuart/waves/\"+tiempo.strftime(\"%m-%d-%Y_%H:%M:%S\")+\"_\"+lista[d]+\".mseed\"\n                rutaArchivoProcesado = \"/home/stuart/waves/\" + tiempo.strftime(\"%m-%d-%Y_%H:%M:%S\") + \"_\" + lista[d] + \"_ProcesadoNEW.mseed\"\n                # guardar el stream en archivo mseed\n                strNew.write(rutaArchivoProcesado,format=\"MSEED\")\n\n\n                #Iteracion para filtrar e imprimir el resultado del pga\n                chan=[]\n\n                for trx in strNew:\n                  #print(trx.stats.station, trx.stats.channel,max(abs(trx.data))*100)\n                  trx.filter(\"bandpass\", freqmin=0.05, freqmax=25)\n                  chan.append(max(abs(trx.data))*100)\n\n                  print(trx.stats.station, trx.stats.channel,abs(max(trx.data))*100)\n\n                try:\n                    coord = inventory.get_coordinates(\"MF.\" + lista[d] + \".00.HNZ\")\n                except:\n                    coord = inventory.get_coordinates(\"MF.\" + lista[d] + \"..HNZ\")\n                datos.append(tiempo.strftime(\"%d/%m/%Y %H:%M:%S\"))\n                datos.append(lista[d])\n                datos.append(coord[\"latitude\"])\n                datos.append(coord[\"longitude\"])\n                try:\n                    datos.append(chan[0])\n                    datos.append(chan[1])\n                    datos.append(chan[2])\n                except:\n                    print(\"Faltan canales para procesar la estación \"+ lista[d])\n                else:\n                    datos.append(rutaArchivo)\n                    matriz.append(datos)\n                    print(\"Datos procesados para la estación \" + lista[d])\n                #print(matriz)\n                #datos[\"hne\"] = chan[0]\n                #datos[\"hnn\"] = chan[1]\n                #datos[\"hnz\"] = chan[2]\n    return matriz\n\n\ndef conection(datos):\n    conn = pymysql.connect(\n        host='localhost',\n        user='stuart',\n        password='jspz2383',\n        db='tabla_pga',\n        charset='utf8mb4',\n        cursorclass=pymysql.cursors.DictCursor\n    )\n\n    try:\n        with (conn.cursor() as cursor):\n            # Create a new record\n            sql = \"INSERT INTO `pga` (`fecha`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`, `rutaWaveform`) VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s)\"\n            #print(values)\n            cursor.executemany(sql,datos)\n\n        # Commit changes\n        conn.commit()\n\n        print(\"PGA guardado en la Base de Datos\")\n    finally:\n        conn.close()\n\n\n\n\n\n\n    #response = tr1.stats.response\n    #sensi = tr1.stats.response.instrument_sensitivity.value\n    #in_unit = tr1.stats.response.instrument_sensitivity.input_units\n    #print(in_unit)\n    #response.plot(0.001,output=\"ACC\")\n    #st.plot()\n\n\n\n# Press the green button in the gutter to run the script.\nif __name__ == '__main__':\n    #print_hi('PyCharm')\n    numStations = cantidad_Estaciones(myNumStations)\n    listaEstaciones = lista_Estaciones(numStations,myNumStations)\n    #date = sys.argv[1]\n    #print(date)\n    #Guarda_waves(listaEstaciones,UTCDateTime(\"2024-02-24T10:10:00\"))\n    #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro\n    datos=calculoPGA(listaEstaciones,UTCDateTime(\"2024-02-24T10:10:00\")) #enviando una hora fija\n    #conection(datos)\n\n# See PyCharm help at https://www.jetbrains.com/help/pycharm/\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/scrip2.py b/scrip2.py
+--- a/scrip2.py	(revision cccda3afd2563f8b9a1e5ea06e07e3f79ad955bb)
++++ b/scrip2.py	(date 1709054983009)
+@@ -43,7 +43,7 @@
+     #Iterando por el inventory para obtener la lista de estaciones
+     for i in range(numStations):
+         #print(i)
+-        if myNumStations.networks[0].stations[i].code == "CORS": #definir una sola estacion
++        if myNumStations.networks[0].stations[i].code == "CCDN": #definir una sola estacion
+             lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
+ 
+     return lista
+@@ -84,20 +84,19 @@
+ 
+     matriz = []
+ 
+-
+-
+     #recorriendo lista para solicitar datos con el código de cada estación
+     for d in range(len(lista)):
+     #for d in range(0,15):
+         #inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
+         datos = []
++        inventory = read_inventory("/home/stuart/Descargas/CCDN_MF_stream1.xml")
+ 
+ 
+         try:    # falla si no hay datos para la estacion en el tiempo dado
+             #inventario leido de FDSN SEISCOMP
+             #inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
+             #inventario leido de archivo stationXML
+-            inventory = read_inventory("/home/stuart/Descargas/CCDN.xml")
++            #inventory = read_inventory("/home/stuart/Descargas/CCDN.xml")
+             st = read("/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed")
+ 
+         except:
+@@ -111,7 +110,7 @@
+             try:
+                 strNew.detrend("demean")
+                 strNew.detrend("linear")
+-                strNew = strNew.remove_response(inventory,output="ACC")
++                strNew = strNew.remove_response(inventory,output="ACC", plot=True)
+ 
+             except:
+                 print("Error en lectura de datos para la estación "+lista[d])
+@@ -133,14 +132,11 @@
+ 
+                   print(trx.stats.station, trx.stats.channel,abs(max(trx.data))*100)
+ 
+-                try:
+-                    coord = inventory.get_coordinates("MF." + lista[d] + ".00.HNZ")
+-                except:
+-                    coord = inventory.get_coordinates("MF." + lista[d] + "..HNZ")
++
+                 datos.append(tiempo.strftime("%d/%m/%Y %H:%M:%S"))
+                 datos.append(lista[d])
+-                datos.append(coord["latitude"])
+-                datos.append(coord["longitude"])
++                #datos.append(coord["latitude"])
++                #datos.append(coord["longitude"])
+                 try:
+                     datos.append(chan[0])
+                     datos.append(chan[1])
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"AutoImportSettings\">\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\n  </component>\n  <component name=\"ChangeListManager\">\n    <list default=\"true\" id=\"7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89\" name=\"Changes\" comment=\"scrip recive parametros por linea de comandos\">\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/Full.png\" beforeDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/main.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/main.py\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/myplot.png\" beforeDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/myplotE.png\" beforeDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/myplotN.png\" beforeDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/myplotZ.png\" beforeDir=\"false\" />\n    </list>\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\n  </component>\n  <component name=\"Git.Settings\">\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\n  </component>\n  <component name=\"MarkdownSettingsMigration\">\n    <option name=\"stateVersion\" value=\"1\" />\n  </component>\n  <component name=\"ProblemsViewState\">\n    <option name=\"selectedTabId\" value=\"ProjectErrors\" />\n  </component>\n  <component name=\"ProjectColorInfo\">{\n  &quot;associatedIndex&quot;: 3\n}</component>\n  <component name=\"ProjectId\" id=\"2bmamzLmrNvqOa8fySJjDlC33OT\" />\n  <component name=\"ProjectLevelVcsManager\" settingsEditedManually=\"true\" />\n  <component name=\"ProjectViewState\">\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\n    <option name=\"showLibraryContents\" value=\"true\" />\n  </component>\n  <component name=\"PropertiesComponent\">{\n  &quot;keyToString&quot;: {\n    &quot;Python.main.executor&quot;: &quot;Run&quot;,\n    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\n    &quot;git-widget-placeholder&quot;: &quot;master&quot;,\n    &quot;last_opened_file_path&quot;: &quot;/home/stuart/PycharmProjects/pythonProject1&quot;,\n    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,\n    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,\n    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,\n    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,\n    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,\n    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;\n  }\n}</component>\n  <component name=\"RunManager\">\n    <configuration name=\"main\" type=\"PythonConfigurationType\" factoryName=\"Python\" nameIsGenerated=\"true\">\n      <module name=\"pythonProject1\" />\n      <option name=\"ENV_FILES\" value=\"\" />\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\n      <option name=\"PARENT_ENVS\" value=\"true\" />\n      <envs>\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\n      </envs>\n      <option name=\"SDK_HOME\" value=\"\" />\n      <option name=\"WORKING_DIRECTORY\" value=\"$PROJECT_DIR$\" />\n      <option name=\"IS_MODULE_SDK\" value=\"true\" />\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" runner=\"coverage.py\" />\n      <option name=\"SCRIPT_NAME\" value=\"$PROJECT_DIR$/main.py\" />\n      <option name=\"PARAMETERS\" value=\"\" />\n      <option name=\"SHOW_COMMAND_LINE\" value=\"false\" />\n      <option name=\"EMULATE_TERMINAL\" value=\"false\" />\n      <option name=\"MODULE_MODE\" value=\"false\" />\n      <option name=\"REDIRECT_INPUT\" value=\"false\" />\n      <option name=\"INPUT_FILE\" value=\"\" />\n      <method v=\"2\" />\n    </configuration>\n  </component>\n  <component name=\"SharedIndexes\">\n    <attachedChunks>\n      <set>\n        <option value=\"bundled-python-sdk-5a2391486177-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13763.11\" />\n      </set>\n    </attachedChunks>\n  </component>\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\n  <component name=\"TaskManager\">\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\n      <changelist id=\"7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89\" name=\"Changes\" comment=\"\" />\n      <created>1706822870944</created>\n      <option name=\"number\" value=\"Default\" />\n      <option name=\"presentableId\" value=\"Default\" />\n      <updated>1706822870944</updated>\n      <workItem from=\"1706822872845\" duration=\"56354000\" />\n      <workItem from=\"1708009370628\" duration=\"1228000\" />\n      <workItem from=\"1708093107301\" duration=\"26577000\" />\n    </task>\n    <task id=\"LOCAL-00001\" summary=\"Scrip de prueba versión 1\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1707161572367</created>\n      <option name=\"number\" value=\"00001\" />\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1707161572367</updated>\n    </task>\n    <task id=\"LOCAL-00002\" summary=\"Scrip de prueba versión 2\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1707168819127</created>\n      <option name=\"number\" value=\"00002\" />\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1707168819127</updated>\n    </task>\n    <task id=\"LOCAL-00003\" summary=\"Scrip de prueba versión 3, guarda a base de datos\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1707426987502</created>\n      <option name=\"number\" value=\"00003\" />\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1707426987502</updated>\n    </task>\n    <task id=\"LOCAL-00004\" summary=\"Scrip de prueba versión 4,conectando con php\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1707514681998</created>\n      <option name=\"number\" value=\"00004\" />\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1707514681998</updated>\n    </task>\n    <task id=\"LOCAL-00005\" summary=\"scrip recive parametros por linea de comandos\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1707759177723</created>\n      <option name=\"number\" value=\"00005\" />\n      <option name=\"presentableId\" value=\"LOCAL-00005\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1707759177723</updated>\n    </task>\n    <task id=\"LOCAL-00006\" summary=\"scrip recive parametros por linea de comandos\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1708448645555</created>\n      <option name=\"number\" value=\"00006\" />\n      <option name=\"presentableId\" value=\"LOCAL-00006\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1708448645555</updated>\n    </task>\n    <task id=\"LOCAL-00007\" summary=\"scrip recive parametros por linea de comandos\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1708694844630</created>\n      <option name=\"number\" value=\"00007\" />\n      <option name=\"presentableId\" value=\"LOCAL-00007\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1708694844630</updated>\n    </task>\n    <option name=\"localTasksCounter\" value=\"8\" />\n    <servers />\n  </component>\n  <component name=\"TypeScriptGeneratedFilesManager\">\n    <option name=\"version\" value=\"3\" />\n  </component>\n  <component name=\"VcsManagerConfiguration\">\n    <MESSAGE value=\"Scrip de prueba versión 1\" />\n    <MESSAGE value=\"Scrip de prueba versión 2\" />\n    <MESSAGE value=\"Scrip de prueba versión 3, guarda a base de datos\" />\n    <MESSAGE value=\"Scrip de prueba versión 4,conectando con php\" />\n    <MESSAGE value=\"scrip recive parametros por linea de comandos\" />\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"scrip recive parametros por linea de comandos\" />\n  </component>\n  <component name=\"XDebuggerManager\">\n    <breakpoint-manager>\n      <breakpoints>\n        <line-breakpoint enabled=\"true\" suspend=\"THREAD\" type=\"python-line\">\n          <url>file://$PROJECT_DIR$/main.py</url>\n          <line>18</line>\n          <option name=\"timeStamp\" value=\"1\" />\n        </line-breakpoint>\n      </breakpoints>\n    </breakpoint-manager>\n  </component>\n  <component name=\"com.intellij.coverage.CoverageDataManagerImpl\">\n    <SUITE FILE_PATH=\"coverage/pythonProject1$main.coverage\" NAME=\"main Coverage Results\" MODIFIED=\"1709051949549\" SOURCE_PROVIDER=\"com.intellij.coverage.DefaultCoverageFileProvider\" RUNNER=\"coverage.py\" COVERAGE_BY_TEST_ENABLED=\"true\" COVERAGE_TRACING_ENABLED=\"false\" WORKING_DIRECTORY=\"$PROJECT_DIR$\" />\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision cccda3afd2563f8b9a1e5ea06e07e3f79ad955bb)
++++ b/.idea/workspace.xml	(date 1709212401316)
+@@ -4,14 +4,9 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="scrip recive parametros por linea de comandos">
++    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="modificaciones varias, otros scrips de uso 27 2">
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/Full.png" beforeDir="false" />
+-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/myplot.png" beforeDir="false" />
+-      <change beforePath="$PROJECT_DIR$/myplotE.png" beforeDir="false" />
+-      <change beforePath="$PROJECT_DIR$/myplotN.png" beforeDir="false" />
+-      <change beforePath="$PROJECT_DIR$/myplotZ.png" beforeDir="false" />
++      <change beforePath="$PROJECT_DIR$/scrip2.py" beforeDir="false" afterPath="$PROJECT_DIR$/scrip2.py" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+@@ -93,7 +88,7 @@
+       <updated>1706822870944</updated>
+       <workItem from="1706822872845" duration="56354000" />
+       <workItem from="1708009370628" duration="1228000" />
+-      <workItem from="1708093107301" duration="26577000" />
++      <workItem from="1708093107301" duration="29357000" />
+     </task>
+     <task id="LOCAL-00001" summary="Scrip de prueba versión 1">
+       <option name="closed" value="true" />
+@@ -151,7 +146,15 @@
+       <option name="project" value="LOCAL" />
+       <updated>1708694844630</updated>
+     </task>
+-    <option name="localTasksCounter" value="8" />
++    <task id="LOCAL-00008" summary="modificaciones varias, otros scrips de uso 27 2">
++      <option name="closed" value="true" />
++      <created>1709053285684</created>
++      <option name="number" value="00008" />
++      <option name="presentableId" value="LOCAL-00008" />
++      <option name="project" value="LOCAL" />
++      <updated>1709053285684</updated>
++    </task>
++    <option name="localTasksCounter" value="9" />
+     <servers />
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+@@ -163,7 +166,8 @@
+     <MESSAGE value="Scrip de prueba versión 3, guarda a base de datos" />
+     <MESSAGE value="Scrip de prueba versión 4,conectando con php" />
+     <MESSAGE value="scrip recive parametros por linea de comandos" />
+-    <option name="LAST_COMMIT_MESSAGE" value="scrip recive parametros por linea de comandos" />
++    <MESSAGE value="modificaciones varias, otros scrips de uso 27 2" />
++    <option name="LAST_COMMIT_MESSAGE" value="modificaciones varias, otros scrips de uso 27 2" />
+   </component>
+   <component name="XDebuggerManager">
+     <breakpoint-manager>
+@@ -177,6 +181,6 @@
+     </breakpoint-manager>
+   </component>
+   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+-    <SUITE FILE_PATH="coverage/pythonProject1$main.coverage" NAME="main Coverage Results" MODIFIED="1709051949549" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
++    <SUITE FILE_PATH="coverage/pythonProject1$main.coverage" NAME="main Coverage Results" MODIFIED="1709053323329" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+   </component>
+ </project>
+\ No newline at end of file
