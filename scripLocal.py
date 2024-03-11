@@ -116,7 +116,8 @@ def calculoPGA(lista,tiempo):
                 strNew.detrend("demean")
                 #stRaw.detrend("linear")
 
-                strNew = strNew.remove_response(inventory, output ="ACC")
+                strNew = strNew.remove_response(inventory, output="ACC")
+                print("Output en Aceleración")
                 #stRaw.detrend("demean")
                 #stRaw.detrend("linear")
             except:
@@ -142,14 +143,11 @@ def calculoPGA(lista,tiempo):
                   print(trx.stats.station, trx.stats.location, trx.stats.channel, max(abs(trx.data*980)))
                   print("PURO " +trx.stats.station, trx.stats.location, trx.stats.channel, max(abs(trx.data)))
 
-                try:
-                    coord = inventory.get_coordinates("MF." + lista[d] + ".00.HNZ")
-                except:
-                    coord = inventory.get_coordinates("MF." + lista[d] + "..HNZ")
+
+
                 datos.append(tiempo.strftime("%d/%m/%Y %H:%M:%S"))
                 datos.append(lista[d])
-                datos.append(coord["latitude"])
-                datos.append(coord["longitude"])
+
                 try:
                     datos.append(chan[0])
                     datos.append(chan[1])
@@ -222,9 +220,9 @@ if __name__ == '__main__':
     listaEstaciones = lista_Estaciones(numStations,myNumStations)
     #date = sys.argv[1]
     #print(date)
-    Guarda_waves(listaEstaciones,UTCDateTime("2024-03-11T03:48:00"))
+    Guarda_waves(listaEstaciones,UTCDateTime("2024-03-11T20:07:00"))
     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
-    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-03-11T03:48:00")) #enviando una hora fija
+    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-03-11T20:07:00")) #enviando una hora fija
     #conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

@@ -43,7 +43,7 @@ def lista_Estaciones(numStations, myNumStations):
     #Iterando por el inventory para obtener la lista de estaciones
     for i in range(numStations):
         #print(i)
-        if myNumStations.networks[0].stations[i].code == "CPAR": #definir una sola estacion
+        if myNumStations.networks[0].stations[i].code == "CTEC": #definir una sola estacion
             lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
     return lista
 
@@ -63,6 +63,8 @@ def calculoPGA(lista,tiempo):
     #for d in range(0,4):
         #inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
         datos = []
+        column1, column2, column3 = [], [], []
+        g = 980.665
 
 
 
@@ -70,67 +72,53 @@ def calculoPGA(lista,tiempo):
             inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
             st = client.get_waveforms("MF", lista[d], "", "HN*", inicio, fin,
                                       attach_response=True)
-            coord = inventory.get_coordinates("MF." + lista[d] + "..HNZ")
+            #coord = inventory.get_coordinates("MF." + lista[d] + "..HNZ")
+            st.merge()
 
         except:
             print("No hay datos para la estación "+lista[d])
         else:    #de existir datos continua con el calculo
-            st.merge()
-            #copia para quitar respuesta
-            strNew =st.copy()
-            #copia cruda
-            stRaw = st.copy()
-            try:
-                strNew.detrend("demean")
-                strNew = strNew.remove_response(inventory,output="ACC")
-                #stRaw.detrend("demean")
-                #stRaw.detrend("linear")
-            except:
-                print("Error en lectura de datos para la estación "+lista[d])
-            else:
-                #string con la ruta del archivo para referenciar en base de datos
-                rutaArchivo ="/home/stuart/waves/"+tiempo.strftime("%m-%d-%Y_%H:%M:%S")+"_"+lista[d]+".mseed"
-                #rutaArchivoRaw = "/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + "RAW.mseed"
-                # guardar el stream en archivo mseed
-                strNew.write(rutaArchivo,format="MSEED")
-                #stRaw.write(rutaArchivoRaw, format="MSEED")
-                #datos["estaciones"] = lista[d]
-                #datos["latitud"] = coord["latitude"]
-                #datos["longitud"] = coord["longitude"]
-                #tr1 = strNew[0]
-                #tr1filter=tr1.copy()
-                #tr1.plot()
-                #tr1filter = tr1filter.filter("bandpass", freqmin=0.05, freqmax=25)
-                #tr1filter.plot()
-                #sta_id = tr1.get_id()
+            for tr in st:
+                sta_id = tr.get_id()
+                sensi = tr.stats.response.instrument_sensitivity.value
+                in_unit = tr.stats.response.instrument_sensitivity.input_units
+                if isinstance(tr.data, np.ma.core.MaskedArray):
+                    st_umask = tr.split()
+                    a = []
+                    for tr1 in st_umask:
+                        tr1.detrend("demean")
+                        tr1.detrend("linear")
+                        if in_unit == "m/s" or in_unit == "M/S":
+                            tr1.data = np.gradient(tr1.data, tr1.stats.delta)
+                            tr1.remove_sensitivity()
+                            a.append(abs(max(tr1.data)))
+                            amax = max(a)
 
-                #Iteracion para filtrar e imprimir el resultado del pga
-                chan=[]
-                for tRaw in stRaw:
-                    #tRaw.detrend("demean")
-                    #tRaw.detrend("linear")
-                    print(tRaw.stats.station, tRaw.stats.channel,max(abs(tRaw.data)))
-                    #tRaw.plot()
-                stRaw.plot()
-                for trx in strNew:
-                  trx.filter("bandpass", freqmin=0.05, freqmax=25)
-                  chan.append(max(abs(trx.data)))
+                        elif in_unit == "m/s**2" or "M/S**2":
+                            tr1.remove_sensitivity()
+                            a.append(abs(max(tr1.data)))
+                            amax = max(a)
+                    column1.append(sta_id)
+                    column2.append(amax*100)           ## cm/s**2
+                    column3.append(amax*100/g)               ## g
+                else:
+                    if in_unit == "m/s" or in_unit == "M/S":
+                        tr.detrend("demean")
+                        tr.detrend("linear")
+                        tr.data = np.gradient(tr.data, tr.stats.delta)
+                        tr.remove_sensitivity()
+                        amax = abs(max(tr.data))
+                    elif in_unit == "m/s**2" or "M/S**2":
+                        tr.detrend("demean")
+                        tr.detrend("linear")
+                        tr.remove_sensitivity()
+                        amax = abs(max(tr.data))
+                    column1.append(sta_id)
+                    column2.append(amax*100 )
+                    column3.append(amax*100/g)
+            dict = {'STATION ID': column1, 'PGA [cm/s**2]': column2, 'PGA [g]': column3}
+            print(dict)
 
-                  #print(trx.stats.station, trx.stats.channel,abs(max(trx.data))*100)
-                print("Datos procesados para la estación "+lista[d])
-                datos.append(tiempo.strftime("%d/%m/%Y %H:%M:%S"))
-                datos.append(lista[d])
-                datos.append(coord["latitude"])
-                datos.append(coord["longitude"])
-                datos.append(chan[0])
-                datos.append(chan[1])
-                datos.append(chan[2])
-                datos.append(rutaArchivo)
-                matriz.append(datos)
-                #print(matriz)
-                #datos["hne"] = chan[0]
-                #datos["hnn"] = chan[1]
-                #datos["hnz"] = chan[2]
     return matriz
 
 
@@ -180,7 +168,7 @@ if __name__ == '__main__':
     #date = sys.argv[1]
     #print(date)
     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
-    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-12T05:55:00")) #enviando una hora fija
+    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-02-27T20:11:00")) #enviando una hora fija
     #conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
