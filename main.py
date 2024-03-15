@@ -114,11 +114,10 @@ def calculoPGA(lista,tiempo):
             stRaw = st.copy()
             try:
                 strNew.detrend("demean")
-                #stRaw.detrend("linear")
 
-                strNew = strNew.remove_response(inventory, output ="ACC")
-                #stRaw.detrend("demean")
-                #stRaw.detrend("linear")
+
+                strNew = strNew.remove_response(inventory)
+
             except:
                 print("Error en lectura de datos para la estación "+lista[d])
             else:
@@ -133,23 +132,22 @@ def calculoPGA(lista,tiempo):
                 chan=[]
 
                 for trx in strNew:
+                    trx.taper(max_percentage=0.05, type="hann")
+                    trx.filter("bandpass", freqmin=0.1, freqmax=10, corners=2)
+                    chan.append(max(abs(trx.data)))
+                    absoluto = abs(trx.data)
+                    maximo = max(absoluto)
+                    print(trx.stats.station, trx.stats.location, trx.stats.channel)
+                    print("MAXIMO " + str(maximo))
 
-                  #print(trx.stats.station, trx.stats.channel,max(abs(trx.data))*100)
-                  trx.filter("bandpass", freqmin=0.05, freqmax=25)
-                  chan.append(max(abs(trx.data*980)))
-
-
-                  print(trx.stats.station, trx.stats.location, trx.stats.channel, max(abs(trx.data*980)))
-                  print("PURO " +trx.stats.station, trx.stats.location, trx.stats.channel, max(abs(trx.data)))
-
-                try:
-                    coord = inventory.get_coordinates("MF." + lista[d] + ".00.HNZ")
-                except:
-                    coord = inventory.get_coordinates("MF." + lista[d] + "..HNZ")
+                #try:
+                    #coord = inventory.get_coordinates("MF." + lista[d] + ".00.HNZ")
+                #except:
+                    #coord = inventory.get_coordinates("MF." + lista[d] + "..HNZ")
                 datos.append(tiempo.strftime("%d/%m/%Y %H:%M:%S"))
                 datos.append(lista[d])
-                datos.append(coord["latitude"])
-                datos.append(coord["longitude"])
+                #datos.append(coord["latitude"])
+                #datos.append(coord["longitude"])
                 try:
                     datos.append(chan[0])
                     datos.append(chan[1])
@@ -222,9 +220,9 @@ if __name__ == '__main__':
     listaEstaciones = lista_Estaciones(numStations,myNumStations)
     #date = sys.argv[1]
     #print(date)
-    Guarda_waves(listaEstaciones,UTCDateTime("2024-03-11T03:48:00"))
+    #Guarda_waves(listaEstaciones,UTCDateTime("2024-03-11T03:48:00"))
     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
-    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-03-11T03:48:00")) #enviando una hora fija
+    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-03-13T18:11:00")) #enviando una hora fija
     #conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

@@ -183,32 +183,17 @@ def conection(datos):
         conn.close()
 
 def prueba():
-    st = read("/home/stuart/waves/02-24-2024_10:10:00_CCDN.mseed")
-    inventory = read_inventory("/home/stuart/Descargas/CCDN_MF_stream1.xml")
-    st.remove_response(inventory)
-    tr = st[0]
-    tr1 = st[1]
-    tr2 = st[2]
-    tr.filter("bandpass", freqmin=0.05, freqmax=25)
-    tr1.filter("bandpass", freqmin=0.05, freqmax=25)
-    tr2.filter("bandpass", freqmin=0.05, freqmax=25)
-    #tr.remove_response(inventory=inventory)
-    print(tr.stats.station, tr.stats.channel, max(abs((tr.data*980))))
-    print(tr1.stats.station, tr1.stats.channel, max(abs((tr1.data*980))))
-    print(tr2.stats.station, tr2.stats.channel, max(abs((tr2.data*980))))
+    st = read("/home/stuart/waves/local/03-13-2024_18:11:00_RABO.mseed")
+    inventory = read_inventory("/home/stuart/waves/local/respuestas/RaboStation.xml")
+    st.remove_response(inventory, output="ACC")
+    for trx in st:
+        trx.taper(max_percentage=0.05, type="hann")
+        trx.filter("bandpass", freqmin=0.1, freqmax=10, corners=2)
+        absoluto = abs(trx.data)
+        maximo = max(absoluto)
+        print(trx.stats.station, trx.stats.location, trx.stats.channel)
+        print("MAXIMO " + str(maximo))
 
-
-
-
-
-
-
-    #response = tr1.stats.response
-    #sensi = tr1.stats.response.instrument_sensitivity.value
-    #in_unit = tr1.stats.response.instrument_sensitivity.input_units
-    #print(in_unit)
-    #response.plot(0.001,output="ACC")
-    #st.plot()
 
 
 
