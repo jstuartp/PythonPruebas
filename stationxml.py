@@ -31,24 +31,24 @@ def creaXML():
         code="MF",
         # A list of stations. We'll add one later.
         stations=[],
-        description="NANOMETRICS.",
+        description="GURALP.",
         # Start-and end dates are optional.
         start_date=obspy.UTCDateTime(2016, 1, 2))
 
     sta = Station(
         # This is the station code according to the SEED standard.
-        code="RABO",
+        code="CCDN",
         latitude=9.936464,
         longitude=9.936464,
         elevation=1268.0,
         creation_date=obspy.UTCDateTime(2016, 1, 2),
-        site=Site(name="Nano pruebas"))
+        site=Site(name="Guralp pruebas"))
 
     chaZ = Channel(
         # This is the channel code according to the SEED standard.
         code="HNZ",
         # This is the location code according to the SEED standard.
-        location_code="",
+        location_code="00",
         # Note that these coordinates can differ from the station coordinates.
         latitude=9.936464,
         longitude=9.936464,
@@ -61,7 +61,7 @@ def creaXML():
         # This is the channel code according to the SEED standard.
         code="HNN",
         # This is the location code according to the SEED standard.
-        location_code="",
+        location_code="00",
         # Note that these coordinates can differ from the station coordinates.
         latitude=9.936464,
         longitude=9.936464,
@@ -74,7 +74,7 @@ def creaXML():
         # This is the channel code according to the SEED standard.
         code="HNE",
         # This is the location code according to the SEED standard.
-        location_code="",
+        location_code="00",
         # Note that these coordinates can differ from the station coordinates.
         latitude=9.936464,
         longitude=9.936464,
@@ -98,10 +98,15 @@ def creaXML():
         sensor_keys=['Streckeisen', 'STS-1', '360 s'],
         datalogger_keys=['REFTEK', '130-SMA', '1', '200 Hz'])
     print(response)
-    """
+    
     response = nrl.get_response(
         sensor_keys=['Nanometrics', 'Titan', '4g','20Vp','Differential','430 Hz','0.510'],
         datalogger_keys=['Nanometrics', 'TitanSMA','200 Hz','0.001','Linear'])
+    print(response)
+    """
+    response = nrl.get_response(
+        sensor_keys=['Guralp', 'CMG-5T', '200 Hz'] ,
+        datalogger_keys=['Guralp', 'CMG-DM24-Mk3-Fixed', '19', '1000-200-100-50-25-5', '200 Hz'])
     print(response)
 
 
@@ -120,7 +125,7 @@ def creaXML():
     #
     # Note that it is also possible to serialize to any of the other inventory
     # output formats ObsPy supports.
-    inv.write("/home/stuart/waves/local/respuestas/RaboStation.xml", format="stationxml", validate=True)
+    inv.write("/home/stuart/waves/local/respuestas/CCDNStation.xml", format="stationxml", validate=True)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':

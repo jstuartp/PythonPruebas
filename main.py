@@ -139,6 +139,8 @@ def calculoPGA(lista,tiempo):
                     maximo = max(absoluto)
                     print(trx.stats.station, trx.stats.location, trx.stats.channel)
                     print("MAXIMO " + str(maximo))
+                    #guardando la grafica del canal ya procesado
+                    #trx.write("/home/stuart/waves/local/traces/conAcc/Seiscomp_"+trx.stats.station+"_"+trx.stats.channel+".mseed")
 
                 #try:
                     #coord = inventory.get_coordinates("MF." + lista[d] + ".00.HNZ")
@@ -220,9 +222,9 @@ if __name__ == '__main__':
     listaEstaciones = lista_Estaciones(numStations,myNumStations)
     #date = sys.argv[1]
     #print(date)
-    #Guarda_waves(listaEstaciones,UTCDateTime("2024-03-11T03:48:00"))
+    #Guarda_waves(listaEstaciones,UTCDateTime("2024-03-16T13:54:10"))
     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
-    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-03-13T18:11:00")) #enviando una hora fija
+    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-03-16T13:54:10")) #enviando una hora fija
     #conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
