@@ -8,6 +8,7 @@ from obspy.clients.fdsn import Client
 from obspy import read, UTCDateTime
 from obspy import read_inventory
 import datetime
+import pywhatkit
 import numpy as np
 import pymysql
 import sys
@@ -23,6 +24,7 @@ def print_hi(name):
 host = ("http://163.178.171.47:8080")  # SEISCOMP servidor Virtual
 #host = ("http://localhost:8080")  # SEISCOMP computadora local
 client = Client(host)
+pywhatkit.sendwhatmsg_instantly("+50683110241", "Hola")
 
 #objeto con el el catalogo de las estaciones
 myNumStations = client.get_stations(network="MF", station="*", level="station")
@@ -246,7 +248,7 @@ if __name__ == '__main__':
     #print(date)
     #Guarda_waves(listaEstaciones,UTCDateTime("2024-04-17T21:21:56"))
     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
-    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-04-17T21:21:56")) #enviando una hora fija
+    #datos=calculoPGA(listaEstaciones,UTCDateTime("2024-04-17T21:21:56")) #enviando una hora fija
     #conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

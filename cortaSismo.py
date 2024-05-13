@@ -28,23 +28,6 @@ def print_hi(name):
 
 
 
-#objeto con el el catalogo de las estaciones
-
-
-    #print(networks[1].stations[0].code)
-
-
-def lista_Estaciones(numStations, myNumStations):
-    #Lista para guardar los códigos de las estaciones del inventory
-    lista = []
-    #Iterando por el inventory para obtener la lista de estaciones
-    for i in range(numStations):
-        a = myNumStations.networks
-
-        #if myNumStations.networks[0].stations[i].code == "GNYH": #definir una sola estacion
-            #lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
-
-    return lista
 
 #guarda los archivos mseed +- 5 minutos del evento dado
 def Guarda_waves(tiempo):
@@ -52,7 +35,6 @@ def Guarda_waves(tiempo):
 
     fin = tiempo + datetime.timedelta(minutes=5)  # suma 5 minutos a la hora fija
     lista = []
-
 
     for n in range(len(networks)):
         #print(total[n].code)
@@ -75,32 +57,6 @@ def Guarda_waves(tiempo):
 
                 except:
                     print("Error en lectura de datos para la estación " + total.networks[n].stations[s].code)
-
-
-
-
-
-"""""
-        try:  # falla si no hay datos para la estacion en el tiempo dado
-
-            st = client.get_waveforms("MF", lista[d], "**", "HN*", inicio, fin,                                      attach_response=True)
-        except:
-            #print("No hay datos para la estación " + lista[d])
-        else:  # de existir datos continua con el calculo
-            st.merge()
-            # copia para quitar respuesta
-            strNew = st.copy()
-            try:
-                rutaArchivo = "/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed"
-                # guardar el stream en archivo mseed
-                strNew.write(rutaArchivo, format="MSEED")
-
-            except:
-                #print("Error en lectura de datos para la estación " + lista[d])
-
-"""
-
-
 
 
 def conection(datos):
