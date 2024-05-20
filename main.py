@@ -13,6 +13,9 @@ import numpy as np
 import pymysql
 import sys
 
+#constantes
+red ="MF" #define el nombre de la red a procesar
+ruta ="/home/stuart/waves/18_05/"
 
 
 def print_hi(name):
@@ -24,10 +27,10 @@ def print_hi(name):
 host = ("http://163.178.171.47:8080")  # SEISCOMP servidor Virtual
 #host = ("http://localhost:8080")  # SEISCOMP computadora local
 client = Client(host)
-pywhatkit.sendwhatmsg_instantly("+50683110241", "Hola")
+#pywhatkit.sendwhatmsg_instantly("+50683110241", "Hola")
 
 #objeto con el el catalogo de las estaciones
-myNumStations = client.get_stations(network="MF", station="*", level="station")
+myNumStations = client.get_stations(network=red, station="*", level="station")
 
 
 
@@ -46,7 +49,7 @@ def lista_Estaciones(numStations, myNumStations):
     #Iterando por el inventory para obtener la lista de estaciones
     for i in range(numStations):
         #print(i)
-        #if myNumStations.networks[0].stations[i].code == "GNYH": #definir una sola estacion
+        if myNumStations.networks[0].stations[i].code == "SUNL": #definir una sola estacion
             lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
 
     return lista
@@ -63,7 +66,7 @@ def Guarda_waves(lista,tiempo):
 
         try:  # falla si no hay datos para la estacion en el tiempo dado
 
-            st = client.get_waveforms("MF", lista[d], "**", "HN*", inicio, fin,
+            st = client.get_waveforms(red, lista[d], "**", "HN*", inicio, fin,
                                       attach_response=True)
         except:
             print("No hay datos para la estación " + lista[d])
@@ -72,7 +75,7 @@ def Guarda_waves(lista,tiempo):
             # copia para quitar respuesta
             strNew = st.copy()
             try:
-                rutaArchivo = "/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed"
+                rutaArchivo = ruta + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed"
                 # guardar el stream en archivo mseed
                 strNew.write(rutaArchivo, format="MSEED")
 
@@ -100,10 +103,10 @@ def calculoPGA(lista,tiempo):
 
 
         try:    # falla si no hay datos para la estacion en el tiempo dado
-            inventory = client.get_stations(network="MF", station=lista[d], level="RESP")
+            inventory = client.get_stations(network= red, station=lista[d], level="RESP")
             #st = client.get_waveforms("MF", lista[d], "**", "HN*", inicio, fin,
                                     #  attach_response=True)
-            st = read("/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed", attach_response=True)
+            st = read(ruta + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed", attach_response=True)
 
 
 
@@ -125,8 +128,8 @@ def calculoPGA(lista,tiempo):
                 print("Error en lectura de datos para la estación "+lista[d])
             else:
                 #string con la ruta del archivo para referenciar en base de datos
-                rutaArchivo ="/home/stuart/waves/"+tiempo.strftime("%m-%d-%Y_%H:%M:%S")+"_"+lista[d]+".mseed"
-                rutaArchivoProcesado = "/home/stuart/waves/" + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + "_Procesado.mseed"
+                rutaArchivo =ruta+tiempo.strftime("%m-%d-%Y_%H:%M:%S")+"_"+lista[d]+".mseed"
+                rutaArchivoProcesado = ruta + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + "_Procesado.mseed"
                 # guardar el stream en archivo mseed
                 #strNew.write(rutaArchivoProcesado,format="MSEED")
 
@@ -139,8 +142,8 @@ def calculoPGA(lista,tiempo):
                         trx.detrend("demean")
                         trx.detrend("linear")
                         trx.taper(max_percentage=0.05, type="hann")
-                        trx.filter("bandpass", freqmin=0.1, freqmax=10, corners=2)
-                        trx = trx.remove_response(inventory)
+                        trx.filter("bandpass", freqmin=0.05, freqmax=25, corners=2) #Filtro estandar para el LIS
+                        trx = trx.remove_response(inventory, output="ACC")
                         absoluto = abs(trx.data)
                         maximo = max(absoluto)
 
@@ -152,7 +155,7 @@ def calculoPGA(lista,tiempo):
                             tr1.detrend("linear")
                             tr1.taper(max_percentage=0.05, type="hann")
                             tr1.filter("bandpass", freqmin=0.1, freqmax=10, corners=2)
-                            tr1 = tr1.remove_response(inventory)
+                            tr1 = tr1.remove_response(inventory, output="ACC")
                             a.append(abs(max(tr1.data)))
                             maximo = max(a)
                             print("TENGO GAPS")
@@ -164,12 +167,12 @@ def calculoPGA(lista,tiempo):
                     print(str(maximo))
 
                 try:
-                    coord = inventory.get_coordinates("MF." + lista[d] + ".00.HNZ")
+                    coord = inventory.get_coordinates(red+"." + lista[d] + ".00.HNZ")
                 except:
                     try:
-                        coord = inventory.get_coordinates("MF." + lista[d] + ".11.HNZ")
+                        coord = inventory.get_coordinates(red+"." + lista[d] + ".11.HNZ")
                     except:
-                        coord = inventory.get_coordinates("MF." + lista[d] + "..HNZ")
+                        coord = inventory.get_coordinates(red+"." + lista[d] + "..HNZ")
                 datos.append(tiempo.strftime("%d/%m/%Y %H:%M:%S"))
                 datos.append(lista[d])
                 datos.append(coord["latitude"])
@@ -246,9 +249,9 @@ if __name__ == '__main__':
     listaEstaciones = lista_Estaciones(numStations,myNumStations)
     #date = sys.argv[1]
     #print(date)
-    #Guarda_waves(listaEstaciones,UTCDateTime("2024-04-17T21:21:56"))
+    Guarda_waves(listaEstaciones,UTCDateTime("2024-05-18T17:20:40"))
     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
-    #datos=calculoPGA(listaEstaciones,UTCDateTime("2024-04-17T21:21:56")) #enviando una hora fija
+    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-05-18T17:20:40")) #enviando una hora fija
     #conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
