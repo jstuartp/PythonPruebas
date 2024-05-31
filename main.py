@@ -49,7 +49,7 @@ def lista_Estaciones(numStations, myNumStations):
     #Iterando por el inventory para obtener la lista de estaciones
     for i in range(numStations):
         #print(i)
-        if myNumStations.networks[0].stations[i].code == "SUNL": #definir una sola estacion
+        if myNumStations.networks[0].stations[i].code == "PLPM": #definir una sola estacion
             lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
 
     return lista
@@ -249,9 +249,9 @@ if __name__ == '__main__':
     listaEstaciones = lista_Estaciones(numStations,myNumStations)
     #date = sys.argv[1]
     #print(date)
-    Guarda_waves(listaEstaciones,UTCDateTime("2024-05-18T17:20:40"))
+    Guarda_waves(listaEstaciones,UTCDateTime("2024-05-25T20:11:00"))
     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
-    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-05-18T17:20:40")) #enviando una hora fija
+    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-05-25T20:11:00")) #enviando una hora fija
     #conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
