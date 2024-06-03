@@ -314,7 +314,7 @@ class EventListener(client.Application):
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
-        """"
+        """
 
         try:
             with (conn.cursor() as cursor):

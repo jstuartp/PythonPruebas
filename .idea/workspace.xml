@@ -4,8 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="cambios 31/5&#10;La carpeta seiscomp tiene los scrips que si funcionan">
-      <change afterPath="$PROJECT_DIR$/seiscomp/calculaPGA.py" afterDir="false" />
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="Lunes 3 junio, agregado procesamiento PGA y base de datos">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/seiscomp/sccortawaves" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/sccortawaves" afterDir="false" />
     </list>
@@ -117,7 +116,7 @@
       <workItem from="1716222108613" duration="42363000" />
       <workItem from="1717162494185" duration="7785000" />
       <workItem from="1717185180007" duration="3267000" />
-      <workItem from="1717421077233" duration="16574000" />
+      <workItem from="1717421077233" duration="17568000" />
     </task>
     <task id="LOCAL-00001" summary="Scrip de prueba versión 1">
       <option name="closed" value="true" />
@@ -231,7 +230,15 @@
       <option name="project" value="LOCAL" />
       <updated>1717185337985</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Lunes 3 junio, agregado procesamiento PGA y base de datos">
+      <option name="closed" value="true" />
+      <created>1717444607471</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1717444607471</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -249,7 +256,8 @@
     <MESSAGE value="nuevos scripts para cortar waves y otros" />
     <MESSAGE value="cambios 20 del 5" />
     <MESSAGE value="cambios 31/5&#10;La carpeta seiscomp tiene los scrips que si funcionan" />
-    <option name="LAST_COMMIT_MESSAGE" value="cambios 31/5&#10;La carpeta seiscomp tiene los scrips que si funcionan" />
+    <MESSAGE value="Lunes 3 junio, agregado procesamiento PGA y base de datos" />
+    <option name="LAST_COMMIT_MESSAGE" value="Lunes 3 junio, agregado procesamiento PGA y base de datos" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
