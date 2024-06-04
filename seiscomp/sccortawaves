@@ -143,7 +143,7 @@ class EventListener(client.Application):
         now = core.Time.GMT()
 
         matriz = []
-        archivo = open(rutaLog, "a")
+        archivo = open(rutaLogPGA, "a")
         # archivo.write("\n\n\n--EXITO--CALCULANDO PGA PARA NUEVO EVENTO UCR_lis2024kthc") #local
         # archivo.write("\n--EXITO--Fecha del evento 2024-06-0120_33_39_584" ) #local
         archivo.write("\n\n\n--EXITO--CALCULANDO PGA PARA NUEVO EVENTO %s" % event.publicID())
@@ -172,14 +172,14 @@ class EventListener(client.Application):
 
                     st = read(nombreFile, format="mseed")
 
-                    archivo = open(rutaLog, "a")
+                    archivo = open(rutaLogPGA, "a")
                     archivo.write("\n--EXITO--Data read for station %s" % total.networks[n].stations[s].code)
                     archivo.close()
 
 
 
                 except Exception as err:
-                    archivo = open(rutaLog, "a")
+                    archivo = open(rutaLogPGA, "a")
                     archivo.write(
                         "\n--FALLO EN LECTURA--No data or file for station  %s" % total.networks[n].stations[s].code)
                     # archivo.write(f"\nDescripcion del error:  {err.encode('utf-8')}")
@@ -206,7 +206,7 @@ class EventListener(client.Application):
                             trx = trx.remove_response(inventory, output="ACC")
                             absoluto = abs(trx.data)
                             maximo = max(absoluto)
-                            archivo = open(rutaLog, "a")
+                            archivo = open(rutaLogPGA, "a")
                             archivo.write(
                                 "\n--EXITO---------Processing Channel %s" % trx.stats.channel)
                             archivo.close()
@@ -260,26 +260,21 @@ class EventListener(client.Application):
                                 total[n].code + "." + total.networks[n].stations[s].code + "..HNZ")
                     datos.append(utctiempo.strftime("%d/%m/%Y %H:%M:%S"))
                     datos.append(str(now))
-                    datos.append("UCR_lis2024kthc")
+                    datos.append(event.publicID())
                     datos.append(total.networks[n].stations[s].code)
                     datos.append(coord["latitude"])
                     datos.append(coord["longitude"])
+
                     try:
-                        if chan[0]:
-                            datos.append(chan[0])
-                        else:
-                            datos.append(0)
-                        if chan[1]:
-                            datos.append(chan[1])
-                        else:
-                            datos.append(0)
-                        if chan[2]:
-                            datos.append(chan[2])
-                        else:
-                            datos.append(0)
+                        for cont in range(0,2):
+                            try:
+                                if chan[cont]:
+                                    datos.append(chan[cont])
+                            except:
+                                datos.append(0)
                         datos.append(max(chan))
                     except Exception as err:
-                        archivo = open(rutaLog, "a")
+                        archivo = open(rutaLogPGA, "a")
                         archivo.write(
                             "\n--WARNING---------Fail in channels for station %s" % total.networks[n].stations[s].code)
                         archivo.close()
@@ -287,7 +282,7 @@ class EventListener(client.Application):
                     else:
                         datos.append(rutaArchivo)
                         matriz.append(datos)
-                        archivo = open(rutaLog, "a")
+                        archivo = open(rutaLogPGA, "a")
                         archivo.write(
                             "\n--EXITO---------Data processed for station %s" % total.networks[n].stations[s].code)
                         archivo.close()
