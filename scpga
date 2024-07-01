@@ -14,7 +14,7 @@ from time import strftime
 
 
 #Se crea el objeto cliente FDSN para obtener datos y el inventario
-host = ("http://localhost:8080")  # SEISCOMP servidor Virtual
+host = ("http://163.178.171.47:8080")  # SEISCOMP servidor Virtual
 #host = ("http://localhost:8080")  # SEISCOMP computadora local
 myClient = Client(host)
 total = myClient.get_stations()
@@ -22,7 +22,7 @@ networks = myClient.get_stations(level="network")
 rutaLog ="/home/stuart/waves/corta/cortaLog.log"     #archivo de log cortaWaves
 rutaLogPGA ="/home/stuart/waves/corta/PGALog.log"     #archivo de log PGA
 rutaPGA ="/home/stuart/waves/corta/PGAData.log"     #archivo de procesamiento PGA
-rutaRaiz="/home/stuart/waves/corta/"
+
 
 
 
@@ -37,17 +37,12 @@ class EventListener(client.Application):
         self.setLoggingToStdErr(True)
 
     def doSomethingWithEvent(self, obj):
-
-        #corta las waveform
         #self.cortaWaves(obj)
-        #calcula el pga
+        print("TERMINE DE GUARDAR WAVES")
         bd=self.calculoPGA(obj)
         print("TERMINE DE CALCULAR PGA")
-        print(bd)
-        #guarda en la base
         self.conection(bd)
         print("TERMINE DE GUARDAR EN BD")
-
 
     def cortaWaves(self, obj):
         event = datamodel.Event.Cast(obj)
@@ -55,7 +50,7 @@ class EventListener(client.Application):
         fechaEvento = fechaEvento.replace(" ", "")
         fechaEvento = fechaEvento.replace(":", "_")
         fechaEvento = fechaEvento.replace(".", "_")
-        rutaWaves = rutaRaiz + event.publicID() + fechaEvento + "/"
+        rutaWaves = "/home/stuart/waves/corta/" + event.publicID() + fechaEvento + "/"
         now = core.Time.GMT()
         try:
             os.stat(rutaWaves)
@@ -134,7 +129,6 @@ class EventListener(client.Application):
         archivo.write("\n--TERMINE TODO EL PROCESO--")
         # archivo.write( "\nDescripción del error:  %s" % str(err.__str__()))
         archivo.close()
-        print("TERMINE DE GUARDAR WAVES")
 
     def calculoPGA(self, obj):  # calculoPGA(obj): nombre con parametro
         event = datamodel.Event.Cast(obj)
@@ -142,7 +136,7 @@ class EventListener(client.Application):
         fechaEvento = fechaEvento.replace(" ", "")
         fechaEvento = fechaEvento.replace(":", "_")
         fechaEvento = fechaEvento.replace(".", "_")
-        rutaWaves = rutaRaiz + event.publicID() + fechaEvento + "/"
+        rutaWaves = "/home/stuart/waves/corta/" + event.publicID() + fechaEvento + "/"
         tiempo = event.creationInfo().creationTime()
         # rutaWaves = "/home/stuart/waves/corta/UCR_lis2024kthc2024-06-0120_33_39_584/" #para prueba local
         # tiempo= "2024-06-01 20:33:39.584" #para prueba local
@@ -162,24 +156,29 @@ class EventListener(client.Application):
         # recorriendo lista de networks para solicitar datos con el código de cada estación
         for n in range(len(networks)):
             # print(total[n].code)
-            for s in range(len(total.networks[n].stations)):
+            #for s in range(len(total.networks[n].stations)):
+            for s in range(0,2):
                 # print(total.networks[n].stations[s].code)
                 datos = []
-                print(f"procesando {total.networks[n].stations[s].code}")
                 nombreFile = rutaWaves + utctiempo.strftime("%m-%d-%Y_%H_%M_%S") + "_" + \
                              total.networks[n].stations[s].code + ".mseed"
 
                 try:
                     # falla si no hay datos para la estacion en el tiempo dado
 
-                    inventory = myClient.get_stations(network=total[n].code,
-                                                      station=total.networks[n].stations[s].code, level="RESP")
+                   # inventory = myClient.get_stations(network=total[n].code,
+                    #                                  station=total.networks[n].stations[s].code, level="RESP")
+
+                    inventory = myClient.get_stations(network="MF",
+                                                      station="AFTN", level="RESP")
+                    #print(inventory)
 
                     # st = client.get_waveforms(total[n].code, total.networks[n].stations[s].code, "**", "HN*", inicio, fin,
                     #  attach_response=True)
-                    #print(inventory)
 
-                    st = read(nombreFile, format="mseed")
+                    #st = read(nombreFile, format="mseed")
+                    st = read("/home/stuart/waves/06-01-2024_20:32:00_AFTN.mseed", format="mseed")
+                    print(st)
 
                     archivo = open(rutaLogPGA, "a")
                     archivo.write("\n--EXITO--Data read for station %s" % total.networks[n].stations[s].code)
@@ -193,22 +192,22 @@ class EventListener(client.Application):
                         "\n--FALLO EN LECTURA--No data or file for station  %s" % total.networks[n].stations[s].code)
                     # archivo.write(f"\nDescripcion del error:  {err.encode('utf-8')}")
                     archivo.close()
-                    # print(f"FALLO TRY 1 Descripcion del error: {err}")
+                    print(f"FALLO TRY 1 Descripcion del error: {err}")
                 else:  # de existir datos continua con el calculo
 
                     st.merge()
-                    print(st)
                     # copia para quitar respuesta
                     strNew = st.copy()
-                    # string con la ruta del archivo para referenciar en base de datos
-                    rutaArchivo = rutaWaves + utctiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + \
-                                  total.networks[n].stations[s].code + ".mseed"
+                    print(strNew)
 
-                    # Iteracion para filtrar e imprimir el resultado del pga
+
+                    # arreglo de canales
                     chan = []
 
                     for trx in strNew:
                         try:
+
+                            print(trx.stats.channel)
                             trx.detrend("demean")
                             trx.detrend("linear")
                             trx.taper(max_percentage=0.05, type="hann")
@@ -233,8 +232,8 @@ class EventListener(client.Application):
                             st_umask = trx.split()
                             a = []
                             for tr1 in st_umask:
-                                tr1.detrend("demean")
-                                tr1.detrend("linear")
+                               # tr1.detrend("demean")
+                                #tr1.detrend("linear")
                                 tr1.taper(max_percentage=0.05, type="hann")
                                 tr1.filter("bandpass", freqmin=0.1, freqmax=10, corners=2)
                                 tr1 = tr1.remove_response(inventory, output="ACC")
@@ -290,7 +289,7 @@ class EventListener(client.Application):
                         archivo.close()
                         print(f"Faltan canales para procesar la estación  {err}")
                     else:
-                        datos.append(rutaArchivo)
+                        datos.append(nombreFile)
                         matriz.append(datos)
                         archivo = open(rutaLogPGA, "a")
                         archivo.write(

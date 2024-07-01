@@ -16,6 +16,8 @@
 ###########################################################################
 
 import sys, seiscomp.client, seiscomp.datamodel
+from obspy import read
+from obspy import core
 
 class PickClient(seiscomp.client.Application):
     def __init__(self, argc, argv):
@@ -30,8 +32,11 @@ class PickClient(seiscomp.client.Application):
             print("new pick %s" % pick.publicID())
             archivo = open("/home/stuart/waves/prueba.txt", "a")
             archivo.write("\nHice algo con el pick"+pick.publicID())
-            archivo.write("\nTiempo del pick" + pick.creationInfo().creationTime())
+            archivo.write("\nTiempo del pick %s" % pick.creationInfo().creationTime())
             archivo.close()
+            st = read("/home/stuart/waves/06-01-2024_20:32:00_AFTN.mseed", format="mseed")
+            print(st)
+            st.detrend("demean")
 
 app = PickClient(len(sys.argv), sys.argv)
 app()

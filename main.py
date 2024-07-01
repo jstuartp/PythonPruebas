@@ -15,7 +15,7 @@ import sys
 
 #constantes
 red ="MF" #define el nombre de la red a procesar
-ruta ="/home/stuart/waves/18_05/"
+ruta ="/home/stuart/waves/"
 
 
 def print_hi(name):
@@ -49,7 +49,7 @@ def lista_Estaciones(numStations, myNumStations):
     #Iterando por el inventory para obtener la lista de estaciones
     for i in range(numStations):
         #print(i)
-        if myNumStations.networks[0].stations[i].code == "PLPM": #definir una sola estacion
+        if myNumStations.networks[0].stations[i].code == "AFTN": #definir una sola estacion
             lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
 
     return lista
@@ -106,7 +106,8 @@ def calculoPGA(lista,tiempo):
             inventory = client.get_stations(network= red, station=lista[d], level="RESP")
             #st = client.get_waveforms("MF", lista[d], "**", "HN*", inicio, fin,
                                     #  attach_response=True)
-            st = read(ruta + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed", attach_response=True)
+            #st = read(ruta + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed", attach_response=True)
+            st = read("/home/stuart/waves/06-01-2024_20:32:00_AFTN.mseed", format="mseed")
 
 
 
@@ -249,9 +250,9 @@ if __name__ == '__main__':
     listaEstaciones = lista_Estaciones(numStations,myNumStations)
     #date = sys.argv[1]
     #print(date)
-    Guarda_waves(listaEstaciones,UTCDateTime("2024-05-25T20:11:00"))
+    Guarda_waves(listaEstaciones,UTCDateTime("2024-06-01T20:32:00"))
     #datos = calculoPGA(listaEstaciones, UTCDateTime(sys.argv[1]))  # enviando una hora que ingresa por parámetro
-    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-05-25T20:11:00")) #enviando una hora fija
+    datos=calculoPGA(listaEstaciones,UTCDateTime("2024-06-01T20:32:00")) #enviando una hora fija
     #conection(datos)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
