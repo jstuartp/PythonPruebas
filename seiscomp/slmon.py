@@ -247,7 +247,7 @@ def makeMainHTML(config):
 
     temp = "%s/tmp.html"   % config['setup']['wwwdir']
     dest = "%s/index.html" % config['setup']['wwwdir']
-
+#inicio de la tabla cambiar si se va a usar datatables STUART
     table_begin = """
     <table cellpaddding='2' cellspacing='1' border='0' bgcolor='#000000'>
     <tr>
@@ -264,8 +264,8 @@ def makeMainHTML(config):
     </table>
     """
 
-    htmlfile = open(temp, "w")
-    htmlfile.write("""<html>
+    htmlfile = open(temp, "w")      #Escribiendo el Header Stuart Cambiar para incluir bootstap??
+    htmlfile.write("""<html lang="es">
     <head>
         <title>%s</title>
         <meta http-equiv='refresh' content='%d'>

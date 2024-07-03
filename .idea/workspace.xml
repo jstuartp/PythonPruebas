@@ -5,15 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="Lunes 3 junio, agregado procesamiento PGA y base de datos">
-      <change afterPath="$PROJECT_DIR$/scpga" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scrips.zip" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/seiscomp/slmonStu.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/slmon.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/pythonProject1.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/pythonProject1.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripPick.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripPick.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seiscomp/sccortawaves" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/sccortawaves" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/slmonStu.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,7 +98,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-5a2391486177-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13763.11" />
+        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-PY-241.18034.82" />
+        <option value="bundled-python-sdk-975db3bf15a3-2767605e8bc2-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-241.18034.82" />
       </set>
     </attachedChunks>
   </component>
@@ -127,6 +124,8 @@
       <workItem from="1718299334041" duration="5081000" />
       <workItem from="1718381379236" duration="7604000" />
       <workItem from="1719867470712" duration="828000" />
+      <workItem from="1719934380742" duration="33000" />
+      <workItem from="1719934419882" duration="4553000" />
     </task>
     <task id="LOCAL-00001" summary="Scrip de prueba versión 1">
       <option name="closed" value="true" />
