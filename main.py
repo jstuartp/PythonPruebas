@@ -49,7 +49,7 @@ def lista_Estaciones(numStations, myNumStations):
     #Iterando por el inventory para obtener la lista de estaciones
     for i in range(numStations):
         #print(i)
-        if myNumStations.networks[0].stations[i].code == "AFTN": #definir una sola estacion
+        if myNumStations.networks[0].stations[i].code == "SASR": #definir una sola estacion
             lista.append(myNumStations.networks[0].stations[i].code) #lista termina con el listado de los códigos de las estaciones
 
     return lista
@@ -107,7 +107,7 @@ def calculoPGA(lista,tiempo):
             #st = client.get_waveforms("MF", lista[d], "**", "HN*", inicio, fin,
                                     #  attach_response=True)
             #st = read(ruta + tiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + lista[d] + ".mseed", attach_response=True)
-            st = read("/home/stuart/waves/06-01-2024_20:32:00_AFTN.mseed", format="mseed")
+            st = read("/home/stuart/waves/manual/06-24-2024_22_49_39_SASR.mseed", format="mseed")
 
 
 
