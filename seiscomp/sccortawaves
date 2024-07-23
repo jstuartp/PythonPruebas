@@ -19,10 +19,10 @@ host = ("http://localhost:8080")  # SEISCOMP servidor Virtual
 myClient = Client(host)
 total = myClient.get_stations()
 networks = myClient.get_stations(level="network")
-rutaLog ="/home/stuart/waves/corta/cortaLog.log"     #archivo de log cortaWaves
-rutaLogPGA ="/home/stuart/waves/corta/PGALog.log"     #archivo de log PGA
-rutaPGA ="/home/stuart/waves/corta/PGAData.log"     #archivo de procesamiento PGA
-rutaRaiz="/home/stuart/waves/corta/"
+rutaLog ="/home/lis/waves/corta/cortaLog.log"     #archivo de log cortaWaves
+rutaLogPGA ="/home/lis/waves/corta/PGALog.log"     #archivo de log PGA
+rutaPGA ="/home/lis/waves/corta/PGAData.log"     #archivo de procesamiento PGA
+rutaRaiz="/home/lis/waves/corta/"
 
 
 
@@ -39,13 +39,17 @@ class EventListener(client.Application):
     def doSomethingWithEvent(self, obj):
 
         #corta las waveform
-        #self.cortaWaves(obj)
+        self.cortaWaves(obj)
+        print(str(core.Time.GMT()))
+        print("TERMINE DE CORTAR LAS ONDAS")
         #calcula el pga
         bd=self.calculoPGA(obj)
+        print(str(core.Time.GMT()))
         print("TERMINE DE CALCULAR PGA")
-        print(bd)
+        #print(bd)
         #guarda en la base
         self.conection(bd)
+        print(str(core.Time.GMT()))
         print("TERMINE DE GUARDAR EN BD")
 
 
@@ -64,9 +68,9 @@ class EventListener(client.Application):
 
         try:
             archivo = open(rutaLog, "a")
-            archivo.write("\n\n\n--EXITO--PROCESANDO NUEVO EVENTO %s" % event.publicID())
-            archivo.write("\n--EXITO--Fecha del evento %s" % event.creationInfo().creationTime())
-            archivo.write("\n--EXITO--Fecha de procesamiento %s" % str(now))
+            archivo.write("\n--EXITO--PROCESANDO NUEVO EVENTO %s\n" % event.publicID())
+            archivo.write("--EXITO--Fecha del evento %s\n" % event.creationInfo().creationTime())
+            archivo.write("--EXITO--Fecha de procesamiento %s\n" % str(now))
             archivo.close()
             tiempo = event.creationInfo().creationTime()
 
@@ -89,14 +93,17 @@ class EventListener(client.Application):
                         st = myClient.get_waveforms(total[n].code, total.networks[n].stations[s].code, "**", "HN*",
                                                     utcinicio, utcfin, attach_response=True)
                         # instucciones de log
+                        print(str(core.Time.GMT()))
                         archivo = open(rutaLog, "a")
-                        archivo.write("\n--EXITO--Pidiendo Stream para %s" % total.networks[n].stations[s].code)
+                        archivo.write(str(core.Time.GMT()))
+                        archivo.write("--EXITO--Pidiendo Stream para %s\n" % total.networks[n].stations[s].code)
                         archivo.close()
                         # fin de log
                     except Exception as err:
                         archivo = open(rutaLog, "a")
+                        archivo.write(str(core.Time.GMT()))
                         archivo.write(
-                            "\n--FALLO EN LECTURA--No data for station  %s" % total.networks[n].stations[s].code)
+                            "--FALLO EN LECTURA--No data for station  %s\n" % total.networks[n].stations[s].code)
                         # archivo.write(f"\nDescripcion del error:  {err.encode('utf-8')}")
                         archivo.close()
                         # print(f"FALLO TRY 1 Descripcion del error: {err}")
@@ -118,20 +125,23 @@ class EventListener(client.Application):
                         except Exception as err:
                             # print("Error en lectura de datos para la estación %s " % total.networks[n].stations[s].code)
                             archivo = open(rutaLog, "a")
+                            archivo.write(str(core.Time.GMT()))
                             archivo.write(
-                                "\n--FALLO EN ESCRITURA-- No data written for station %s " % total.networks[n].stations[
+                                "--FALLO EN ESCRITURA-- No data written for station %s \n" % total.networks[n].stations[
                                     s].code)
                             # archivo.write(f"\nDescripción del error:  {err}")
                             archivo.close()
                             # print(f"FALLO TRY 2 Descripcion del error: {err}")
         except Exception as err:
             archivo = open(rutaLog, "a")
-            archivo.write("\n--FALLO FATAL-- Something is broken")
-            archivo.write(f"\nError detail:  {err}")
+            archivo.write(str(core.Time.GMT()))
+            archivo.write("--FALLO FATAL-- Something is broken\n")
+            archivo.write(f"Error detail:  {err}\n")
             archivo.close()
 
         archivo = open(rutaLog, "a")
-        archivo.write("\n--TERMINE TODO EL PROCESO--")
+        archivo.write(str(core.Time.GMT()))
+        archivo.write("--TERMINE TODO EL PROCESO--\n")
         # archivo.write( "\nDescripción del error:  %s" % str(err.__str__()))
         archivo.close()
         print("TERMINE DE GUARDAR WAVES")
@@ -155,7 +165,7 @@ class EventListener(client.Application):
         # archivo.write("\n--EXITO--Fecha del evento 2024-06-0120_33_39_584" ) #local
         archivo.write("\n\n\n--EXITO--CALCULANDO PGA PARA NUEVO EVENTO %s" % event.publicID())
         archivo.write("\n--EXITO--Fecha del evento %s" % event.creationInfo().creationTime())
-        archivo.write("\n--EXITO--Fecha de procesamiento %s" % str(now))
+        archivo.write("\n--EXITO--Fecha de procesamiento %s\n" % str(now))
         archivo.close()
         print("PROCESANDO EVENTO")
 
@@ -197,7 +207,7 @@ class EventListener(client.Application):
                 else:  # de existir datos continua con el calculo
 
                     st.merge()
-                    print(st)
+                    #print(st)
                     # copia para quitar respuesta
                     strNew = st.copy()
                     # string con la ruta del archivo para referenciar en base de datos
@@ -276,12 +286,9 @@ class EventListener(client.Application):
                     datos.append(coord["longitude"])
 
                     try:
-                        for cont in range(0,2):
-                            try:
-                                if chan[cont]:
-                                    datos.append(chan[cont])
-                            except:
-                                datos.append(0)
+                        datos.append(chan[0])
+                        datos.append(chan[1])
+                        datos.append(chan[2])
                         datos.append(max(chan))
                     except Exception as err:
                         archivo = open(rutaLogPGA, "a")
@@ -306,7 +313,7 @@ class EventListener(client.Application):
             host='localhost',
             user='stuart',
             password='jspz2383',
-            db='tabla_pga',
+            db='seiscomp',
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
@@ -325,7 +332,7 @@ class EventListener(client.Application):
             with (conn.cursor() as cursor):
                 # Create a new record
                 sql = (
-                    "INSERT INTO `pga` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`)"
+                    "INSERT INTO `Pga` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`)"
                     " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s)")
                 # print(values)
                 cursor.executemany(sql, datos)
