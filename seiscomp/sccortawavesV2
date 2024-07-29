@@ -64,7 +64,7 @@ class EventListener(client.Application):
         archivo.write("--TERMINA DE GUARDAR EN LA BASE--\n" )
         archivo.close()
         #print(str(core.Time.GMT()))
-        #print("TERMINE DE GUARDAR EN BD")
+        print("TERMINE DE GUARDAR EN BD")
 
 
     def cortaWaves(self, obj):
@@ -329,7 +329,7 @@ class EventListener(client.Application):
                         archivo.close()
                         print(f"Faltan canales para procesar la estación  {err}")
                     else:
-                        datos.append(rutaArchivo)
+                        datos.append(rutaCompleta)
                         matriz.append(datos)
                         archivo = open(rutaLogPGA, "a")
                         archivo.write(str(core.Time.GMT()))

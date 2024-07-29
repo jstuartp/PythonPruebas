@@ -6,7 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="Nueva version de CortaWaves, se lee la carpeta completa y se procesa dependiendo del archivo que se encuentre">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seiscomp/sccortawaves" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/sccortawaves" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/sccortawavesV2" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/sccortawavesV2" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -144,7 +144,7 @@
       <workItem from="1721070483309" duration="4502000" />
       <workItem from="1721078494535" duration="1257000" />
       <workItem from="1721397888732" duration="3000" />
-      <workItem from="1721681717309" duration="24322000" />
+      <workItem from="1721681717309" duration="26114000" />
     </task>
     <task id="LOCAL-00001" summary="Scrip de prueba versión 1">
       <option name="closed" value="true" />
@@ -290,7 +290,15 @@
       <option name="project" value="LOCAL" />
       <updated>1722269213306</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="Nueva version de CortaWaves, se lee la carpeta completa y se procesa dependiendo del archivo que se encuentre">
+      <option name="closed" value="true" />
+      <created>1722270395015</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1722270395015</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
