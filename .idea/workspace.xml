@@ -4,12 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="Lunes 3 junio, agregado procesamiento PGA y base de datos">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/pythonProject1.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/pythonProject1.iml" afterDir="false" />
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="Version final del slmon">
+      <change afterPath="$PROJECT_DIR$/seiscomp/sccortawavesV2" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seiscomp/slmon" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/slmon" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/sccortawaves" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/sccortawaves" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,6 +27,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -143,7 +142,10 @@
       <workItem from="1720446748528" duration="20000" />
       <workItem from="1720446810204" duration="24000" />
       <workItem from="1720446876883" duration="20453000" />
-      <workItem from="1721070483309" duration="4469000" />
+      <workItem from="1721070483309" duration="4502000" />
+      <workItem from="1721078494535" duration="1257000" />
+      <workItem from="1721397888732" duration="3000" />
+      <workItem from="1721681717309" duration="23128000" />
     </task>
     <task id="LOCAL-00001" summary="Scrip de prueba versión 1">
       <option name="closed" value="true" />
@@ -273,7 +275,15 @@
       <option name="project" value="LOCAL" />
       <updated>1717446501937</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="Version final del slmon">
+      <option name="closed" value="true" />
+      <created>1721076847482</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1721076847482</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -292,7 +302,8 @@
     <MESSAGE value="cambios 20 del 5" />
     <MESSAGE value="cambios 31/5&#10;La carpeta seiscomp tiene los scrips que si funcionan" />
     <MESSAGE value="Lunes 3 junio, agregado procesamiento PGA y base de datos" />
-    <option name="LAST_COMMIT_MESSAGE" value="Lunes 3 junio, agregado procesamiento PGA y base de datos" />
+    <MESSAGE value="Version final del slmon" />
+    <option name="LAST_COMMIT_MESSAGE" value="Version final del slmon" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
