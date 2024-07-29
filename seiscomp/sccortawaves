@@ -39,7 +39,7 @@ class EventListener(client.Application):
     def doSomethingWithEvent(self, obj):
 
         #corta las waveform
-        self.cortaWaves(obj)
+        #self.cortaWaves(obj)
         #print(str(core.Time.GMT()))
         #print("TERMINE DE CORTAR LAS ONDAS")
         archivo = open(rutaLog, "a")
@@ -199,13 +199,13 @@ class EventListener(client.Application):
                 print(f"procesando {total.networks[n].stations[s].code}")
                 nombreFile = rutaWaves + utctiempo.strftime("%m-%d-%Y_%H_%M_%S") + "_" + \
                              total.networks[n].stations[s].code + ".mseed"
+                print(nombreFile)
 
                 try:
                     # falla si no hay datos para la estacion en el tiempo dado
 
                     inventory = myClient.get_stations(network=total[n].code,
                                                       station=total.networks[n].stations[s].code,
-                                                      startafter=utcinicio,
                                                       level="RESP")
 
                     # st = client.get_waveforms(total[n].code, total.networks[n].stations[s].code, "**", "HN*", inicio, fin,
@@ -213,6 +213,7 @@ class EventListener(client.Application):
                     #print(inventory)
 
                     st = read(nombreFile, format="mseed")
+                    print(st)
 
                     archivo = open(rutaLogPGA, "a")
                     archivo.write(str(core.Time.GMT()))
@@ -228,7 +229,7 @@ class EventListener(client.Application):
                         "--FALLO EN LECTURA--No data or file for station  %s \n" % total.networks[n].stations[s].code)
                     # archivo.write(f"\nDescripcion del error:  {err.encode('utf-8')}")
                     archivo.close()
-                    # print(f"FALLO TRY 1 Descripcion del error: {err}")
+                    print(f"FALLO TRY 1 Descripcion del error: {err}")
                 else:  # de existir datos continua con el calculo
 
                     st.merge()
