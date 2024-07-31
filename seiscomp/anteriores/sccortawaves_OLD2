@@ -1,7 +1,5 @@
 #!/usr/bin/env seiscomp-python
 # -*- coding: utf-8 -*-
-import glob
-
 from obspy.clients.fdsn import Client
 from obspy import read, UTCDateTime
 import sys
@@ -41,42 +39,28 @@ class EventListener(client.Application):
     def doSomethingWithEvent(self, obj):
 
         #corta las waveform
-        #self.cortaWaves(obj)
-        #print(str(core.Time.GMT()))
-        #print("TERMINE DE CORTAR LAS ONDAS")
-        archivo = open(rutaLog, "a")
-        archivo.write(str(core.Time.GMT()))
-        archivo.write("--TERMINA DE ESCRIBIR ONDAS--\n" )
-        archivo.close()
+        self.cortaWaves(obj)
+        print(str(core.Time.GMT()))
+        print("TERMINE DE CORTAR LAS ONDAS")
         #calcula el pga
         bd=self.calculoPGA(obj)
-        #print(str(core.Time.GMT()))
-        #print("TERMINE DE CALCULAR PGA")
-        archivo = open(rutaLogPGA, "a")
-        archivo.write(str(core.Time.GMT()))
-        archivo.write("--TERMINA DE CALCULAR PGA--\n" )
-        archivo.close()
+        print(str(core.Time.GMT()))
+        print("TERMINE DE CALCULAR PGA")
         #print(bd)
         #guarda en la base
         self.conection(bd)
-        archivo = open(rutaLogPGA, "a")
-        archivo.write(str(core.Time.GMT()))
-        archivo.write("--TERMINA DE GUARDAR EN LA BASE--\n" )
-        archivo.close()
-        #print(str(core.Time.GMT()))
+        print(str(core.Time.GMT()))
         print("TERMINE DE GUARDAR EN BD")
 
 
     def cortaWaves(self, obj):
-        now = core.Time.GMT()
-        contador = UTCDateTime(now)
         event = datamodel.Event.Cast(obj)
         fechaEvento = str(event.creationInfo().creationTime())
         fechaEvento = fechaEvento.replace(" ", "")
         fechaEvento = fechaEvento.replace(":", "_")
         fechaEvento = fechaEvento.replace(".", "_")
         rutaWaves = rutaRaiz + event.publicID() + fechaEvento + "/"
-
+        now = core.Time.GMT()
         try:
             os.stat(rutaWaves)
         except:
@@ -109,7 +93,7 @@ class EventListener(client.Application):
                         st = myClient.get_waveforms(total[n].code, total.networks[n].stations[s].code, "**", "HN*",
                                                     utcinicio, utcfin, attach_response=True)
                         # instucciones de log
-                        #print(str(core.Time.GMT()))
+                        print(str(core.Time.GMT()))
                         archivo = open(rutaLog, "a")
                         archivo.write(str(core.Time.GMT()))
                         archivo.write("--EXITO--Pidiendo Stream para %s\n" % total.networks[n].stations[s].code)
@@ -133,7 +117,7 @@ class EventListener(client.Application):
                             st.merge()
                             # copia para quitar respuesta
                             strNew = st.copy()
-                            rutaArchivo = rutaWaves + utctiempo.strftime("%m-%d-%Y-%H-%M-%S") + "_" + total[n].code+"_"+\
+                            rutaArchivo = rutaWaves + utctiempo.strftime("%m-%d-%Y_%H_%M_%S") + "_" + \
                                           total.networks[n].stations[s].code + ".mseed"
                             # guardar el stream en archivo mseed
                             strNew.write(rutaArchivo, format="MSEED")
@@ -160,15 +144,9 @@ class EventListener(client.Application):
         archivo.write("--TERMINE TODO EL PROCESO--\n")
         # archivo.write( "\nDescripción del error:  %s" % str(err.__str__()))
         archivo.close()
-        contadorfin = UTCDateTime(core.Time.GMT())
-        contador = contadorfin - contador
-        print("Tiempo Cortando Waves (s): %s" % contador)
         print("TERMINE DE GUARDAR WAVES")
 
-
     def calculoPGA(self, obj):  # calculoPGA(obj): nombre con parametro
-        now = core.Time.GMT()
-        contador = UTCDateTime(now)
         event = datamodel.Event.Cast(obj)
         fechaEvento = str(event.creationInfo().creationTime())
         fechaEvento = fechaEvento.replace(" ", "")
@@ -176,20 +154,12 @@ class EventListener(client.Application):
         fechaEvento = fechaEvento.replace(".", "_")
         rutaWaves = rutaRaiz + event.publicID() + fechaEvento + "/"
         tiempo = event.creationInfo().creationTime()
-        files = os.listdir(rutaWaves)
-
+        # rutaWaves = "/home/stuart/waves/corta/UCR_lis2024kthc2024-06-0120_33_39_584/" #para prueba local
         # tiempo= "2024-06-01 20:33:39.584" #para prueba local
         utctiempo = UTCDateTime(tiempo)
-        # Substract 5 minutes for the start time
-        # start = now - core.TimeSpan(300, 0)
-        inicio = tiempo - core.TimeSpan(300, 0)  # resta 5 minutos a la hora fija
-        fin = tiempo + core.TimeSpan(300, 0)  # suma 5 minutos a la hora fija
-        utcfin = UTCDateTime(fin)
-        utcinicio = UTCDateTime(inicio)
-
+        now = core.Time.GMT()
 
         matriz = []
-
         archivo = open(rutaLogPGA, "a")
         # archivo.write("\n\n\n--EXITO--CALCULANDO PGA PARA NUEVO EVENTO UCR_lis2024kthc") #local
         # archivo.write("\n--EXITO--Fecha del evento 2024-06-0120_33_39_584" ) #local
@@ -200,47 +170,37 @@ class EventListener(client.Application):
         print("PROCESANDO EVENTO")
 
         # recorriendo lista de networks para solicitar datos con el código de cada estación
-        for file in files:
-            rutaCompleta= os.path.join(rutaWaves,file)
-
-            if os.path.isfile(rutaCompleta):
+        for n in range(len(networks)):
+            # print(total[n].code)
+            for s in range(len(total.networks[n].stations)):
+                # print(total.networks[n].stations[s].code)
                 datos = []
-                nombreFile = file
-                imagenWaveM = rutaCompleta.split(".")
-                imagenWave = imagenWaveM[0]+".png"
-                print(imagenWave)
-
-                redes= nombreFile.split("_")
-
-                estacion=redes[2].split(".")
-
+                print(f"procesando {total.networks[n].stations[s].code}")
+                nombreFile = rutaWaves + utctiempo.strftime("%m-%d-%Y_%H_%M_%S") + "_" + \
+                             total.networks[n].stations[s].code + ".mseed"
 
                 try:
                     # falla si no hay datos para la estacion en el tiempo dado
 
-                    inventory = myClient.get_stations(network=redes[1],
-                                                      station=estacion[0],
-                                                      level="RESP")
+                    inventory = myClient.get_stations(network=total[n].code,
+                                                      station=total.networks[n].stations[s].code, level="RESP")
 
                     # st = client.get_waveforms(total[n].code, total.networks[n].stations[s].code, "**", "HN*", inicio, fin,
                     #  attach_response=True)
                     #print(inventory)
 
-                    st = read(rutaCompleta, format="mseed")
-
+                    st = read(nombreFile, format="mseed")
 
                     archivo = open(rutaLogPGA, "a")
-                    archivo.write(str(core.Time.GMT()))
-                    archivo.write("--EXITO--Data read for station %s \n" % estacion[0])
+                    archivo.write("\n--EXITO--Data read for station %s" % total.networks[n].stations[s].code)
                     archivo.close()
 
 
 
                 except Exception as err:
                     archivo = open(rutaLogPGA, "a")
-                    archivo.write(str(core.Time.GMT()))
                     archivo.write(
-                        "--FALLO EN LECTURA--No data or file for station  %s \n" % estacion[0])
+                        "\n--FALLO EN LECTURA--No data or file for station  %s" % total.networks[n].stations[s].code)
                     # archivo.write(f"\nDescripcion del error:  {err.encode('utf-8')}")
                     archivo.close()
                     # print(f"FALLO TRY 1 Descripcion del error: {err}")
@@ -252,7 +212,7 @@ class EventListener(client.Application):
                     strNew = st.copy()
                     # string con la ruta del archivo para referenciar en base de datos
                     rutaArchivo = rutaWaves + utctiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + \
-                                  estacion[0] + ".mseed"
+                                  total.networks[n].stations[s].code + ".mseed"
 
                     # Iteracion para filtrar e imprimir el resultado del pga
                     chan = []
@@ -266,15 +226,17 @@ class EventListener(client.Application):
                             trx = trx.remove_response(inventory, output="ACC")
                             absoluto = abs(trx.data)
                             maximo = max(absoluto)
-
                             archivo = open(rutaLogPGA, "a")
-                            archivo.write(str(core.Time.GMT()))
                             archivo.write(
-                                "--DATOS--Processing Station  %s \n" % trx.stats.station)
+                                "\n--EXITO---------Processing Channel %s" % trx.stats.channel)
+                            archivo.close()
+                            archivo = open(rutaPGA, "a")
                             archivo.write(
-                                "--DATOS----Processing Channel  %s \n" % trx.stats.channel)
+                                "\n--DATOS--Processing Station  %s" % trx.stats.station)
                             archivo.write(
-                                "--DATOS----PGA;  %s \n" % str(maximo))
+                                "\n--DATOS----Processing Channel  %s" % trx.stats.channel)
+                            archivo.write(
+                                "\n--DATOS----PGA;  %s" % str(maximo))
                             archivo.close()
 
                         except:
@@ -288,38 +250,38 @@ class EventListener(client.Application):
                                 tr1 = tr1.remove_response(inventory, output="ACC")
                                 a.append(abs(max(tr1.data)))
                                 maximo = max(a)
-                                archivo = open(rutaLogPGA, "a")
-                                archivo.write(str(core.Time.GMT()))
+                                archivo = open(rutaLog, "a")
                                 archivo.write(
-                                    "--DATOS--Processing Station  %s \n" % trx.stats.station)
+                                    "\n--WARNING---------Processing Channel With GAPS %s" % trx.stats.channel)
+                                archivo.close()
+                                archivo = open(rutaPGA, "a")
                                 archivo.write(
-                                    "--DATOS----Processing Channel  %s \n" % trx.stats.channel)
+                                    "\n--DATOS--Processing Station  %s" % trx.stats.station)
                                 archivo.write(
-                                    "--DATOS----PGA;  %s \n" % str(maximo))
+                                    "\n--DATOS----Processing Channel  %s" % trx.stats.channel)
+                                archivo.write(
+                                    "\n--DATOS----PGA;  %s" % str(maximo))
                                 archivo.close()
 
                         chan.append(maximo)
-                        #trx.plot(outfile=imagenWave + "_" + str(trx.stats.channel)+".png")
 
                     # print(trx.stats.station, trx.stats.location, trx.stats.channel)
                     # print(str(maximo))
-                    strNew.plot(outfile=imagenWave)
-
 
                     try:
                         coord = inventory.get_coordinates(
-                            redes[1] + "." + estacion[0] + ".00.HNZ")
+                            total[n].code + "." + total.networks[n].stations[s].code + ".00.HNZ")
                     except:
                         try:
                             coord = inventory.get_coordinates(
-                                redes[1] + "." + estacion[0] + ".11.HNZ")
+                                total[n].code + "." + total.networks[n].stations[s].code + ".11.HNZ")
                         except:
                             coord = inventory.get_coordinates(
-                                redes[1] + "." + estacion[0] + "..HNZ")
+                                total[n].code + "." + total.networks[n].stations[s].code + "..HNZ")
                     datos.append(utctiempo.strftime("%d/%m/%Y %H:%M:%S"))
                     datos.append(str(now))
                     datos.append(event.publicID())
-                    datos.append(estacion[0])
+                    datos.append(total.networks[n].stations[s].code)
                     datos.append(coord["latitude"])
                     datos.append(coord["longitude"])
 
@@ -330,33 +292,19 @@ class EventListener(client.Application):
                         datos.append(max(chan))
                     except Exception as err:
                         archivo = open(rutaLogPGA, "a")
-                        archivo.write(str(core.Time.GMT()))
                         archivo.write(
-                            "--WARNING---------Fail in channels for station %s \n" % estacion[0])
+                            "\n--WARNING---------Fail in channels for station %s" % total.networks[n].stations[s].code)
                         archivo.close()
                         print(f"Faltan canales para procesar la estación  {err}")
                     else:
-                        datos.append(imagenWave)    #guarda la ruta de la imagen png de las waves
+                        datos.append(rutaArchivo)
                         matriz.append(datos)
                         archivo = open(rutaLogPGA, "a")
-                        archivo.write(str(core.Time.GMT()))
                         archivo.write(
-                            "--EXITO---------Data processed for station %s \n" % estacion[0])
+                            "\n--EXITO---------Data processed for station %s" % total.networks[n].stations[s].code)
                         archivo.close()
-                        print("Datos procesados para la estación  %s \n" % estacion[0])
-            else:
-                print("NO ENCONTRE EL ARCHIVO")
+                        print("Datos procesados para la estación  %s" % total.networks[n].stations[s].code)
         print("\nEvento procesado")
-        contadorfin = UTCDateTime(core.Time.GMT())
-        contador = contadorfin - contador
-        archivo = open(rutaLogPGA, "a")
-        archivo.write(str(core.Time.GMT()))
-        archivo.write(
-            "--EXITO---------PGA procesado para evento  %s \n" % event.publicID())
-        archivo.write(
-            "-----Duracion total del Calculo(s)  %s \n" % contador)
-        archivo.close()
-        print("Tiempo calculando PGA (s): %s" %contador)
         return matriz
 
     def conection(self, datos):
@@ -365,7 +313,7 @@ class EventListener(client.Application):
             host='localhost',
             user='stuart',
             password='jspz2383',
-            db='seiscomp7',
+            db='seiscomp',
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
@@ -391,12 +339,6 @@ class EventListener(client.Application):
 
             # Commit changes
             conn.commit()
-
-            archivo = open(rutaLogPGA, "a")
-            archivo.write(str(core.Time.GMT()))
-            archivo.write(
-                "--EXITO---------Data save to Database  \n" )
-            archivo.close()
 
             print("PGA guardado en la Base de Datos")
         finally:
