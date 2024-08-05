@@ -42,7 +42,7 @@ class EventListener(client.Application):
     def doSomethingWithEvent(self, obj):
 
         #corta las waveform
-        self.cortaWaves(obj)
+        #self.cortaWaves(obj)
         #print(str(core.Time.GMT()))
         #print("TERMINE DE CORTAR LAS ONDAS")
         archivo = open(rutaLog, "a")
@@ -50,7 +50,7 @@ class EventListener(client.Application):
         archivo.write("--TERMINA DE ESCRIBIR ONDAS--\n" )
         archivo.close()
         #calcula el pga
-        self.calculoPGA(obj)
+        bd=self.calculoPGA(obj)
         #print(str(core.Time.GMT()))
         #print("TERMINE DE CALCULAR PGA")
         archivo = open(rutaLogPGA, "a")
@@ -59,13 +59,13 @@ class EventListener(client.Application):
         archivo.close()
         #print(bd)
         #guarda en la base
-        #self.conection(bd)
-        #archivo = open(rutaLogPGA, "a")
-        #archivo.write(str(core.Time.GMT()))
-        #archivo.write("--TERMINA DE GUARDAR EN LA BASE--\n" )
-        #archivo.close()
+        self.conection(bd)
+        archivo = open(rutaLogPGA, "a")
+        archivo.write(str(core.Time.GMT()))
+        archivo.write("--TERMINA DE GUARDAR EN LA BASE--\n" )
+        archivo.close()
         #print(str(core.Time.GMT()))
-        #print("TERMINE DE GUARDAR EN BD")
+        print("TERMINE DE GUARDAR EN BD")
 
 
     def cortaWaves(self, obj):
@@ -195,7 +195,7 @@ class EventListener(client.Application):
         utcinicio = UTCDateTime(inicio)
 
 
-        #matriz = []
+        matriz = []
 
         archivo = open(rutaLogPGA, "a")
         # archivo.write("\n\n\n--EXITO--CALCULANDO PGA PARA NUEVO EVENTO UCR_lis2024kthc") #local
@@ -205,8 +205,6 @@ class EventListener(client.Application):
         archivo.write("\n--EXITO--Fecha de procesamiento %s\n" % str(now))
         archivo.close()
         print("PROCESANDO EVENTO")
-        #datos = []
-        #inventory = datamodel.Inventory()
 
         # recorriendo lista de networks para solicitar datos con el código de cada estación
         for file in files:
@@ -236,7 +234,7 @@ class EventListener(client.Application):
                     #  attach_response=True)
                     #print(inventory)
 
-                    strNew = read(rutaCompleta, format="mseed")
+                    st = read(rutaCompleta, format="mseed")
 
 
                     archivo = open(rutaLogPGA, "a")
@@ -256,12 +254,13 @@ class EventListener(client.Application):
                     # print(f"FALLO TRY 1 Descripcion del error: {err}")
                 else:  # de existir datos continua con el calculo
 
-                    strNew.merge()
+                    st.merge()
                     #print(st)
                     # copia para quitar respuesta
-                    #strNew = st.copy()
+                    strNew = st.copy()
                     # string con la ruta del archivo para referenciar en base de datos
-
+                    rutaArchivo = rutaWaves + utctiempo.strftime("%m-%d-%Y_%H:%M:%S") + "_" + \
+                                  estacion[0] + ".mseed"
 
                     # Iteracion para filtrar e imprimir el resultado del pga
                     chan = []
@@ -346,7 +345,6 @@ class EventListener(client.Application):
                         print(f"Faltan canales para procesar la estación  {err}")
                     else:
                         datos.append(imagenPngBase)    #guarda la ruta de la imagen png de las waves
-                        self.conection(datos)
                         #matriz.append(datos)
                         archivo = open(rutaLogPGA, "a")
                         archivo.write(str(core.Time.GMT()))
@@ -354,15 +352,9 @@ class EventListener(client.Application):
                             "--EXITO---------Data processed for station %s \n" % estacion[0])
                         archivo.close()
                         print("Datos procesados para la estación  %s \n" % estacion[0])
-                #print(datos)
+                print(datos)
             else:
                 print("NO ENCONTRE EL ARCHIVO")
-            del inventory
-            print("borre inventory")
-            del datos
-            print("borre datos")
-            del strNew
-            print("borre stream")
 
 
         print("\nEvento procesado")
@@ -376,7 +368,7 @@ class EventListener(client.Application):
             "-----Duracion total del Calculo(s)  %s \n" % contador)
         archivo.close()
         print("Tiempo calculando PGA (s): %s" %contador)
-        #return matriz
+        return matriz
 
     def conection(self, datos):
 
@@ -406,7 +398,7 @@ class EventListener(client.Application):
                     "INSERT INTO `Pga` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`)"
                     " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s)")
                 # print(values)
-                cursor.execute(sql, datos)
+                cursor.executemany(sql, datos)
 
             # Commit changes
             conn.commit()
