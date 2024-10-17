@@ -112,7 +112,7 @@ class StatusDict(dict):
             d.loc = line[ 9:11].strip()
             d.cha = line[12:15]
             d.typ = line[16]
-            d.last_data = seiscomp.slclient.timeparse(line[18:41])
+            d.last_data = seiscomp.slclient.timeparse(line[18:41])   #STUART DONDE SE CAPTURA ULTIMO DATO
             d.last_feed = seiscomp.slclient.timeparse(line[42:65])
             if  d.last_feed < d.last_data:
                 d.last_feed = d.last_data
@@ -220,7 +220,7 @@ def makeMainHTML(config):
     tmp_du = []
 
     for label in streams:
-        lat1 = now - status[label].last_data # XXX
+        lat1 = now - status[label].last_data # XXX       #STUART LATENCIAS PARA GUARDAR
         lat2 = now - status[label].last_feed # XXX
         lat3 = lat1-lat2 # XXX
         if lat3 == 0.: lat3 = lat2 = None
