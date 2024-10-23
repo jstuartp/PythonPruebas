@@ -187,12 +187,30 @@ def TDf(delta, col="#ffffff"):
     return "<td align='right' bgcolor='%s'><tt> &nbsp;%s&nbsp;</tt></td>" % \
                 (col,x)
 
+def TDfStu(delta, col="#ffffff"):
+    if delta is None: return 99
+
+    t = total_seconds(delta)
+
+    if   t > 86400: x = "%.1f d" % (t/86400.)
+    elif t >  7200: x = "%.1f h" % (t/3600.)
+    elif t >   120: x = "%.1f m" % (t/60.)
+    else:           x = "%.1f s" % (t)
+    return "%s" % \
+                (x)
+
 def TDt(t, col="#ffffff"):
     if t is None: return TDdummy % col
 
     x = t.strftime("%Y/%m/%d %H:%M:%S")
     return "<td align='center' bgcolor='%s'><tt>&nbsp;%s&nbsp;</tt></td>" % \
                 (col,x)
+def TDtStu(t, col="#ffffff"):
+    if t is None: return 99
+
+    x = t.strftime("%Y/%m/%d %H:%M:%S")
+    return "%s" % \
+                (x)
 
 def myrename(name1, name2):
 
@@ -332,6 +350,10 @@ def makeStatHTML(net_sta, config):
 
     temp = "%s/tmp2.php"  % config['setup']['wwwdir']
     dest = "%s/%s.php"  % ( config['setup']['wwwdir'], net_sta)
+    csvfile = "%s/log.csv"  % config['setup']['wwwdir']
+    #log = open(csvfile, "a")
+    #log.write("estacion,canal,ultimamuestra,latencia,ultimorecibido,latencia,dif\n")
+    #log.close()
 
     htmlfile = open(temp, "w")
     htmlfile.write("""<html>
@@ -387,6 +409,8 @@ def makeStatHTML(net_sta, config):
     netsta2=net_sta.replace("_",".")
     streams = [ x for x in list(status.keys()) if x.find(netsta2)==0 ]
     streams.sort()
+    log = open(csvfile, "a")
+
     for label in streams:
         tim1 = status[label].last_data
         tim2 = status[label].last_feed
@@ -403,7 +427,11 @@ def makeStatHTML(net_sta, config):
             % (s, c, TDt(tim1, col1), TDf(lat1, col1),
                      TDt(tim2, col2), TDf(lat2, col2),
                      TDf(lat3, col3)))
+        log.write("%s,%s,%s,%s,%s,%s,%s\n" % (s, c, TDtStu(tim1, col1), TDfStu(lat1, col1),
+                     TDtStu(tim2, col2), TDfStu(lat2, col2),
+                     TDfStu(lat3, col3)))
 
+    log.close()
     htmlfile.write("</table></p>\n")
     colorLegend(htmlfile)
 
