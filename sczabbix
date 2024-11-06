@@ -1,0 +1,112 @@
+#!/usr/bin/env seiscomp-python
+from pyzabbix import ZabbixMetric, ZabbixSender
+import sys,os, traceback
+
+#import seiscomp3.Client
+#import seiscomp3.System
+#from  seiscomp3 import Logging
+
+from seiscomp import client, datamodel, core
+from seiscomp.client import Protocol
+from seiscomp import logging as Logging
+
+class sczabbix(client.Application):
+
+    def __init__(self, argc, argv):
+        
+        client.Application.__init__(self, argc, argv)
+        self.setMessagingEnabled(True)
+        self.setDatabaseEnabled(True,True)
+        self.setLoggingToStdErr(False)
+        self.setDaemonEnabled(True)
+        
+        self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
+        self.addMessagingSubscription("CONFIG")
+        self.addMessagingSubscription("QC")
+        
+        self._zabbixAddress = '127.0.0.1'
+        self._zabbixPort = 10051
+        Logging.info("Inicio de sczabbix")
+   
+    def initConfiguration(self):
+        
+        if not client.Application.initConfiguration(self):
+            return(False)
+        
+        try:
+            self._zabbixAddress= self.configGetString("zabbixAddress")
+            Logging.info(self._zabbixAddress)
+        except Exception as e:
+            Logging.error("Error while getting zabbix addres: %s" %str(e))
+            
+        try:
+            self._zabbixPort= self.configGetInt("zabbixPort")
+        except Exception as e:
+            Logging.error("Error while getting zabbix port")
+        try:
+            self._networkID=self.configGetString("networkID")
+        except Exception as e:
+            Logging.error("Error while getting networkID")
+        
+        try:
+            self.zabbix_server=ZabbixSender(self._zabbixAddress, self._zabbixPort)
+            Logging.info("Connection Ok to zabbixServer")
+        except Exception as e:
+            Logging.error("Error while creating zabbixSender: %s" %str(e))
+        
+        return True
+        
+    def send2zabbix(self, station, channel, key, value, timestamp ):
+        """
+        Send metrics to a zabbix server 
+        """
+        metrics=[]
+        hostname = "%s_%s" %(station,channel)
+        key=key.replace(" ", "_")
+        metrics.append(ZabbixMetric(hostname,key,value,timestamp))
+        try:
+            self.zabbix_server.send(metrics)
+        except Exception as e:
+            Logging.info("Error in send2zabbix: %s " %str(e))
+       
+    def validateParameters(self):
+        try:
+            if client.Application.validateParameters(self) == False:
+                return False
+            return True
+
+        except:
+            info = traceback.format_exception(*sys.exc_info())
+            for i in info: sys.stderr.write(i)
+            sys.exit(-1)
+
+    def handleMessage(self,msg):
+        try:
+            data_message = core.DataMessage.Cast(msg)
+            if data_message:
+                for obj in data_message:
+                    wq = datamodel.WaveformQuality.Cast(obj)
+                    if wq:
+                        
+                        network = wq.waveformID().networkCode()
+                        if network == self._networkID: 
+                            wID = wq.waveformID()
+                            cc = wID.channelCode()
+                            lc = wID.locationCode()
+                            nc = wID.networkCode()
+                            sc = wID.stationCode()
+                            
+                            self.send2zabbix(sc,cc,wq.parameter(), wq.value(), wq.end().seconds())
+                            Logging.info("%s %s %s %s %s " %(sc,cc,wq.parameter(), wq.value(),wq.end().seconds()))
+        except Exception as e:
+            Logging.error("There was error in handleMessage(): %s" %str(e))
+
+
+    def run(self):
+        Logging.info("Inicio sczabbix")
+
+        return client.Application.run(self)
+
+
+app = sczabbix(len(sys.argv), sys.argv)
+sys.exit(app())

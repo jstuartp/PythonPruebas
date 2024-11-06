@@ -4,13 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="actualizacion de update 8 de agosto">
-      <change afterPath="$PROJECT_DIR$/seiscomp/archivo_diccionario.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/seiscomp/promedios.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="update 23 octubre&#10;SLMON con mediciones">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seiscomp/lis@163." beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/seiscomp/slmon" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/slmon" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -151,7 +146,7 @@
       <workItem from="1722436345735" duration="6219000" />
       <workItem from="1722868360668" duration="27968000" />
       <workItem from="1727121185928" duration="507000" />
-      <workItem from="1729259249870" duration="32899000" />
+      <workItem from="1729259249870" duration="35507000" />
     </task>
     <task id="LOCAL-00001" summary="Scrip de prueba versión 1">
       <option name="closed" value="true" />
@@ -337,7 +332,15 @@
       <option name="project" value="LOCAL" />
       <updated>1723154122312</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="update 23 octubre&#10;SLMON con mediciones">
+      <option name="closed" value="true" />
+      <created>1729703647068</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1729703647068</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -360,7 +363,8 @@
     <MESSAGE value="Nueva version de CortaWaves, se lee la carpeta completa y se procesa dependiendo del archivo que se encuentre" />
     <MESSAGE value="Actualizacion de V2 Es la version que actualmente esta corriendo" />
     <MESSAGE value="actualizacion de update 8 de agosto" />
-    <option name="LAST_COMMIT_MESSAGE" value="actualizacion de update 8 de agosto" />
+    <MESSAGE value="update 23 octubre&#10;SLMON con mediciones" />
+    <option name="LAST_COMMIT_MESSAGE" value="update 23 octubre&#10;SLMON con mediciones" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
