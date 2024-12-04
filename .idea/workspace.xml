@@ -4,8 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="update 23 octubre&#10;SLMON con mediciones">
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="update 6 de noviembre, incluido archivo sczabbix">
+      <change afterPath="$PROJECT_DIR$/seiscomp/copiaPNG.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/sccortawaves_110" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/sccortawaves_412" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/sczabbix" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/slmon_110.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/sccortawaves" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,29 +61,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/stuart/seiscomp/bin/slmon_old&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Python.main.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "/home/stuart/seiscomp/bin/slmon_old",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;Python&quot;
+  "keyToStringList": {
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "Python"
     ]
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="pythonProject1" />
@@ -147,6 +153,9 @@
       <workItem from="1722868360668" duration="27968000" />
       <workItem from="1727121185928" duration="507000" />
       <workItem from="1729259249870" duration="35507000" />
+      <workItem from="1730910048486" duration="3134000" />
+      <workItem from="1733319521811" duration="363000" />
+      <workItem from="1733328529438" duration="8390000" />
     </task>
     <task id="LOCAL-00001" summary="Scrip de prueba versión 1">
       <option name="closed" value="true" />
@@ -340,7 +349,15 @@
       <option name="project" value="LOCAL" />
       <updated>1729703647068</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="update 6 de noviembre, incluido archivo sczabbix">
+      <option name="closed" value="true" />
+      <created>1730910083698</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1730910083698</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -364,7 +381,8 @@
     <MESSAGE value="Actualizacion de V2 Es la version que actualmente esta corriendo" />
     <MESSAGE value="actualizacion de update 8 de agosto" />
     <MESSAGE value="update 23 octubre&#10;SLMON con mediciones" />
-    <option name="LAST_COMMIT_MESSAGE" value="update 23 octubre&#10;SLMON con mediciones" />
+    <MESSAGE value="update 6 de noviembre, incluido archivo sczabbix" />
+    <option name="LAST_COMMIT_MESSAGE" value="update 6 de noviembre, incluido archivo sczabbix" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
