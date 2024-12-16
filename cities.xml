@@ -1,0 +1,3058 @@
+<?xml version="1.0" encoding="utf-8"?>
+<seiscomp sourceCapitals="https://en.wikipedia.org/wiki/List_of_national_capitals">
+<City category="C" countryID="CRC">
+<name>Puntarenas</name>
+<latitude>09.976290</latitude>
+<longitude>-84.837799</longitude>
+<population>8335</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pitahaya</name>
+<latitude>10.04323</latitude>
+<longitude>-84.824753</longitude>
+<population>2211</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Chomes</name>
+<latitude>10.04464</latitude>
+<longitude>-84.906467</longitude>
+<population>5522</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Lepanto</name>
+<latitude>09.955017</latitude>
+<longitude>-85.027973</longitude>
+<population>9502</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Paquera</name>
+<latitude>09.819528</latitude>
+<longitude>-84.935646</longitude>
+<population>6608</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Guacimal</name>
+<latitude>10.20913</latitude>
+<longitude>-84.847141</longitude>
+<population>923</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Barranca</name>
+<latitude>09.986011</latitude>
+<longitude>-84.703989</longitude>
+<population>30644</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Monte Verde</name>
+<latitude>10.302844</latitude>
+<longitude>-84.822779</longitude>
+<population>4155</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cóbano</name>
+<latitude>09.681131</latitude>
+<longitude>-85.117893</longitude>
+<population>7491</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Chacarita</name>
+<latitude>09.984489</latitude>
+<longitude>-84.769564</longitude>
+<population>17434</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Chira</name>
+<latitude>10.099431</latitude>
+<longitude>-85.155888</longitude>
+<population>1576</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Acapulco</name>
+<latitude>10.116152</latitude>
+<longitude>-84.826526</longitude>
+<population>1296</population>
+</City>
+<City category="C" countryID="CRC">
+<name>El Roble</name>
+<latitude>09.978209</latitude>
+<longitude>-84.733104</longitude>
+<population>15759</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Arancibia</name>
+<latitude>10.203394</latitude>
+<longitude>-84.722492</longitude>
+<population>665</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Espíritu Santo</name>
+<latitude>09.989964</latitude>
+<longitude>-84.666728</longitude>
+<population>30000</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Juan Grande</name>
+<latitude>09.972264</latitude>
+<longitude>-84.642202</longitude>
+<population>6171</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Macacona</name>
+<latitude>10.005674</latitude>
+<longitude>-84.631022</longitude>
+<population>4742</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Jerónimo</name>
+<latitude>10.035077</latitude>
+<longitude>-84.634091</longitude>
+<population>751</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael</name>
+<latitude>09.984459</latitude>
+<longitude>-84.606637</longitude>
+<population>1294</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pto Caldera</name>
+<latitude>09.910037</latitude>
+<longitude>-84.720608</longitude>
+<population>544</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Buenos Aires</name>
+<latitude>09.171561</latitude>
+<longitude>-83.323651</longitude>
+<population>21063</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Volc\341n</name>
+<latitude>09.207595</latitude>
+<longitude>-83.448029</longitude>
+<population>3815</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Potrero Grande</name>
+<latitude>09.017252</latitude>
+<longitude>-83.175001</longitude>
+<population>5956</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Boruca</name>
+<latitude>09.003299</latitude>
+<longitude>-83.325222</longitude>
+<population>3074</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pilas</name>
+<latitude>09.081205</latitude>
+<longitude>-83.432501</longitude>
+<population>1659</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Colinas</name>
+<latitude>09.010727</latitude>
+<longitude>-83.393428</longitude>
+<population>1371</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Chánguena</name>
+<latitude>08.937939</latitude>
+<longitude>-83.202204</longitude>
+<population>2631</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Biolley</name>
+<latitude>09.006911</latitude>
+<longitude>-83.450689</longitude>
+<population>2455</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Marta de Brunka</name>
+<latitude>09.168534</latitude>
+<longitude>-83.404684</longitude>
+<population>3220</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Miramar</name>
+<latitude>10.09334</latitude>
+<longitude>-84.729911</longitude>
+<population>8298</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Unión</name>
+<latitude>10.155854</latitude>
+<longitude>-84.723809</longitude>
+<population>1249</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Isidro</name>
+<latitude>10.05564</latitude>
+<longitude>-84.731337</longitude>
+<population>3403</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cd Cortés</name>
+<latitude>08.961806</latitude>
+<longitude>-83.524805</longitude>
+<population>9000</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Palmar</name>
+<latitude>08.966748</latitude>
+<longitude>-83.457553</longitude>
+<population>9816</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sierpe</name>
+<latitude>08.860903</latitude>
+<longitude>-83.472579</longitude>
+<population>4205</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Uvita, Bahía Ballena</name>
+<latitude>09.169149</latitude>
+<longitude>-83.744138</longitude>
+<population>3306</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Piedras Blancas</name>
+<latitude>08.779428</latitude>
+<longitude>-83.238545</longitude>
+<population>4138</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Bahía Drake</name>
+<latitude>08.711529</latitude>
+<longitude>-83.645782</longitude>
+<population>683</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Quepos</name>
+<latitude>09.432590</latitude>
+<longitude>-84.162128</longitude>
+<population>19889</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Savegre</name>
+<latitude>09.333743</latitude>
+<longitude>-83.961124</longitude>
+<population>3326</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Naranjito</name>
+<latitude>09.471671</latitude>
+<longitude>-84.104686</longitude>
+<population>3667</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Golfito</name>
+<latitude>08.638431</latitude>
+<longitude>-83.164943</longitude>
+<population>11268</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Puerto Jiménez</name>
+<latitude>08.532659</latitude>
+<longitude>-83.306034</longitude>
+<population>8791</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Palma de Pto Jiménez</name>
+<latitude>08.646311</latitude>
+<longitude>-83.460313</longitude>
+<population>2065</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pavón</name>
+<latitude>08.394878</latitude>
+<longitude>-83.135677</longitude>
+<population>6159</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Río Claro</name>
+<latitude>08.679373</latitude>
+<longitude>-83.066769</longitude>
+<population>5622</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Vito</name>
+<latitude>08.821867</latitude>
+<longitude>-82.971248</longitude>
+<population>14839</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sabalito</name>
+<latitude>08.820773</latitude>
+<longitude>-82.914775</longitude>
+<population>10984</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Aguabuena</name>
+<latitude>08.779229</latitude>
+<longitude>-82.949871</longitude>
+<population>6286</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Limoncito</name>
+<latitude>08.831593</latitude>
+<longitude>-83.017383</longitude>
+<population>3591</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pittier</name>
+<latitude>08.935168</latitude>
+<longitude>-82.949481</longitude>
+<population>2758</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Parrita</name>
+<latitude>09.522545</latitude>
+<longitude>-84.324291</longitude>
+<population>16010</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Ciudad Neily</name>
+<latitude>08.653943</latitude>
+<longitude>-82.939449</longitude>
+<population>19610</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Cuesta</name>
+<latitude>08.489675</latitude>
+<longitude>-82.852131</longitude>
+<population>3906</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Canoas</name>
+<latitude>08.549717</latitude>
+<longitude>-82.840481</longitude>
+<population>11527</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Laurel</name>
+<latitude>08.444016</latitude>
+<longitude>-82.908535</longitude>
+<population>9148</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Jacó</name>
+<latitude>09.609400</latitude>
+<longitude>-84.622863</longitude>
+<population>11725</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tárcoles</name>
+<latitude>09.717236</latitude>
+<longitude>-84.628597</longitude>
+<population>5544</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Liberia</name>
+<latitude>10.61804</latitude>
+<longitude>-85.458158</longitude>
+<population>53381</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cañas Dulces</name>
+<latitude>10.67732</latitude>
+<longitude>-85.491451</longitude>
+<population>3230</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Mayorga</name>
+<latitude>10.84356</latitude>
+<longitude>-85.491971</longitude>
+<population>1602</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Nacascolo</name>
+<latitude>10.56411</latitude>
+<longitude>-85.584312</longitude>
+<population>2247</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Curubandé</name>
+<latitude>10.71945</latitude>
+<longitude>-85.409793</longitude>
+<population>2527</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Nicoya</name>
+<latitude>10.14526</latitude>
+<longitude>-85.452735</longitude>
+<population>24752</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Mansión</name>
+<latitude>10.10064</latitude>
+<longitude>-85.366666</longitude>
+<population>5974</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Antonio</name>
+<latitude>10.199065</latitude>
+<longitude>-85.429812</longitude>
+<population>6521</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Quebrada Honda</name>
+<latitude>10.184512</latitude>
+<longitude>-85.297766</longitude>
+<population>2520</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sámara</name>
+<latitude>09.882139</latitude>
+<longitude>-85.526386</longitude>
+<population>3510</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Nosara</name>
+<latitude>09.960435</latitude>
+<longitude>-85.668567</longitude>
+<population>4920</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Belén de Nosarita</name>
+<latitude>10.030431</latitude>
+<longitude>-85.504268</longitude>
+<population>2686</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Cruz</name>
+<latitude>10.28554</latitude>
+<longitude>-85.589817</longitude>
+<population>21709</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Bolsón</name>
+<latitude>10.360558</latitude>
+<longitude>-85.458599</longitude>
+<population>1627</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Veintisiete de Abril</name>
+<latitude>10.244317</latitude>
+<longitude>-85.720139</longitude>
+<population>6883</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tempate</name>
+<latitude>10.345571</latitude>
+<longitude>-85.733989</longitude>
+<population>5635</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cartagena</name>
+<latitude>10.382747</latitude>
+<longitude>-85.674831</longitude>
+<population>3824</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cuajiniquil</name>
+<latitude>09.997566</latitude>
+<longitude>-85.702641</longitude>
+<population>1789</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Diriá</name>
+<latitude>10.283654</latitude>
+<longitude>-85.520069</longitude>
+<population>3905</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cabo Velas</name>
+<latitude>10.361089</latitude>
+<longitude>-85.809642</longitude>
+<population>3362</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tamarindo</name>
+<latitude>10.305388</latitude>
+<longitude>-85.805629</longitude>
+<population>6376</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Bagaces</name>
+<latitude>10.529774</latitude>
+<longitude>-85.257771</longitude>
+<population>12367</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Fortuna</name>
+<latitude>10.677477</latitude>
+<longitude>-85.205272</longitude>
+<population>2756</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Mogote</name>
+<latitude>10.703068</latitude>
+<longitude>-85.224536</longitude>
+<population>3398</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Río Naranjo</name>
+<latitude>10.679944</latitude>
+<longitude>-85.089069</longitude>
+<population>1015</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Filadelfia</name>
+<latitude>10.44418</latitude>
+<longitude>-85.550243</longitude>
+<population>7953</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Palmira</name>
+<latitude>10.514902</latitude>
+<longitude>-85.573368</longitude>
+<population>5416</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sardinal</name>
+<latitude>10.516252</latitude>
+<longitude>-85.647376</longitude>
+<population>14785</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Belén</name>
+<latitude>10.406000</latitude>
+<longitude>-85.589000</longitude>
+<population>8841</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cañas</name>
+<latitude>10.428686</latitude>
+<longitude>-85.092373</longitude>
+<population>20811</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Palmira</name>
+<latitude>10.544859</latitude>
+<longitude>-85.088485</longitude>
+<population>988</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Miguel</name>
+<latitude>10.354183</latitude>
+<longitude>-85.076237</longitude>
+<population>1644</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Bebedero</name>
+<latitude>10.368916</latitude>
+<longitude>-85.194898</longitude>
+<population>2082</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Porozal</name>
+<latitude>10.261040</latitude>
+<longitude>-85.198202</longitude>
+<population>669</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Las Juntas</name>
+<latitude>10.280633</latitude>
+<longitude>-84.961224</longitude>
+<population>9016</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Sierra</name>
+<latitude>10.285779</latitude>
+<longitude>-84.928696</longitude>
+<population>2351</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Juan</name>
+<latitude>10.180586</latitude>
+<longitude>-84.934505</longitude>
+<population>2051</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Colorado</name>
+<latitude>10.186446</latitude>
+<longitude>-85.108646</longitude>
+<population>4621</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tilarán</name>
+<latitude>10.474294</latitude>
+<longitude>-84.968067</longitude>
+<population>8677</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Quebrada Grande</name>
+<latitude>10.43069</latitude>
+<longitude>-84.945911</longitude>
+<population>2700</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tronadora</name>
+<latitude>10.505048</latitude>
+<longitude>-84.922512</longitude>
+<population>1795</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Los Angeles de Santa Rosa</name>
+<latitude>10.490315</latitude>
+<longitude>-85.020479</longitude>
+<population>1945</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Líbano</name>
+<latitude>10.417117</latitude>
+<longitude>-84.986354</longitude>
+<population>865</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tierras Morenas</name>
+<latitude>10.569328</latitude>
+<longitude>-85.024223</longitude>
+<population>1358</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Nuevo Arenal</name>
+<latitude>10.545036</latitude>
+<longitude>-84.897992</longitude>
+<population>2300</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Carmona</name>
+<latitude>09.994512</latitude>
+<longitude>-85.253902</longitude>
+<population>2486</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Rita</name>
+<latitude>10.037704</latitude>
+<longitude>-85.257259</longitude>
+<population>1437</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Zapotal</name>
+<latitude>09.998747</latitude>
+<longitude>-85.352344</longitude>
+<population>1215</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Pablo</name>
+<latitude>10.027878</latitude>
+<longitude>-85.234584</longitude>
+<population>2285</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Porvenir</name>
+<latitude>09.902086</latitude>
+<longitude>-85.281566</longitude>
+<population>741</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Bejuco</name>
+<latitude>09.877335</latitude>
+<longitude>-85.335399</longitude>
+<population>3300</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Cruz</name>
+<latitude>11.07281</latitude>
+<longitude>-85.632171</longitude>
+<population>9191</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Cecilia</name>
+<latitude>11.09378</latitude>
+<longitude>-85.296268</longitude>
+<population>6258</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Garita</name>
+<latitude>11.08099</latitude>
+<longitude>-85.549549</longitude>
+<population>1688</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Elena</name>
+<latitude>10.940477</latitude>
+<longitude>-85.684764</longitude>
+<population>2040</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Hojancha</name>
+<latitude>10.053438</latitude>
+<longitude>-85.421794</longitude>
+<population>4273</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Puerto Carrillo</name>
+<latitude>09.867166</latitude>
+<longitude>-85.479297</longitude>
+<population>1574</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Huacas</name>
+<latitude>10.021247</latitude>
+<longitude>-85.364582</longitude>
+<population>707</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Alajuela</name>
+<latitude>10.016788</latitude>
+<longitude>-84.21367</longitude>
+<population>42970</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San José</name>
+<latitude>10.012169</latitude>
+<longitude>-84.242223</longitude>
+<population>50654</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Carrizal</name>
+<latitude>10.085425</latitude>
+<longitude>-84.170299</longitude>
+<population>6856</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Antonio</name>
+<latitude>09.997072</latitude>
+<longitude>-84.221302</longitude>
+<population>24971</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Guácima</name>
+<latitude>09.964107</latitude>
+<longitude>-84.256015</longitude>
+<population>20183</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Isidro</name>
+<latitude>10.090405</latitude>
+<longitude>-84.19597</longitude>
+<population>21605</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sabanilla</name>
+<latitude>10.074354</latitude>
+<longitude>-84.216449</longitude>
+<population>9009</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael</name>
+<latitude>10.08952</latitude>
+<longitude>-84.52819</longitude>
+<population>32808</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Río Segundo</name>
+<latitude>10.001295</latitude>
+<longitude>-84.193723</longitude>
+<population>10794</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Desamparados</name>
+<latitude>10.02292</latitude>
+<longitude>-84.188457</longitude>
+<population>32241</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Turrúcares</name>
+<latitude>09.959764</latitude>
+<longitude>-84.318759</longitude>
+<population>7630</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tambor</name>
+<latitude>10.037203</latitude>
+<longitude>-84.240634</longitude>
+<population>13695</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Garita</name>
+<latitude>09.992021</latitude>
+<longitude>-84.320323</longitude>
+<population>7276</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sarapiquí</name>
+<latitude>10.314902</latitude>
+<longitude>-84.182437</longitude>
+<population>2842</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Ramón</name>
+<latitude>10.085394</latitude>
+<longitude>-84.467182</longitude>
+<population>8551</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santiago</name>
+<latitude>10.064606</latitude>
+<longitude>-84.486042</longitude>
+<population>4535</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Juan</name>
+<latitude>10.107233</latitude>
+<longitude>-84.465488</longitude>
+<population>11861</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Piedades Norte</name>
+<latitude>10.139972</latitude>
+<longitude>-84.535297</longitude>
+<population>8291</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Piedades Sur</name>
+<latitude>10.115399</latitude>
+<longitude>-84.533748</longitude>
+<population>4454</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael</name>
+<latitude>10.031357</latitude>
+<longitude>-84.475082</longitude>
+<population>10546</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Isidro</name>
+<latitude>10.083344</latitude>
+<longitude>-84.449451</longitude>
+<population>5729</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Angeles</name>
+<latitude>10.167936</latitude>
+<longitude>-84.520991</longitude>
+<population>5303</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Alfaro</name>
+<latitude>10.089320</latitude>
+<longitude>-84.502657</longitude>
+<population>8116</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Volio</name>
+<latitude>10.151676</latitude>
+<longitude>-84.449832</longitude>
+<population>2634</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Concepción</name>
+<latitude>10.121241</latitude>
+<longitude>-84.441486</longitude>
+<population>2348</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Zapotal</name>
+<latitude>10.159084</latitude>
+<longitude>-84.654026</longitude>
+<population>391</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Peñas Blancas</name>
+<latitude>10.364109</latitude>
+<longitude>-84.665039</longitude>
+<population>9289</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Valle Azul de San Lorenzo</name>
+<latitude>10.334038</latitude>
+<longitude>-84.548576</longitude>
+<population>4200</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Grecia</name>
+<latitude>10.06804</latitude>
+<longitude>-84.311168</longitude>
+<population>15198</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Isidro</name>
+<latitude>10.114675</latitude>
+<longitude>-84.272815</longitude>
+<population>5949</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San José</name>
+<latitude>10.096369</latitude>
+<longitude>-84.274848</longitude>
+<population>8100</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tacares</name>
+<latitude>10.028672</latitude>
+<longitude>-84.291522</longitude>
+<population>7963</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Roque</name>
+<latitude>10.094876</latitude>
+<longitude>-84.302223</longitude>
+<population>11132</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Puente de Piedra</name>
+<latitude>10.046711</latitude>
+<longitude>-84.316143</longitude>
+<population>10216</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Bolívar</name>
+<latitude>10.097145</latitude>
+<longitude>-84.314464</longitude>
+<population>7265</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Mateo</name>
+<latitude>09.936611</latitude>
+<longitude>-84.522602</longitude>
+<population>2692</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Desmonte</name>
+<latitude>09.959643</latitude>
+<longitude>-84.469379</longitude>
+<population>1047</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Jesús María</name>
+<latitude>09.958385</latitude>
+<longitude>-84.590595</longitude>
+<population>2397</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Labrador</name>
+<latitude>09.944351</latitude>
+<longitude>-84.612255</longitude>
+<population>1423</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Atenas</name>
+<latitude>09.977192</latitude>
+<longitude>-84.378238</longitude>
+<population>7398</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Jes\366s</name>
+<latitude>09.974984</latitude>
+<longitude>-84.422421</longitude>
+<population>4250</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Mercedes</name>
+<latitude>09.988569</latitude>
+<longitude>-84.402378</longitude>
+<population>3127</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Isidro</name>
+<latitude>09.99191</latitude>
+<longitude>-84.419916</longitude>
+<population>2813</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Concepción</name>
+<latitude>09.953887</latitude>
+<longitude>-84.366745</longitude>
+<population>4112</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San José</name>
+<latitude>10.010910</latitude>
+<longitude>-84.404931</longitude>
+<population>2250</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Eulalia</name>
+<latitude>10.010876</latitude>
+<longitude>-84.374286</longitude>
+<population>2082</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Escobal</name>
+<latitude>9.935302</latitude>
+<longitude>-84.435451</longitude>
+<population>848</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Naranjo</name>
+<latitude>10.099856</latitude>
+<longitude>-84.383846</longitude>
+<population>16039</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Miguel</name>
+<latitude>10.073457</latitude>
+<longitude>-84.396457</longitude>
+<population>4657</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San José</name>
+<latitude>10.150484</latitude>
+<longitude>-84.405212</longitude>
+<population>3162</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cirrí Sur</name>
+<latitude>10.118656</latitude>
+<longitude>-84.367065</longitude>
+<population>5337</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Jerónimo</name>
+<latitude>10.124188</latitude>
+<longitude>-84.358349</longitude>
+<population>3264</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Juan</name>
+<latitude>10.113605</latitude>
+<longitude>-84.396282</longitude>
+<population>3011</population>
+</City>
+<City category="C" countryID="CRC">
+<name>El Rosario</name>
+<latitude>10.044154</latitude>
+<longitude>-84.377399</longitude>
+<population>3757</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Palmitos</name>
+<latitude>10.097000</latitude>
+<longitude>-84.426184</longitude>
+<population>4271</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Palmares</name>
+<latitude>10.051501</latitude>
+<longitude>-84.432659</longitude>
+<population>3599</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Zaragoza</name>
+<latitude>10.041259</latitude>
+<longitude>-84.428073</longitude>
+<population>9565</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Buenos Aires</name>
+<latitude>10.068326</latitude>
+<longitude>-84.435207</longitude>
+<population>8663</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santiago</name>
+<latitude>10.024921</latitude>
+<longitude>-84.444004</longitude>
+<population>3257</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Candelaria</name>
+<latitude>10.030351</latitude>
+<longitude>-84.422939</longitude>
+<population>1961</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Esquipulas</name>
+<latitude>10.056698</latitude>
+<longitude>-84.422542</longitude>
+<population>8081</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Granja</name>
+<latitude>10.053089</latitude>
+<longitude>-84.447291</longitude>
+<population>4119</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Pedro</name>
+<latitude>10.076294</latitude>
+<longitude>-84.244601</longitude>
+<population>8098</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Juan</name>
+<latitude>10.099355</latitude>
+<longitude>-84.243808</longitude>
+<population>4638</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael</name>
+<latitude>10.089521</latitude>
+<longitude>-84.258191</longitude>
+<population>5451</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Carrillos</name>
+<latitude>10.032497</latitude>
+<longitude>-84.269779</longitude>
+<population>9230</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sabana Redonda</name>
+<latitude>10.113528</latitude>
+<longitude>-84.215496</longitude>
+<population>2343</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Orotina</name>
+<latitude>09.912131</latitude>
+<longitude>-84.522254</longitude>
+<population>9581</population>
+</City>
+<City category="C" countryID="CRC">
+<name>El Mataste</name>
+<latitude>09.916538</latitude>
+<longitude>-84.541547</longitude>
+<population>2143</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Hacienda Vieja</name>
+<latitude>09.919979</latitude>
+<longitude>-84.494335</longitude>
+<population>1070</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Coyolar</name>
+<latitude>09.900911</latitude>
+<longitude>-84.556163</longitude>
+<population>7258</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Ceiba</name>
+<latitude>09.900122</latitude>
+<longitude>-84.598827</longitude>
+<population>2452</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Quesada</name>
+<latitude>10.323053</latitude>
+<longitude>-84.431148</longitude>
+<population>42214</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Florencia</name>
+<latitude>10.360942</latitude>
+<longitude>-84.475139</longitude>
+<population>14991</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Buenavista</name>
+<latitude>10.276133</latitude>
+<longitude>-84.460369</longitude>
+<population>325</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Aguas Zarcas</name>
+<latitude>10.376034</latitude>
+<longitude>-84.340694</longitude>
+<population>20241</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Venecia</name>
+<latitude>10.354732</latitude>
+<longitude>-84.274041</longitude>
+<population>9638</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pital</name>
+<latitude>10.453241</latitude>
+<longitude>-84.273128</longitude>
+<population>17325</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Fortuna</name>
+<latitude>10.471522</latitude>
+<longitude>-84.644824</longitude>
+<population>15384</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Tigra</name>
+<latitude>10.409752</latitude>
+<longitude>-84.581295</longitude>
+<population>6374</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Palmera</name>
+<latitude>10.420739</latitude>
+<longitude>-84.382587</longitude>
+<population>6321</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Venado</name>
+<latitude>10.556144</latitude>
+<longitude>-84.744686</longitude>
+<population>1754</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cutris</name>
+<latitude>10.530978</latitude>
+<longitude>-84.478581</longitude>
+<population>10334</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Monterrey</name>
+<latitude>10.552043</latitude>
+<longitude>-84.649532</longitude>
+<population>3455</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pocosol</name>
+<latitude>10.623728</latitude>
+<longitude>-84.527294</longitude>
+<population>15395</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Zarcero</name>
+<latitude>10.184541</latitude>
+<longitude>-84.391864</longitude>
+<population>4004</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Laguna</name>
+<latitude>10.209672</latitude>
+<longitude>-84.400844</longitude>
+<population>1671</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tapesco</name>
+<latitude>10.218010</latitude>
+<longitude>-84.402199</longitude>
+<population>1528</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Guadalupe</name>
+<latitude>10.182766</latitude>
+<longitude>-84.410203</longitude>
+<population>1148</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Palmira</name>
+<latitude>10.209937</latitude>
+<longitude>-84.377906</longitude>
+<population>1647</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Zapote</name>
+<latitude>10.225578</latitude>
+<longitude>-84.418819</longitude>
+<population>739</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Brisas</name>
+<latitude>10.218403</latitude>
+<longitude>-84.402263</longitude>
+<population>2441</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sarchí Norte</name>
+<latitude>10.125638</latitude>
+<longitude>-84.321239</longitude>
+<population>7140</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sarchí Sur</name>
+<latitude>10.081369</latitude>
+<longitude>-84.339721</longitude>
+<population>6311</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Toro Amarillo</name>
+<latitude>10.215248</latitude>
+<longitude>-84.297847</longitude>
+<population>273</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Pedro</name>
+<latitude>10.111489</latitude>
+<longitude>-84.328708</longitude>
+<population>3286</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Rodríguez</name>
+<latitude>10.107147</latitude>
+<longitude>-84.349376</longitude>
+<population>2721</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Upala</name>
+<latitude>10.903426</latitude>
+<longitude>-85.017551</longitude>
+<population>16138</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Aguas Claras</name>
+<latitude>10.813065</latitude>
+<longitude>-85.175586</longitude>
+<population>4939</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San José</name>
+<latitude>10.951458</latitude>
+<longitude>-85.136451</longitude>
+<population>8585</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Bijagua</name>
+<latitude>10.730482</latitude>
+<longitude>-85.059917</longitude>
+<population>4642</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Delicias</name>
+<latitude>10.956125</latitude>
+<longitude>-85.039531</longitude>
+<population>4357</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Dos Ríos</name>
+<latitude>11.002153</latitude>
+<longitude>-85.317966</longitude>
+<population>3194</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Yolillal</name>
+<latitude>10.876143</latitude>
+<longitude>-84.975215</longitude>
+<population>3329</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Canalete</name>
+<latitude>10.838508</latitude>
+<longitude>-85.040724</longitude>
+<population>4731</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Los Chiles</name>
+<latitude>11.032827</latitude>
+<longitude>-84.715847</longitude>
+<population>13253</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Canño Negro</name>
+<latitude>10.891582</latitude>
+<longitude>-84.786452</longitude>
+<population>2254</population>
+</City>
+<City category="C" countryID="CRC">
+<name>El Amparo</name>
+<latitude>10.850714</latitude>
+<longitude>-84.668971</longitude>
+<population>5992</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Jorge</name>
+<latitude>10.715707</latitude>
+<longitude>-84.678607</longitude>
+<population>2673</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael</name>
+<latitude>10.671264</latitude>
+<longitude>-84.820873</longitude>
+<population>9723</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Buenavista</name>
+<latitude>10.744102</latitude>
+<longitude>-84.831705</longitude>
+<population>1573</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cote</name>
+<latitude>10.625983</latitude>
+<longitude>-84.862163</longitude>
+<population>867</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Katira</name>
+<latitude>10.743080</latitude>
+<longitude>-84.913837</longitude>
+<population>6285</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Río Cuarto</name>
+<latitude>10.344296</latitude>
+<longitude>-84.214570</longitude>
+<population>10886</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Rita</name>
+<latitude>10.405189</latitude>
+<longitude>-84.219310</longitude>
+<population>5150</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Isabel</name>
+<latitude>10.516092</latitude>
+<longitude>-84.184281</longitude>
+<population>4175</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Limón</name>
+<latitude>09.994836</latitude>
+<longitude>-83.033679</longitude>
+<population>61077</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pandora de Valle La Estrella</name>
+<latitude>09.739699</latitude>
+<longitude>-82.966655</longitude>
+<population>19062</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Río Blanco</name>
+<latitude>09.993222</latitude>
+<longitude>-83.132778</longitude>
+<population>9114</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Matama</name>
+<latitude>9.923166</latitude>
+<longitude>-83.063488</longitude>
+<population>7128</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Guápiles</name>
+<latitude>10.216371</latitude>
+<longitude>-83.787303</longitude>
+<population>36457</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Jiménez</name>
+<latitude>10.208689</latitude>
+<longitude>-83.742847</longitude>
+<population>11592</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Rita</name>
+<latitude>10.279731</latitude>
+<longitude>-83.785564</longitude>
+<population>24043</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Roxana</name>
+<latitude>10.275141</latitude>
+<longitude>-83.752216</longitude>
+<population>16802</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cariari</name>
+<latitude>10.360926</latitude>
+<longitude>-83.735065</longitude>
+<population>34172</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Colorado</name>
+<latitude>10.769098</latitude>
+<longitude>-83.589473</longitude>
+<population>3874</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Colonia</name>
+<latitude>10.271724</latitude>
+<longitude>-83.805847</longitude>
+<population>6007</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Siquirres</name>
+<latitude>10.099261</latitude>
+<longitude>-83.506366</longitude>
+<population>31634</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pacuarito</name>
+<latitude>10.104167</latitude>
+<longitude>-83.469441</longitude>
+<population>33765</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Florida</name>
+<latitude>10.091941</latitude>
+<longitude>-83.573192</longitude>
+<population>2254</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Germania</name>
+<latitude>10.150277</latitude>
+<longitude>-83.575001</longitude>
+<population>2471</population>
+</City>
+<City category="C" countryID="CRC">
+<name>El Cairo</name>
+<latitude>10.124542</latitude>
+<longitude>-83.539783</longitude>
+<population>6082</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Alegría</name>
+<latitude>10.089369</latitude>
+<longitude>-83.600213</longitude>
+<population>6306</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Bratsi</name>
+<latitude>9.626389</latitude>
+<longitude>-82.853885</longitude>
+<population>7318</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sixaola</name>
+<latitude>9.505281</latitude>
+<longitude>-82.613621</longitude>
+<population>8862</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cahuita</name>
+<latitude>9.738885</latitude>
+<longitude>-82.842182</longitude>
+<population>8293</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Amubri de Telire</name>
+<latitude>9.517635</latitude>
+<longitude>-82.954760</longitude>
+<population>6240</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Matina</name>
+<latitude>10.076421</latitude>
+<longitude>-83.291531</longitude>
+<population>9142</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Batán</name>
+<latitude>10.085126</latitude>
+<longitude>-83.342037</longitude>
+<population>16543</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Carrandi</name>
+<latitude>10.059145</latitude>
+<longitude>-83.277362</longitude>
+<population>12050</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Guácimo</name>
+<latitude>10.208949</latitude>
+<longitude>-83.681789</longitude>
+<population>18325</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pocora</name>
+<latitude>10.170702</latitude>
+<longitude>-83.606502</longitude>
+<population>6432</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Río Jiménez</name>
+<latitude>10.244111</latitude>
+<longitude>-83.605113</longitude>
+<population>8745</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Duacarí</name>
+<latitude>10.334241</latitude>
+<longitude>-83.596126</longitude>
+<population>6177</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cartago</name>
+<latitude>09.864175</latitude>
+<longitude>-83.919990</longitude>
+<population>22796</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Carmen</name>
+<latitude>09.872374</latitude>
+<longitude>-83.920772</longitude>
+<population>17425</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Nicolás</name>
+<latitude>09.883333</latitude>
+<longitude>-83.916667</longitude>
+<population>29130</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Agua Caliente</name>
+<latitude>09.832268</latitude>
+<longitude>-83.916002</longitude>
+<population>35948</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Guadalupe</name>
+<latitude>09.857835</latitude>
+<longitude>-83.949843</longitude>
+<population>16199</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Corralillo</name>
+<latitude>09.793201</latitude>
+<longitude>-84.036556</longitude>
+<population>10608</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tierra Blanca</name>
+<latitude>09.914987</latitude>
+<longitude>-83.893962</longitude>
+<population>5103</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Dulce Nombre</name>
+<latitude>09.846390</latitude>
+<longitude>-83.909647</longitude>
+<population>10548</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Llano Grande</name>
+<latitude>09.940161</latitude>
+<longitude>-83.911548</longitude>
+<population>4342</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Quebradilla</name>
+<latitude>09.843743</latitude>
+<longitude>-83.992893</longitude>
+<population>5939</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Paraíso</name>
+<latitude>09.838765</latitude>
+<longitude>-83.866283</longitude>
+<population>20601</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santiago</name>
+<latitude>09.868729</latitude>
+<longitude>-83.798131</longitude>
+<population>5224</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Orosi</name>
+<latitude>09.779817</latitude>
+<longitude>-83.841564</longitude>
+<population>9092</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cachí</name>
+<latitude>09.825043</latitude>
+<longitude>-83.803501</longitude>
+<population>5434</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Llanos de S Lucía</name>
+<latitude>09.838479</latitude>
+<longitude>-83.880743</longitude>
+<population>18943</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tres Ríos</name>
+<latitude>09.908906</latitude>
+<longitude>-83.987155</longitude>
+<population>9331</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Diego</name>
+<latitude>09.900082</latitude>
+<longitude>-84.002079</longitude>
+<population>24576</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Juan</name>
+<latitude>09.910302</latitude>
+<longitude>-84.006905</longitude>
+<population>15366</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael</name>
+<latitude>09.903593</latitude>
+<longitude>-83.969806</longitude>
+<population>15787</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Concepción</name>
+<latitude>09.923566</latitude>
+<longitude>-83.991120</longitude>
+<population>18667</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Dulce Nombre</name>
+<latitude>09.922445</latitude>
+<longitude>-83.980907</longitude>
+<population>7901</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Ramón</name>
+<latitude>09.940077</latitude>
+<longitude>-83.988048</longitude>
+<population>4054</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Río Azul</name>
+<latitude>09.8872400</latitude>
+<longitude>-84.020498</longitude>
+<population>14275</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Juan Viñas</name>
+<latitude>09.894545</latitude>
+<longitude>-83.746028</longitude>
+<population>6552</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tucurrique</name>
+<latitude>09.853194</latitude>
+<longitude>-83.722995</longitude>
+<population>4872</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pejibaye</name>
+<latitude>09.812222</latitude>
+<longitude>-83.704357</longitude>
+<population>3245</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Turrialba</name>
+<latitude>09.906192</latitude>
+<longitude>-83.684398</longitude>
+<population>26829</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Suiza</name>
+<latitude>09.854167</latitude>
+<longitude>-83.615558</longitude>
+<population>7590</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Peralta</name>
+<latitude>09.966661</latitude>
+<longitude>-83.612801</longitude>
+<population>618</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Cruz</name>
+<latitude>09.966893</latitude>
+<longitude>-83.731822</longitude>
+<population>3208</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Teresita</name>
+<latitude>09.977501</latitude>
+<longitude>-83.641849</longitude>
+<population>5355</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pavones</name>
+<latitude>09.905001</latitude>
+<longitude>-83.622776</longitude>
+<population>4271</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tuis</name>
+<latitude>09.842221</latitude>
+<longitude>-83.582501</longitude>
+<population>2984</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tayutic</name>
+<latitude>09.823071</latitude>
+<longitude>-83.556111</longitude>
+<population>2374</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Rosa</name>
+<latitude>09.924743</latitude>
+<longitude>-83.697246</longitude>
+<population>5083</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tres Equis</name>
+<latitude>09.961666</latitude>
+<longitude>-83.573055</longitude>
+<population>1868</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Isabel</name>
+<latitude>09.918551</latitude>
+<longitude>-83.676517</longitude>
+<population>6116</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Grano de Oro,Chirripó</name>
+<latitude>09.818448</latitude>
+<longitude>-83.456158</longitude>
+<population>4185</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pacayas</name>
+<latitude>09.916669</latitude>
+<longitude>-83.809521</longitude>
+<population>5628</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cervantes</name>
+<latitude>9.884986</latitude>
+<longitude>-83.808635</longitude>
+<population>6541</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Capellades</name>
+<latitude>09.922438</latitude>
+<longitude>-83.785601</longitude>
+<population>2454</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael</name>
+<latitude>09.869170</latitude>
+<longitude>-83.903300</longitude>
+<population>28942</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cot</name>
+<latitude>09.895498</latitude>
+<longitude>-83.873088</longitude>
+<population>9630</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Portrero Cerrado</name>
+<latitude>09.920623</latitude>
+<longitude>-83.878269</longitude>
+<population>2624</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cipreses</name>
+<latitude>09.890371</latitude>
+<longitude>-83.845861</longitude>
+<population>3700</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Rosa</name>
+<latitude>09.919240</latitude>
+<longitude>-83.839958</longitude>
+<population>2942</population>
+</City>
+<City category="C" countryID="CRC">
+<name>El Tejar</name>
+<latitude>09.844084</latitude>
+<longitude>-83.938022</longitude>
+<population>24972</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Isidro</name>
+<latitude>09.828365</latitude>
+<longitude>-83.952251</longitude>
+<population>9828</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tobosi</name>
+<latitude>09.837825</latitude>
+<longitude>-83.983471</longitude>
+<population>6569</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Patio de Agua</name>
+<latitude>09.798609</latitude>
+<longitude>-84.009395</longitude>
+<population>447</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Heredia</name>
+<latitude>09.998471</latitude>
+<longitude>-84.117244</longitude>
+<population>19138</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Mercedes</name>
+<latitude>10.006087</latitude>
+<longitude>-84.130551</longitude>
+<population>29383</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Francisco</name>
+<latitude>09.985577</latitude>
+<longitude>-84.136811</longitude>
+<population>49209</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Ulloa</name>
+<latitude>09.974568</latitude>
+<longitude>-84.141361</longitude>
+<population>28528</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Varablanca</name>
+<latitude>10.173677</latitude>
+<longitude>-84.157634</longitude>
+<population>700</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Barva</name>
+<latitude>10.019941</latitude>
+<longitude>-84.124317</longitude>
+<population>5521</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Pedro</name>
+<latitude>10.043684</latitude>
+<longitude>-84.133397</longitude>
+<population>11495</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Pablo</name>
+<latitude>10.049703</latitude>
+<longitude>-84.116399</longitude>
+<population>9683</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Roque</name>
+<latitude>10.015503</latitude>
+<longitude>-84.136641</longitude>
+<population>5297</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Lucía</name>
+<latitude>10.026375</latitude>
+<longitude>-84.113502</longitude>
+<population>8218</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San José de la Montaña</name>
+<latitude>10.055696</latitude>
+<longitude>-84.115345</longitude>
+<population>5398</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santo Domingo</name>
+<latitude>09.979932</latitude>
+<longitude>-84.091182</longitude>
+<population>4730</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Vicente</name>
+<latitude>09.990663</latitude>
+<longitude>-84.080696</longitude>
+<population>7442</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Miguel</name>
+<latitude>09.984803</latitude>
+<longitude>-84.049442</longitude>
+<population>7341</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Paracito</name>
+<latitude>09.999945</latitude>
+<longitude>-84.023279</longitude>
+<population>2037</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santo Tomás</name>
+<latitude>09.978416</latitude>
+<longitude>-84.076058</longitude>
+<population>7346</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Rosa</name>
+<latitude>09.972582</latitude>
+<longitude>-84.099421</longitude>
+<population>8426</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tures</name>
+<latitude>09.992228</latitude>
+<longitude>-84.056524</longitude>
+<population>4047</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pará</name>
+<latitude>09.990945</latitude>
+<longitude>-84.026279</longitude>
+<population>3333</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Bárbara</name>
+<latitude>10.036917</latitude>
+<longitude>-84.158931</longitude>
+<population>5944</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Pedro</name>
+<latitude>10.028986</latitude>
+<longitude>-84.167485</longitude>
+<population>6164</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Juan</name>
+<latitude>10.019384</latitude>
+<longitude>-84.157621</longitude>
+<population>8298</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Jesús</name>
+<latitude>10.054849</latitude>
+<longitude>-84.140876</longitude>
+<population>10408</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santo Domingo</name>
+<latitude>10.072643</latitude>
+<longitude>-84.156121</longitude>
+<population>3041</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Purabá</name>
+<latitude>10.055019</latitude>
+<longitude>-84.164081</longitude>
+<population>4969</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael</name>
+<latitude>10.014596</latitude>
+<longitude>-84.098224</longitude>
+<population>9668</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Josecito</name>
+<latitude>10.012573</latitude>
+<longitude>-84.111875</longitude>
+<population>12780</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santiago</name>
+<latitude>10.005323</latitude>
+<longitude>-84.100066</longitude>
+<population>9349</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Angeles</name>
+<latitude>10.031612</latitude>
+<longitude>-84.107831</longitude>
+<population>11610</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Concepción</name>
+<latitude>10.027721</latitude>
+<longitude>-84.067729</longitude>
+<population>6077</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Isidro</name>
+<latitude>10.016700</latitude>
+<longitude>-84.070000</longitude>
+<population>6032</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San José</name>
+<latitude>10.032537</latitude>
+<longitude>-84.030935</longitude>
+<population>7450</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Concepción</name>
+<latitude>10.042164</latitude>
+<longitude>-84.039204</longitude>
+<population>2639</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Francisco</name>
+<latitude>10.009954</latitude>
+<longitude>-84.065647</longitude>
+<population>4439</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Antonio</name>
+<latitude>09.978611</latitude>
+<longitude>-84.185833</longitude>
+<population>10193</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Ribera</name>
+<latitude>09.993851</latitude>
+<longitude>-84.181993</longitude>
+<population>6024</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Asunción</name>
+<latitude>09.978853</latitude>
+<longitude>-84.16526</longitude>
+<population>5591</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Barrantes</name>
+<latitude>10.014301</latitude>
+<longitude>-84.149868</longitude>
+<population>4091</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Joaquín</name>
+<latitude>10.000000</latitude>
+<longitude>-84.150000</longitude>
+<population>7173</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Llorente</name>
+<latitude>09.997267</latitude>
+<longitude>-84.160229</longitude>
+<population>8771</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Pablo</name>
+<latitude>09.996389</latitude>
+<longitude>-84.095833</longitude>
+<population>19412</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Rincón de Sabanilla</name>
+<latitude>09.982135</latitude>
+<longitude>-84.104806</longitude>
+<population>8259</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Puerto Viejo</name>
+<latitude>10.455387</latitude>
+<longitude>-84.007938</longitude>
+<population>20174</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Virgen</name>
+<latitude>10.401262</latitude>
+<longitude>-84.134509</longitude>
+<population>10.706</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Horquetas</name>
+<latitude>10.335442</latitude>
+<longitude>-83.953113</longitude>
+<population>24331</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Llanuras del Gaspar</name>
+<latitude>10.661677</latitude>
+<longitude>-83.880496</longitude>
+<population>1181</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cureña </name>
+<latitude>10.781849</latitude>
+<longitude>-84.024051</longitude>
+<population>915</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San José</name>
+<latitude>09.934669</latitude>
+<longitude>-84.071159</longitude>
+<population>56397</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Zapote</name>
+<latitude>09.916670</latitude>
+<longitude>-84.050000</longitude>
+<population>21566</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Francisco de Dos Ríos</name>
+<latitude>09.916670</latitude>
+<longitude>-84.050000</longitude>
+<population>23364</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Uruca</name>
+<latitude>9.948473</latitude>
+<longitude>-84.098743</longitude>
+<population>31696</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Mata Redonda</name>
+<latitude>09.93056</latitude>
+<longitude>-84.1072</longitude>
+<population>9940</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pavas</name>
+<latitude>9.945832</latitude>
+<longitude>-84.132877</longitude>
+<population>71368</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Hatillo</name>
+<latitude>9.916198</latitude>
+<longitude>-84.100063</longitude>
+<population>50382</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Sebastián</name>
+<latitude>9.91667</latitude>
+<longitude>-84.0833</longitude>
+<population>44776</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Escazú</name>
+<latitude>09.919852</latitude>
+<longitude>-84.140392</longitude>
+<population>11984</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Antonio</name>
+<latitude>09.890644</latitude>
+<longitude>-84.141670</longitude>
+<population>26735</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael</name>
+<latitude>09.944805</latitude>
+<longitude>-84.153240</longitude>
+<population>27735</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Desamparados</name>
+<latitude>09.898114</latitude>
+<longitude>-84.065586</longitude>
+<population>33843</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Miguel</name>
+<latitude>09.870309</latitude>
+<longitude>-84.059825</longitude>
+<population>31573</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Juan de Dios</name>
+<latitude>09.880556</latitude>
+<longitude>-84.084722</longitude>
+<population>22368</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael Arriba</name>
+<latitude>09.883333</latitude>
+<longitude>-84.083333</longitude>
+<population>17104</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Antonio</name>
+<latitude>09.898611</latitude>
+<longitude>-84.046389</longitude>
+<population>10762</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Patarrá</name>
+<latitude>09.882711</latitude>
+<longitude>-84.033229</longitude>
+<population>11864</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Frailes</name>
+<latitude>09.750594</latitude>
+<longitude>-84.054594</longitude>
+<population>3806</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Cristóbal</name>
+<latitude>09.771351</latitude>
+<longitude>-84.005107</longitude>
+<population>3871</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Rosario</name>
+<latitude>09.792601</latitude>
+<longitude>-84.084384</longitude>
+<population>3061</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Damas</name>
+<latitude>09.888611</latitude>
+<longitude>-84.040556</longitude>
+<population>14615</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael Abajo</name>
+<latitude>09.900000</latitude>
+<longitude>-84.083333</longitude>
+<population>25719</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Gravilias</name>
+<latitude>09.893056</latitude>
+<longitude>-84.059444</longitude>
+<population>16422</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Los Guido</name>
+<latitude>09.869167</latitude>
+<longitude>-84.045278</longitude>
+<population>27990</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santiago</name>
+<latitude>09.846745</latitude>
+<longitude>-84.315967</longitude>
+<population>11512</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Mercedes Sur</name>
+<latitude>09.763369</latitude>
+<longitude>-84.397876</longitude>
+<population>6595</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Barbacoas</name>
+<latitude>09.855751</latitude>
+<longitude>-84.348329</longitude>
+<population>4109</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Grifo Alto</name>
+<latitude>09.877841</latitude>
+<longitude>-84.390087</longitude>
+<population>1182</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael</name>
+<latitude>09.830395</latitude>
+<longitude>-84.289325</longitude>
+<population>1730</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Candelaria</name>
+<latitude>09.796486</latitude>
+<longitude>-84.336887</longitude>
+<population>1436</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Desamparaditos</name>
+<latitude>09.880641</latitude>
+<longitude>-84.341556</longitude>
+<population>666</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Antonio</name>
+<latitude>09.871523</latitude>
+<longitude>-84.302650</longitude>
+<population>4337</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Chires</name>
+<latitude>09.656956</latitude>
+<longitude>-84.441631</longitude>
+<population>3079</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Carlos</name>
+<latitude>09.629029</latitude>
+<longitude>-84.093532</longitude>
+<population>1893</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Marcoss</name>
+<latitude>09.661106</latitude>
+<longitude>-84.021013</longitude>
+<population>10731</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Lorenzo</name>
+<latitude>09.639102</latitude>
+<longitude>-84.029750</longitude>
+<population>5004</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Aserrí</name>
+<latitude>09.861254</latitude>
+<longitude>-84.093601</longitude>
+<population>28191</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tarbaca</name>
+<latitude>09.819072</latitude>
+<longitude>-84.110698</longitude>
+<population>1402</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Vuelta de Jorco</name>
+<latitude>09.794998</latitude>
+<longitude>-84.129425</longitude>
+<population>6866</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Gabriel</name>
+<latitude>09.787801</latitude>
+<longitude>-84.107374</longitude>
+<population>6447</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Legua</name>
+<latitude>09.737611</latitude>
+<longitude>-84.110073</longitude>
+<population>1512</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Monterrey</name>
+<latitude>09.758329</latitude>
+<longitude>-84.109542</longitude>
+<population>498</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Salitrillos</name>
+<latitude>09.850801</latitude>
+<longitude>-84.065273</longitude>
+<population>14258</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Colón</name>
+<latitude>09.915209</latitude>
+<longitude>-84.242563</longitude>
+<population>16548</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Guayabo</name>
+<latitude>09.860611</latitude>
+<longitude>-84.261814</longitude>
+<population>3930</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tabarcia</name>
+<latitude>09.848531</latitude>
+<longitude>-84.233478</longitude>
+<population>4702</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Piedras Negras</name>
+<latitude>09.911303</latitude>
+<longitude>-84.323093</longitude>
+<population>379</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Picagres</name>
+<latitude>09.904723</latitude>
+<longitude>-84.346309</longitude>
+<population>824</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Jaris</name>
+<latitude>09.870271</latitude>
+<longitude>-84.282160</longitude>
+<population>1197</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Quitirrisí</name>
+<latitude>09.869847</latitude>
+<longitude>-84.237556</longitude>
+<population>1810</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Guadalupe</name>
+<latitude>09.946396</latitude>
+<longitude>-84.053073</longitude>
+<population>21013</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Francisco</name>
+<latitude>09.942005</latitude>
+<longitude>-84.071519</longitude>
+<population>2304</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Calle Blancos</name>
+<latitude>09.94722</latitude>
+<longitude>-84.068900</longitude>
+<population>22076</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Mata de Plátano</name>
+<latitude>09.954246</latitude>
+<longitude>-84.015644</longitude>
+<population>19844</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Ipís</name>
+<latitude>09.966691</latitude>
+<longitude>-84.020717</longitude>
+<population>26454</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Rancho Redondo</name>
+<latitude>09.961222</latitude>
+<longitude>-83.948841</longitude>
+<population>2537</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Purral</name>
+<latitude>09.9575</latitude>
+<longitude>-84.034200</longitude>
+<population>32681</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Ana</name>
+<latitude>09.932666</latitude>
+<longitude>-84.181369</longitude>
+<population>11775</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Salitral</name>
+<latitude>09.911365</latitude>
+<longitude>-84.179317</longitude>
+<population>4302</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pozos</name>
+<latitude>09.949856</latitude>
+<longitude>-84.190059</longitude>
+<population>14891</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Uruca</name>
+<latitude>09.935</latitude>
+<longitude>-84.194700</longitude>
+<population>8257</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Piedades</name>
+<latitude>09.93333</latitude>
+<longitude>-84.216700</longitude>
+<population>9326</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Brasil</name>
+<latitude>09.93333</latitude>
+<longitude>-84.233300</longitude>
+<population>2897</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Alajuelita</name>
+<latitude>09.902583</latitude>
+<longitude>-84.100215</longitude>
+<population>12781</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Josecito</name>
+<latitude>09.893333</latitude>
+<longitude>-84.105000</longitude>
+<population>11817</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Antonio</name>
+<latitude>09.886670</latitude>
+<longitude>-84.117200</longitude>
+<population>5419</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Concepción</name>
+<latitude>09.900000</latitude>
+<longitude>-84.083300</longitude>
+<population>21209</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Felipe</name>
+<latitude>09.90611</latitude>
+<longitude>-84.108100</longitude>
+<population>36508</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Isidro</name>
+<latitude>09.976365</latitude>
+<longitude>-84.007961</longitude>
+<population>16346</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael</name>
+<latitude>09.989171</latitude>
+<longitude>-83.990369</longitude>
+<population>7039</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Dulce Nombre de Jesús</name>
+<latitude>09.983282</latitude>
+<longitude>-84.013898</longitude>
+<population>11094</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Patalillo</name>
+<latitude>09.972198</latitude>
+<longitude>-84.022700</longitude>
+<population>22968</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cascajal</name>
+<latitude>10.002908</latitude>
+<longitude>-83.958827</longitude>
+<population>6372</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Ignacio</name>
+<latitude>09.799013</latitude>
+<longitude>-84.162647</longitude>
+<population>9016</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Guaitil</name>
+<latitude>09.791995</latitude>
+<longitude>-84.229999</longitude>
+<population>2406</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Palmichal</name>
+<latitude>09.837423</latitude>
+<longitude>-84.202075</longitude>
+<population>4581</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cangrejal</name>
+<latitude>09.764787</latitude>
+<longitude>-84.218665</longitude>
+<population>2009</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sabanillas</name>
+<latitude>09.743293</latitude>
+<longitude>-84.258983</longitude>
+<population>2331</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Pedro</name>
+<latitude>09.932616</latitude>
+<longitude>-84.052043</longitude>
+<population>23853</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sabanilla</name>
+<latitude>09.943128</latitude>
+<longitude>-84.033246</longitude>
+<population>13457</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Mercedes</name>
+<latitude>09.943687</latitude>
+<longitude>-84.050331</longitude>
+<population>5852</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael</name>
+<latitude>09.943611</latitude>
+<longitude>-84.016389</longitude>
+<population>12825</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Juan</name>
+<latitude>09.96306</latitude>
+<longitude>-84.080600</longitude>
+<population>25969</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cinco Esquinas</name>
+<latitude>09.94806</latitude>
+<longitude>-84.082500</longitude>
+<population>7883</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Anselmo Llorente</name>
+<latitude>09.95</latitude>
+<longitude>-84.066700</longitude>
+<population>12346</population>
+</City>
+<City category="C" countryID="CRC">
+<name>León XIII</name>
+<latitude>09.960223</latitude>
+<longitude>-84.099966</longitude>
+<population>18336</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Colima</name>
+<latitude>09.950000</latitude>
+<longitude>-84.083300</longitude>
+<population>16972</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Vicente</name>
+<latitude>09.963616</latitude>
+<longitude>-84.045351</longitude>
+<population>32112</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Jerónimo</name>
+<latitude>10.006944</latitude>
+<longitude>-84.015556</longitude>
+<population>6844</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Trinidad</name>
+<latitude>09.974722</latitude>
+<longitude>-84.031944</longitude>
+<population>21773</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Pablo</name>
+<latitude>09.907121</latitude>
+<longitude>-84.441066</longitude>
+<population>1357</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Pedro</name>
+<latitude>09.875455</latitude>
+<longitude>-84.446414</longitude>
+<population>646</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Juan de Mata</name>
+<latitude>09.877551</latitude>
+<longitude>-84.526891</longitude>
+<population>1182</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Luis</name>
+<latitude>09.852596</latitude>
+<longitude>-84.456653</longitude>
+<population>517</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Bijagual, Carara</name>
+<latitude>09.730418</latitude>
+<longitude>-84.569386</longitude>
+<population>2108</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa María</name>
+<latitude>09.652609</latitude>
+<longitude>-83.969852</longitude>
+<population>4621</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Jardín</name>
+<latitude>09.712393</latitude>
+<longitude>-83.968645</longitude>
+<population>671</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Copey</name>
+<latitude>09.644996</latitude>
+<longitude>-83.918705</longitude>
+<population>2016</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Curridabat</name>
+<latitude>09.914413</latitude>
+<longitude>-84.038036</longitude>
+<population>28813</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Granadilla</name>
+<latitude>09.930442</latitude>
+<longitude>-84.037189</longitude>
+<population>17713</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sánchez</name>
+<latitude>09.912703</latitude>
+<longitude>-84.034381</longitude>
+<population>6429</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tirrases</name>
+<latitude>09.898533</latitude>
+<longitude>-84.025169</longitude>
+<population>19852</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Isidro de El General</name>
+<latitude>9.374574</latitude>
+<longitude>-83.704545</longitude>
+<population>46017</population>
+</City>
+<City category="C" countryID="CRC">
+<name>El General</name>
+<latitude>09.371823</latitude>
+<longitude>-83.661531</longitude>
+<population>6780</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Daniel Flores</name>
+<latitude>9.326182</latitude>
+<longitude>-83.664882</longitude>
+<population>33591</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Rivas</name>
+<latitude>9.421281</latitude>
+<longitude>-83.657817</longitude>
+<population>6593</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Pedro</name>
+<latitude>09.280451</latitude>
+<longitude>-83.549910</longitude>
+<population>9076</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Rafael, Platanares</name>
+<latitude>09.206877</latitude>
+<longitude>-83.642572</longitude>
+<population>7073</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pejibaye</name>
+<latitude>9.161736</latitude>
+<longitude>-83.569606</longitude>
+<population>8001</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Cajón</name>
+<latitude>9.289382</latitude>
+<longitude>-83.582019</longitude>
+<population>8574</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Platanillo, Barú</name>
+<latitude>9.289285</latitude>
+<longitude>-83.801939</longitude>
+<population>2786</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Río Nuevo</name>
+<latitude>9.396248</latitude>
+<longitude>-83.761753</longitude>
+<population>3067</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Páramo</name>
+<latitude>9.417667</latitude>
+<longitude>-83.737851</longitude>
+<population>4511</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Antonio, La Amistad</name>
+<latitude>09.193335</latitude>
+<longitude>-83.548630</longitude>
+<population>2863</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Pablo</name>
+<latitude>09.683858</latitude>
+<longitude>-84.041016</longitude>
+<population>4378</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Andrés</name>
+<latitude>09.738614</latitude>
+<longitude>-84.082379</longitude>
+<population>1639</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Llano Bonito</name>
+<latitude>09.670026</latitude>
+<longitude>-84.112365</longitude>
+<population>1730</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Isidro</name>
+<latitude>09.676575</latitude>
+<longitude>-84.076137</longitude>
+<population>1531</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Cruz</name>
+<latitude>09.731723</latitude>
+<longitude>-84.030934</longitude>
+<population>1978</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Antonio</name>
+<latitude>09.718086</latitude>
+<longitude>-84.059467</longitude>
+<population>1106</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tambor</name>
+<latitude>9.738073</latitude>
+<longitude>-85.012546</longitude>
+<population>276</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Montezuma</name>
+<latitude>9.661931</latitude>
+<longitude>-85.058471</longitude>
+<population>260</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Malpaís</name>
+<latitude>9.599142</latitude>
+<longitude>-85.142584</longitude>
+<population>255</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Blas</name>
+<latitude>9.871621</latitude>
+<longitude>-85.164814</longitude>
+<population>414</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Jicaral</name>
+<latitude>9.960482</latitude>
+<longitude>-85.113745</longitude>
+<population>2097</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Corozal</name>
+<latitude>9.990406</latitude>
+<longitude>-85.156918</longitude>
+<population>540</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Buenavista</name>
+<latitude>9.914828</latitude>
+<longitude>-85.556116</longitude>
+<population>351</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Marbella</name>
+<latitude>10.102811</latitude>
+<longitude>-85.774899</longitude>
+<population>385</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Huacas</name>
+<latitude>10.379212</latitude>
+<longitude>-85.775499</longitude>
+<population>631</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Salitral</name>
+<latitude>10.595821</latitude>
+<longitude>-85.241547</longitude>
+<population>126</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pueblo Nuevo</name>
+<latitude>10.730357</latitude>
+<longitude>-85.242791</longitude>
+<population>157</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sandillal</name>
+<latitude>10.456752</latitude>
+<longitude>-85.104990</longitude>
+<population>381</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Solania</name>
+<latitude>10.374742</latitude>
+<longitude>-84.988089</longitude>
+<population>172</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Miguel</name>
+<latitude>10.410579</latitude>
+<longitude>-84.928051</longitude>
+<population>215</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pijije</name>
+<latitude>10.544711</latitude>
+<longitude>-85.351667</longitude>
+<population>962</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Palo Seco</name>
+<latitude>9.486652</latitude>
+<longitude>-84.296379</longitude>
+<population>252</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Damas</name>
+<latitude>9.492831</latitude>
+<longitude>-84.208145</longitude>
+<population>482</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Parque Manuel Antonio</name>
+<latitude>9.410411</latitude>
+<longitude>-84.154931</longitude>
+<population>1113</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Pasito</name>
+<latitude>9.359473</latitude>
+<longitude>-84.001379</longitude>
+<population>144</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tierras Morenas</name>
+<latitude>9.344061</latitude>
+<longitude>-83.865252</longitude>
+<population>52</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Dominical,Bahía Ballena</name>
+<latitude>09.255771</latitude>
+<longitude>-83.863026</longitude>
+<population>500</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Santa Elena</name>
+<latitude>10.896956</latitude>
+<longitude>-84.555891</longitude>
+<population>106</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Isidro de Peñas Blancas</name>
+<latitude>10.377739</latitude>
+<longitude>-84.584772</longitude>
+<population>1052</population>
+</City>
+<City category="C" countryID="CRC">
+<name>La Vega</name>
+<latitude>10.422249</latitude>
+<longitude>-84.523659</longitude>
+<population>827</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Ramón</name>
+<latitude>10.344642</latitude>
+<longitude>-84.131756</longitude>
+<population>396</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Tigre</name>
+<latitude>10.420287</latitude>
+<longitude>-83.981981</longitude>
+<population>726</population>
+</City>
+<City category="C" countryID="CRC">
+<name>San Gerardo</name>
+<latitude>10.387691</latitude>
+<longitude>-83.859363</longitude>
+<population>400</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Penshurt</name>
+<latitude>9.774871</latitude>
+<longitude>-82.908411</longitude>
+<population>824</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Hone Creek</name>
+<latitude>9.664385</latitude>
+<longitude>-82.800179</longitude>
+<population>1320</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Sepeque</name>
+<latitude>9.561649</latitude>
+<longitude>-82.986174</longitude>
+<population>807</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Paraiso</name>
+<latitude>9.571511</latitude>
+<longitude>-82.707181</longitude>
+<population>1063</population>
+</City>
+<City category="C" countryID="CRC">
+<name>Ujarrás</name>
+<latitude>9.234113</latitude>
+<longitude>-83.305206</longitude>
+<population>668</population>
+</City>
+
+</seiscomp>

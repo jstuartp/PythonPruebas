@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<seiscomp>
+	<module name="sccortawaves" category="Utilities">
+		<description>Script for cutting Waves.</description>
+		<configuration>
+			<parameter name="taperMaxPercent" type="double" default="0,05">
+				<description>
+					Defines the value for the TAPER MAX Percentage.
+				</description>
+			</parameter>
+			<parameter name="taperType" type="string" default="hann">
+					<description>
+							Defines the value for the TAPER Type
+					</description>
+			</parameter>
+			<parameter name="filterType" type="string" default="bandpass">
+				<description>
+					Defines the Value for the FILTER TYPE.
+				</description>
+			</parameter>
+			<parameter name="filterFreqMin" type="double" default="0,05">
+				<description>
+					Defines the Value for the FILTER MIN FREQ.
+				</description>
+			</parameter>
+			<parameter name="filterFreqMax" type="double" default="25">
+				<description>
+					Defines the Value for the FILTER MAX FREQ.
+				</description>
+			</parameter>
+			<parameter name="filterCorners" type="double" default="2">
+				<description>
+					Defines the Value for the FILTER Corners.
+				</description>
+			</parameter>
+			<parameter name="rutaRaiz" type="string" default="/home/lis/waves/corta/">
+				<description>
+					Defines the route for .mseed files.
+				</description>
+			</parameter>
+			<parameter name="rutaImagenes" type="string" default="/home/lis/waves/imagenes/">
+				<description>
+					Defines the route for the PNG wave files
+				</description>
+			</parameter>
+			<parameter name="direccionWebServer" type="string" default="stuart@10.208.36.33:/var/www/html/lisOne/public/assets/waves">
+				<description>
+					Defines the route for the Web Server.
+				</description>
+			</parameter>
+		</configuration>
+		<command-line>
+			<group name="Generic">
+				<optionReference>generic#help</optionReference>
+				<optionReference>generic#version</optionReference>
+				<optionReference>generic#config-file</optionReference>
+				<optionReference>generic#plugins</optionReference>
+				<optionReference>generic#daemon</optionReference>
+				<optionReference>generic#auto-shutdown</optionReference>
+				<optionReference>generic#shutdown-master-module</optionReference>
+				<optionReference>generic#shutdown-master-username</optionReference>
+				<option long-flag="first-new" param-ref="firstNew"/>
+			</group>
+
+			<group name="Verbosity">
+				<optionReference>verbosity#verbosity</optionReference>
+				<optionReference>verbosity#v</optionReference>
+				<optionReference>verbosity#quiet</optionReference>
+				<optionReference>verbosity#component</optionReference>
+				<optionReference>verbosity#syslog</optionReference>
+				<optionReference>verbosity#lockfile</optionReference>
+				<optionReference>verbosity#console</optionReference>
+				<optionReference>verbosity#debug</optionReference>
+				<optionReference>verbosity#log-file</optionReference>
+			</group>
+
+			<group name="Messaging">
+				<optionReference>messaging#user</optionReference>
+				<optionReference>messaging#host</optionReference>
+				<optionReference>messaging#timeout</optionReference>
+				<optionReference>messaging#primary-group</optionReference>
+				<optionReference>messaging#subscribe-group</optionReference>
+				<optionReference>messaging#encoding</optionReference>
+				<optionReference>messaging#start-stop-msg</optionReference>
+			</group>
+
+			<group name="Database">
+				<optionReference>database#db-driver-list</optionReference>
+				<optionReference>database#database</optionReference>
+				<optionReference>database#config-module</optionReference>
+				<optionReference>database#inventory-db</optionReference>
+				<optionReference>database#db-disable</optionReference>
+			</group>
+
+
+
+		</command-line>
+	</module>
+</seiscomp>

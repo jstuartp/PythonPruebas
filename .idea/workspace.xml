@@ -5,13 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="update 6 de noviembre, incluido archivo sczabbix">
-      <change afterPath="$PROJECT_DIR$/seiscomp/copiaPNG.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/seiscomp/sccortawaves_110" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/seiscomp/sccortawaves_412" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/seiscomp/sczabbix" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/seiscomp/slmon_110.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cities.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/distritosLatLong.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/deploy_sccortawaves/sccortawaves.cfg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/deploy_sccortawaves/sccortawaves.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/deploy_sccortawaves/sccortawaves.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/deploy_sccortawaves/sccortawaves_2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/varios.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seiscomp/sccortawaves" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/copiaPNG.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,6 +69,7 @@
     "Python.main.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
     "last_opened_file_path": "/home/stuart/seiscomp/bin/slmon_old",
@@ -75,7 +78,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "settings.editor.selected.configurable": "advanced.settings",
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
@@ -112,8 +115,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-410509235cf1-JavaScript-PY-242.20224.347" />
-        <option value="bundled-python-sdk-c2d6afa66fbe-39cff9de6eef-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-242.20224.347" />
+        <option value="bundled-js-predefined-d6986cc7102b-e768b9ed790e-JavaScript-PY-243.21565.199" />
+        <option value="bundled-python-sdk-cab1f2013843-4ae2d6a61b08-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-243.21565.199" />
       </set>
     </attachedChunks>
   </component>
@@ -156,6 +159,8 @@
       <workItem from="1730910048486" duration="3134000" />
       <workItem from="1733319521811" duration="363000" />
       <workItem from="1733328529438" duration="8390000" />
+      <workItem from="1733492285662" duration="11000" />
+      <workItem from="1733493646239" duration="26127000" />
     </task>
     <task id="LOCAL-00001" summary="Scrip de prueba versión 1">
       <option name="closed" value="true" />
