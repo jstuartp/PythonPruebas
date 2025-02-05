@@ -1,20 +1,21 @@
-﻿from pyzabbix import ZabbixAPI
+﻿from pyzabbix import ZabbixAPI, ZabbixAPIException
 import sys
 
 # Configuración del servidor Zabbix
-ZABBIX_URL = "http://10.208.36.97/zabbix"
-ZABBIX_USER = "Admin"
-ZABBIX_PASSWORD = "zabbix"
+ZABBIX_URL = "http://localhost/zabbix/"
+ZABBIX_USER = ""
+ZABBIX_PASSWORD = ""
 
 # Archivo de entrada con los hosts
 HOSTS_FILE = "listado_host.txt"
 
 # Conectar a Zabbix
 try:
-    zapi = ZabbixAPI(ZABBIX_URL)
+    zapi = ZabbixAPI("http://localhost/zabbix")
+    print("NO LLEGO AQUI")
     zapi.login(ZABBIX_USER, ZABBIX_PASSWORD)
     print("Conexión exitosa a Zabbix")
-except Exception as e:
+except ZabbixAPIException as e:
     print(f"Error al conectar con Zabbix: {e}")
     sys.exit(1)
 

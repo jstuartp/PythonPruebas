@@ -53,7 +53,7 @@ class EventListener(client.Application):
 
         self.rutaRaiz ="/home/lis/waves/corta/"
         self.rutaImagenes ="/home/lis/waves/imagenes/"
-        self.direccionWebServer = "stuart@10.208.36.33:/var/www/html/lisOne/public/assets/waves"
+        self.direccionWebServer = "stuart@10.208.36.97:/var/www/html/lisOne/public/assets/waves"
         Logging.info("Inicio de CortaWaves")
 
     def initConfiguration(self):
@@ -578,6 +578,7 @@ class EventListener(client.Application):
         # Guardar el gráfico en un archivo
         #output_file = "01-30-2025-14-50-37_MF_PLRL.png"
         plt.savefig(imgagenPng, dpi=300)
+        plt.close()
 
 
 

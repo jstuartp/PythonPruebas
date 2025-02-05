@@ -10,7 +10,6 @@ import datetime
 import os
 import pymysql
 import subprocess
-import matplotlib.pyplot as plt
 from seiscomp import core, client, io, math, logging
 from seiscomp import client, datamodel
 from seiscomp.client import Protocol
@@ -40,7 +39,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(True)
+        self.setLoggingToStdErr(False)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -343,9 +342,7 @@ class EventListener(client.Application):
 
                     # print(trx.stats.station, trx.stats.location, trx.stats.channel)
                     # print(str(maximo))
-                    #strNew.plot(outfile=imagenPng) #PLOTEO DE IMAGEN y se guarda el archivo
-                    #Nueva version de ploteo
-                    self.Plotear(imagenPng,strNew) #llamada a la funcion de ploteo propia
+                    strNew.plot(color="blue",outfile=imagenPng)
 
 
                     try:
@@ -547,37 +544,6 @@ class EventListener(client.Application):
         finally:
             conn.close()
         return resultados
-
-
-
-    def Plotear(self,imgagenPng,stream):
-        # Configurar la figura y subgráficos
-        fig, axes = plt.subplots(len(stream), 1, figsize=(12, 8), sharex=True)
-
-        nombreEstacion = ""
-
-        # Graficar cada traza en su respectivo subgráfico
-        for i, trace in enumerate(stream):
-            nombreEstacion = trace.stats.station
-            ax = axes[i]
-            # Convertir los tiempos a segundos relativos desde el inicio de la traza
-            times = trace.times()
-            ax.plot(trace.data, label=f"Traza: {trace.id}", color='blue')
-            ax.set_ylabel("Amplitud")
-            ax.legend(loc="upper right")
-            ax.grid(True)
-            # Centrar el eje Y en 0 para cada traza
-
-        # Etiquetas generales del gráfico
-        fig.suptitle("Grafica PGA para %s" % nombreEstacion, fontsize=14)
-        axes[-1].set_xlabel("Tiempo")
-
-        # Formato automático de las fechas en el eje X
-        plt.gcf().autofmt_xdate()
-
-        # Guardar el gráfico en un archivo
-        #output_file = "01-30-2025-14-50-37_MF_PLRL.png"
-        plt.savefig(imgagenPng, dpi=300)
 
 
 
