@@ -1,0 +1,608 @@
+#!/usr/bin/env seiscomp-python
+# -*- coding: utf-8 -*-
+import glob
+
+from obspy.clients.fdsn import Client
+from obspy import read, UTCDateTime
+import sys
+import traceback
+import datetime
+import os
+import pymysql
+import subprocess
+import matplotlib.pyplot as plt
+from seiscomp import core, client, io, math, logging
+from seiscomp import client, datamodel
+from seiscomp.client import Protocol
+from seiscomp import logging as Logging
+from time import strftime
+from joblib import Parallel, delayed
+
+
+#Se crea el objeto cliente FDSN para obtener datos y el inventario
+host = ("http://localhost:8080")  # SEISCOMP servidor Virtual
+#host = ("http://localhost:8080")  # SEISCOMP computadora local
+myClient = Client(host)
+total = myClient.get_stations()
+networks = myClient.get_stations(level="network")
+
+#CONSTANTES BASES DE DATOS
+my_host = 'localhost'
+my_user = 'root'
+my_password = 'lisucr01'
+my_db = 'seiscomp'
+
+
+class EventListener(client.Application):
+
+    def __init__(self, argc, argv):
+        client.Application.__init__(self, argc, argv)
+        self.setMessagingEnabled(True)
+        self.setDatabaseEnabled(False, False)
+        self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
+        self.addMessagingSubscription("EVENT")
+        self.setLoggingToStdErr(True)
+        
+        #seccion para manejar info de configuracion y loggin
+        self.addMessagingSubscription("CONFIG")
+        self.taperMaxPercent=0.05
+        self.taperType= "hann"
+        self.filterType="bandpass"
+        self.filterFreqMin=0.05
+        self.filterFreqMax=25
+        self.filterCorners=2
+
+        self.rutaRaiz ="/home/lis/waves/corta/"
+        self.rutaImagenes ="/home/lis/waves/imagenes/"
+        self.direccionWebServer = "stuart@10.208.36.97:/var/www/html/lisOne/public/assets/waves"
+        Logging.info("Inicio de CortaWaves")
+
+    def initConfiguration(self):
+
+        if not client.Application.initConfiguration(self):
+            return (False)
+        try:
+            self.taperMaxPercent = self.configGetString("taperMaxPercent")
+            Logging.info(self.taperMaxPercent)
+        except Exception as e:
+            Logging.error("Error while getting MAX PERCENT for TAPER: %s" % str(e))
+        try:
+            self.taperType = self.configGetString("taperType")
+            Logging.info(self.taperType)
+        except Exception as e:
+            Logging.error("Error while getting TYPE for TAPER: %s" % str(e))
+        try:
+            self.filterType = self.configGetString("filterType")
+            Logging.info(self.filterType)
+        except Exception as e:
+            Logging.error("Error while getting TYPE for FILTER: %s" % str(e))
+
+        try:
+            self.filterCorners = self.configGetString("filterCorners")
+            Logging.info(self.filterCorners)
+        except Exception as e:
+            Logging.error("Error while getting CORNERS for FILTER: %s" % str(e))
+        try:
+            self.filterFreqMax = self.configGetString("filterFreqMax")
+            Logging.info(self.filterFreqMax)
+        except Exception as e:
+            Logging.error("Error while getting Max Frecuency for FILTER: %s" % str(e))
+        try:
+            self.filterFreqMin = self.configGetString("filterFreqMin")
+            Logging.info(self.filterFreqMin)
+        except Exception as e:
+            Logging.error("Error while getting Min Frecuency for FILTER: %s" % str(e))
+
+        try:
+            self.rutaRaiz = self.configGetString("rutaRaiz")
+            Logging.info(self.rutaRaiz)
+        except Exception as e:
+            Logging.error("Error while getting route for FILES: %s" % str(e))
+        try:
+            self.rutaImagenes = self.configGetString("rutaImagenes")
+            Logging.info(self.rutaImagenes)
+        except Exception as e:
+            Logging.error("Error while getting route for PNG Files: %s" % str(e))
+        try:
+            self.direccionWebServer = self.configGetString("direccionWebServer")
+            Logging.info(self.direccionWebServer)
+        except Exception as e:
+            Logging.error("Error while getting route for Web Server: %s" % str(e))
+
+        return True
+    
+    
+    
+    
+    def doSomethingWithEvent(self, obj):
+
+        #corta las waveform
+        self.cortaWaves(obj)
+
+        #calcula el pga
+        self.calculoPGA(obj)
+        Logging.info("TERMINE DE CALCULAR PGA")
+        evento = datamodel.Event.Cast(obj)
+        parametroa= self.rutaImagenes+evento.publicID()+"/"
+        #Activar script python para copiar imagenes a servidor web
+        result = subprocess.run(['scp','-r', parametroa,self.direccionWebServer], capture_output=True, text=True)
+        Logging.info("IMAGENES COPIADAS")
+
+
+
+
+    def cortaWaves(self, obj):
+        now = core.Time.GMT()
+        contador = UTCDateTime(now)
+        event = datamodel.Event.Cast(obj)
+        fechaEvento = str(event.creationInfo().creationTime())
+        fechaEvento = fechaEvento.replace(" ", "")
+        fechaEvento = fechaEvento.replace(":", "_")
+        fechaEvento = fechaEvento.replace(".", "_")
+        rutaWaves = self.rutaRaiz + event.publicID() + fechaEvento + "/"
+
+        try:
+            os.stat(rutaWaves)
+        except:
+            os.mkdir(rutaWaves)
+
+        try:
+            Logging.info("Procesando Nuevo Evento %s" %event.publicID())
+            Logging.info("Fecha del evento %s" % event.creationInfo().creationTime())
+            Logging.info("Fecha de procesamiento %s" % str(now))
+
+            tiempo = event.creationInfo().creationTime()
+
+            # Substract 5 minutes for the start time
+            # start = now - core.TimeSpan(300, 0)
+            inicio = tiempo - core.TimeSpan(300, 0)  # resta 5 minutos a la hora fija
+
+            fin = tiempo + core.TimeSpan(300, 0)  # suma 5 minutos a la hora fija
+            utcfin = UTCDateTime(fin)
+            utcinicio = UTCDateTime(inicio)
+            utctiempo = UTCDateTime(tiempo)
+            lista = []
+
+            for n in range(len(networks)):
+                # print(total[n].code)
+                # Definir el número de trabajos (n_jobs) a utilizar
+                num_trabajos = -1  # Utiliza todos los núcleos disponibles
+                resultados = Parallel(n_jobs=num_trabajos)(
+                    delayed(self.cortaMulti)(total[n].code, total.networks[n].stations[s].code,utcinicio, utcfin,rutaWaves,utctiempo) for s in range(len(total.networks[n].stations)))
+                print(resultados)
+                #for s in range(len(total.networks[n].stations)):   #paralelisar aqui en teoría
+                #    self.cortaMulti(total[n].code, total.networks[n].stations[s].code,utcinicio, utcfin,rutaWaves,utctiempo)
+        except Exception as err:
+
+            Logging.error("--FALLO FATAL-- Something is broken: %s" % str(err))
+
+        Logging.info("--TERMINE DE CORTAR ONDAS PARA EVENTO: %s--" %event.publicID())
+
+        contadorfin = UTCDateTime(core.Time.GMT())
+        contador = contadorfin - contador
+        Logging.info("Tiempo Cortando Waves (s): %s segundos" % contador)
+        print("Tiempo Cortando Waves (s): %s" % contador)
+        print("TERMINE DE GUARDAR WAVES")
+
+
+    def calculoPGA(self, obj):  # calculoPGA(obj): nombre con parametro
+        now = core.Time.GMT()
+        contador = UTCDateTime(now)
+        event = datamodel.Event.Cast(obj)
+        fechaEvento = str(event.creationInfo().creationTime())
+        fechaEvento = fechaEvento.replace(" ", "")
+        fechaEvento = fechaEvento.replace(":", "_")
+        fechaEvento = fechaEvento.replace(".", "_")
+        rutaWaves = self.rutaRaiz + event.publicID() + fechaEvento + "/"
+        tiempo = event.creationInfo().creationTime()
+        files = os.listdir(rutaWaves)
+        imagenWave = event.publicID() + "/"
+        directorioImagen = self.rutaImagenes+imagenWave
+        try:
+            os.stat(directorioImagen)
+        except:
+            os.mkdir(directorioImagen)
+
+        # tiempo= "2024-06-01 20:33:39.584" #para prueba local
+        utctiempo = UTCDateTime(tiempo)
+        # Substract 5 minutes for the start time
+        # start = now - core.TimeSpan(300, 0)
+        inicio = tiempo - core.TimeSpan(300, 0)  # resta 5 minutos a la hora fija
+        fin = tiempo + core.TimeSpan(300, 0)  # suma 5 minutos a la hora fija
+        utcfin = UTCDateTime(fin)
+        utcinicio = UTCDateTime(inicio)
+
+
+        #matriz = []
+
+        Logging.info("CALCULANDO PGA PARA NUEVO EVENTO %s" % event.publicID())
+        Logging.info("Fecha del evento %s" % event.creationInfo().creationTime())
+        Logging.info("EXITO--Fecha de procesamiento %s\n" % str(now))
+
+        print("PROCESANDO EVENTO")
+        #datos = []
+        #inventory = datamodel.Inventory()
+
+        # recorriendo lista de networks para solicitar datos con el código de cada estación
+        for file in files:
+            rutaCompleta= os.path.join(rutaWaves,file)
+
+            if os.path.isfile(rutaCompleta):
+                datos = []
+                nombreFile = file
+                nombreFileT = nombreFile.split(".")
+                imagenPng = directorioImagen + nombreFileT[0] +".png"
+                imagenPngBase = imagenWave + nombreFileT[0] +".png"
+                print(imagenPng)
+
+                redes= nombreFile.split("_")
+
+                estacion=redes[2].split(".")
+
+
+                try:
+                    # falla si no hay datos para la estacion en el tiempo dado
+
+                    inventory = myClient.get_stations(network=redes[1],
+                                                      station=estacion[0],
+                                                      level="RESP")
+
+                    # st = client.get_waveforms(total[n].code, total.networks[n].stations[s].code, "**", "HN*", inicio, fin,
+                    #  attach_response=True)
+                    #print(inventory)
+
+                    strNew = read(rutaCompleta, format="mseed")
+
+                    Logging.info("Data read for station %s \n" % estacion[0])
+
+
+
+
+                except Exception as err:
+                    Logging.error(
+                        "--FALLO EN LECTURA--No data or file for station  %s \n" % estacion[0])
+                    # print(f"FALLO TRY 1 Descripcion del error: {err}")
+                else:  # de existir datos continua con el calculo
+
+                    strNew.merge()
+                    #print(st)
+                    # copia para quitar respuesta
+                    #strNew = st.copy()
+                    # string con la ruta del archivo para referenciar en base de datos
+
+
+                    # Iteracion para filtrar e imprimir el resultado del pga
+                    chan = []
+
+                    for trx in strNew:
+                        try:
+                            trx.detrend("demean")
+                            trx.detrend("linear")
+                            trx.taper(max_percentage=float(self.taperMaxPercent), type=self.taperType)
+                            trx.filter(self.filterType, freqmin=float(self.filterFreqMin), freqmax=float(self.filterFreqMax), corners=float(self.filterCorners))  # Filtro estandar para el LIS
+                            trx = trx.remove_response(inventory, output="ACC")
+                            absoluto = abs(trx.data)
+                            maximo = max(absoluto)
+
+
+                            Logging.info(
+                                "--DATOS--Processing Station  %s " % trx.stats.station)
+                            Logging.info(
+                                "--DATOS----Processing Channel  %s " % trx.stats.channel)
+                            Logging.info(
+                                "--DATOS----PGA;  %s " % str(maximo))
+
+
+                        except:
+                            st_umask = trx.split()
+                            a = []
+                            for tr1 in st_umask:
+                                tr1.detrend("demean")
+                                tr1.detrend("linear")
+                                tr1.taper(max_percentage=float(self.taperMaxPercent), type=self.taperType)
+                                tr1.filter(self.filterType, freqmin=float(self.filterFreqMin), freqmax=float(self.filterFreqMax), corners=float(self.filterCorners)) # Filtro estandar para el LIS
+                                tr1 = tr1.remove_response(inventory, output="ACC")
+                                a.append(abs(max(tr1.data)))
+                                maximo = max(a)
+                                Logging.info(
+                                    "--DATOS--Processing Station  %s " % trx.stats.station)
+                                Logging.info(
+                                    "--DATOS----Processing Channel  %s " % trx.stats.channel)
+                                Logging.info(
+                                    "--DATOS----PGA;  %s " % str(maximo))
+
+
+                        chan.append(maximo)
+                        #trx.plot(outfile=imagenWave + "_" + str(trx.stats.channel)+".png")
+
+                    # print(trx.stats.station, trx.stats.location, trx.stats.channel)
+                    # print(str(maximo))
+                    #strNew.plot(outfile=imagenPng) #PLOTEO DE IMAGEN y se guarda el archivo
+                    #Nueva version de ploteo
+                    self.Plotear(imagenPng,strNew) #llamada a la funcion de ploteo propia
+
+
+                    try:
+                        coord = inventory.get_coordinates(
+                            redes[1] + "." + estacion[0] + ".00.HNZ")
+                    except:
+                        try:
+                            coord = inventory.get_coordinates(
+                                redes[1] + "." + estacion[0] + ".11.HNZ")
+                        except:
+                            coord = inventory.get_coordinates(
+                                redes[1] + "." + estacion[0] + "..HNZ")
+                    datos.append(utctiempo.strftime("%d/%m/%Y %H:%M:%S"))
+                    datos.append(str(now))
+                    datos.append(event.publicID())
+                    datos.append(estacion[0])
+                    datos.append(coord["latitude"])
+                    datos.append(coord["longitude"])
+
+                    try:
+                        datos.append(chan[0])
+                        datos.append(chan[1])
+                        datos.append(chan[2])
+                        datos.append(max(chan))
+                    except Exception as err:
+
+                        Logging.error(
+                            "--WARNING---------Fail in channels for station %s " % estacion[0])
+
+                        print(f"Faltan canales para procesar la estación  {err}")
+                    else:
+                        datos.append(imagenPngBase)    #guarda la ruta de la imagen png de las waves
+
+                        #proceso para insertar en bd
+                        #se consulta por el nombre de estacion y el nombre de evento
+                        idPga = self.chequeaBd(estacion[0],event.publicID())
+                        print(idPga)
+                        #si la estacion ya esta, se hace update
+                        if  not idPga:
+                            print("Entre al insertar")
+                            # si no esta se inserta
+                            self.insertaBd(datos)
+                        else:
+                            print("Entre al update")
+                            datos.append(idPga[0]['id'])
+                            self.updateBd(datos)
+                        #matriz.append(datos)
+
+                        Logging.info(
+                            "--EXITO---------Data processed for station %s " % estacion[0])
+
+                        print("Datos procesados para la estación  %s \n" % estacion[0])
+                #print(datos)
+            else:
+                print("NO ENCONTRE EL ARCHIVO")
+            del inventory
+            print("borre inventory")
+            del datos
+            print("borre datos")
+            del strNew
+            print("borre stream")
+
+
+        print("\nEvento procesado")
+        contadorfin = UTCDateTime(core.Time.GMT())
+        contador = contadorfin - contador
+
+        Logging.info(
+            "--EXITO---------PGA procesado para evento  %s \n" % event.publicID())
+        Logging.info(
+            "-----Duracion total del Calculo(s)  %s segundos" % contador)
+
+        print("Tiempo calculando PGA (s): %s" %contador)
+        #return matriz
+
+    def insertaBd(self, datos):
+
+        conn = pymysql.connect(  # conexión casa Stuart
+            host=my_host,
+            user= my_user,
+            password= my_password,
+            db= my_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        """
+        conn = pymysql.connect(  #conexion compu lis
+            host='localhost',
+            user='stuart',
+            password='jspz2383',
+            db='tabla_pga',
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        """
+
+        try:
+            with (conn.cursor() as cursor):
+                # Create a new record
+                sql = (
+                    "INSERT INTO `Pga` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`)"
+                    " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s)")
+                # print(values)
+                cursor.execute(sql, datos)
+
+            # Commit changes
+            conn.commit()
+
+
+            Logging.info(
+                "--EXITO---------Data save to Database  \n" )
+
+
+            print("PGA guardado en la Base de Datos")
+        finally:
+            conn.close()
+
+    def updateBd(self, datos):
+
+        conn = pymysql.connect(  # conexión casa Stuart
+            host=my_host,
+            user=my_user,
+            password=my_password,
+            db=my_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        """
+        conn = pymysql.connect(  #conexion compu lis
+            host='localhost',
+            user='stuart',
+            password='jspz2383',
+            db='tabla_pga',
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        """
+
+        try:
+            with (conn.cursor() as cursor):
+                # Create a new record
+                sql = (
+                    "UPDATE Pga SET `fecha_evento`=%s,`fecha_calculo`=%s,`nombre_evento`=%s,`estacion`=%s, `latitud`=%s,"
+                    " `longitud`=%s, `hne_pga`=%s, `hnn_pga`=%s, `hnz_pga`=%s,`maximo`=%s ,`rutaWaveform`=%s"
+                    "WHERE idpga = %s")
+
+                cursor.execute(sql, datos)
+
+            # Commit changes
+            conn.commit()
+
+
+            Logging.info(
+                "--EXITO---------Data updated to Database  \n" )
+
+
+            print("PGA actualizado en la Base de Datos")
+        finally:
+            conn.close()
+
+
+
+
+    def chequeaBd(self, estacion,evento):
+
+        conn = pymysql.connect(  # conexión casa Stuart
+            host=my_host,
+            user=my_user,
+            password=my_password,
+            db=my_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        """
+        conn = pymysql.connect(  #conexion compu lis
+            host='localhost',
+            user='root',
+            password='lisucr01',
+            db='tabla_pga',
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        """
+
+        try:
+            with (conn.cursor() as cursor):
+                # Create a new record
+
+                consulta_sql = "select  Pga.idpga as id From Pga WHERE nombre_evento = %s AND estacion = %s"
+
+                # Ejecutar la consulta pasando los parámetros
+                cursor.execute(consulta_sql, (evento, estacion))
+
+                # Obtener todos los resultados
+                resultados = cursor.fetchall()
+
+            # Commit changes
+            conn.commit()
+        finally:
+            conn.close()
+        return resultados
+
+    def cortaMulti(self, network,station,inicio,final,ruta,tiempo):
+        #print(network,station,inicio,final,ruta,tiempo)
+        try:
+            st = myClient.get_waveforms(network, station, "**", "HN*",
+                                        inicio, final, attach_response=True)
+            # instucciones de log
+            Logging.info("Pidiendo Stream para %s" % station)
+            # fin de log
+        except Exception as err:
+            Logging.error("FALLO EN LECTURA--No data for station  %s" % station)
+            print(err)
+        else:  # de existir datos continua con el calculo
+            try:
+                st.merge()
+                # copia para quitar respuesta
+                strNew = st.copy()
+                rutaArchivo = ruta + tiempo.strftime("%m-%d-%Y-%H-%M-%S") + "_" + network + "_" + \
+                              station + ".mseed"
+                # guardar el stream en archivo mseed
+                strNew.write(rutaArchivo, format="MSEED")
+            except Exception as err:
+                Logging.error(
+                    "--FALLO EN ESCRITURA-- No data written for station %s \n" % station)
+
+    def Plotear(self,imgagenPng,stream):
+        # Configurar la figura y subgráficos
+        fig, axes = plt.subplots(len(stream), 1, figsize=(12, 8), sharex=True)
+
+        nombreEstacion = ""
+
+        # Graficar cada traza en su respectivo subgráfico
+        for i, trace in enumerate(stream):
+            nombreEstacion = trace.stats.station
+            ax = axes[i]
+            # Convertir los tiempos a segundos relativos desde el inicio de la traza
+            times = trace.times()
+            ax.plot(trace.data, label=f"Traza: {trace.id}", color='blue')
+            ax.set_ylabel("Amplitud")
+            ax.legend(loc="upper right")
+            ax.grid(True)
+            # Centrar el eje Y en 0 para cada traza
+
+        # Etiquetas generales del gráfico
+        fig.suptitle("Grafica PGA para %s" % nombreEstacion, fontsize=14)
+        axes[-1].set_xlabel("Tiempo")
+
+        # Formato automático de las fechas en el eje X
+        plt.gcf().autofmt_xdate()
+
+        # Guardar el gráfico en un archivo
+        #output_file = "01-30-2025-14-50-37_MF_PLRL.png"
+        plt.savefig(imgagenPng, dpi=300)
+        plt.close()
+
+
+
+    def updateObject(self, parentID, scobject):
+        # called if an updated object is received
+        event = datamodel.Event.Cast(scobject)
+        if event:
+            print("Evento actualizado {}".format(event.publicID()))
+            self.doSomethingWithEvent(event)
+
+    def addObject(self, parentID, scobject):
+        # called if a new object is received
+        event = datamodel.Event.Cast(scobject)
+        if event:
+            print("Nuevo evento reportado {}".format(event.publicID()))
+            self.doSomethingWithEvent(event)
+
+    def run(self):
+        # does not need to be reimplemented. it is just done to illustrate
+        # how to override methods
+        print("Hola! Estoy corriendo, esperando eventos.")
+        return client.Application.run(self)
+
+
+def main():
+    app = EventListener(len(sys.argv), sys.argv)
+    return app()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
