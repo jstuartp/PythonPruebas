@@ -1,4 +1,4 @@
-#!/usr/bin/env seiscomp-python
+﻿#!/usr/bin/env seiscomp-python
 
 from __future__ import print_function
 from    getopt  import getopt, GetoptError
@@ -158,7 +158,7 @@ def pageTrailer(htmlfile, config): #Pie de pagina lo que va despues de la linea 
             "<tr>\n<td> %04d/%02d/%02d %02d:%02d:%02d UTC</td>\n" \
             "&#218;ltima actualizaci&#243;n    <td align='right'><a href='%s' " \
             "target='_top'>%s</a></td>\n</tr>\n" \
-        "</table>\n</section></body></html>\n" % (gmtime()[:6]  +  (config['setup']['linkurl'],) +  (config['setup']['linkname'],)) )
+        "</table>\n</body></html>\n" % (gmtime()[:6]  +  (config['setup']['linkurl'],) +  (config['setup']['linkname'],)) )
 
 def getColor(delta):
     delay = total_seconds(delta)
@@ -233,7 +233,7 @@ def makeMainHTML(config):
 
         net_sta = "%s_%s" % (n,s)
         line = "<tr bgcolor='#ffffff'><td><tt>&nbsp;%s <a " \
-               "href='%s.php'>%s</a>&nbsp;</td>%s%s%s</tr>" \
+               "href='%s.html'>%s</a>&nbsp;</td>%s%s%s</tr>" \
                % (n, net_sta, s, TDf(lat1, getColor(lat1)),
                                   TDf(lat2, getColor(lat2)),
                                   TDf(lat3, getColor(lat3)))
@@ -245,14 +245,11 @@ def makeMainHTML(config):
     try: os.makedirs(config['setup']['wwwdir'])
     except: pass
 
-    #temp = "%s/tmp.html"   % config['setup']['wwwdir']
-    #dest = "%s/index.html" % config['setup']['wwwdir']
-#Archivos php modificados por stuart
-    temp = "%s/tmp.php"   % config['setup']['wwwdir']
-    dest = "%s/index.php" % config['setup']['wwwdir']
+    temp = "%s/tmp.html"   % config['setup']['wwwdir']
+    dest = "%s/index.html" % config['setup']['wwwdir']
 #inicio de la tabla cambiar si se va a usar datatables STUART
     table_begin = """
-    <table cellpaddding='2' cellspacing='1' border='0' bgcolor='#000000' class="table-bordered">
+    <table cellpaddding='2' cellspacing='1' border='0' bgcolor='#000000'>
     <tr>
       <th bgcolor='#ffffff' rowspan='2' align='center'>Estaciones</th>
       <th bgcolor='#ffffff' colspan='3' align='center'>Latencias</th>
@@ -268,34 +265,19 @@ def makeMainHTML(config):
     """
 
     htmlfile = open(temp, "w")      #Escribiendo el Header Stuart Cambiar para incluir bootstap??
-    htmlfile.write("""
-    <html>
+    htmlfile.write("""<html lang="es">
     <head>
-       <link rel="stylesheet" href="/monitor/vista/vendor/leaflet/leaflet/leaflet.css" />    
-       <link rel="stylesheet" href="/monitor/vista/vendor/fortawesome/fontawesome-free-5.15.1-web/css/all.min.css">    
-       <link rel="stylesheet" href="/monitor/vista/vendor/bootstrap4-glyphicons-master/bootstrap4-glyphicons/css/bootstrap-glyphicons.css">    
-       <link rel="stylesheet" href="/monitor/vista/estilo/escritorio.css">
-       <link rel="stylesheet" href="/monitor/vista/vendor/lightbox2-dev/src/css/lightbox.css">
-       <link rel="stylesheet" href="/monitor/vista/vendor/bootstrap/css/bootstrap.css">
-       <link rel="stylesheet" href="/monitor/vista/vendor/bootstrap-icons/bootstrap-icons.css">
-       <script  src="/monitor/vista/vendor/components/jquery/jquery.min.js"></script>
-            <title>%s</title>
-            <meta http-equiv='refresh' content='%d'>
-            <link rel='SHORTCUT ICON' href='%s'>
-        </head>
-                    
-            
-    <body>
-     <?php
-    include 'header.php';
-    ?>
-    <section>
+        <title>%s</title>
+        <meta http-equiv='refresh' content='%d'>
+	<link rel='SHORTCUT ICON' href='%s'>
+    </head>
+    <body bgcolor='#ffffff'>
     <center><font size='+2'>%s</font></center>\n""" % \
             (   config['setup']['title'], int(config['setup']['refresh']),
                 config['setup']['icon'],      config['setup']['title']))
 
 
-    htmlfile.write("<center><table cellpaddding='5' cellspacing='5' border='1' class='table-bordered''><tr>\n")
+    htmlfile.write("<center><table cellpaddding='5' cellspacing='5'><tr>\n")
     if len(tmp_rt):
         htmlfile.write("<td valign='top' align='center'>\n" \
                        "<font size='+1'>Estaciones en tiempo real<font>\n</td>\n")
@@ -319,7 +301,6 @@ def makeMainHTML(config):
 
     colorLegend(htmlfile)
     pageTrailer(htmlfile, config)
-    htmlfile.write("<?php include 'footer.php'; ?>")
     htmlfile.close()
     myrename(temp, dest)
 
@@ -330,30 +311,18 @@ def makeStatHTML(net_sta, config):
     try: os.makedirs(config['setup']['wwwdir'])
     except: pass
 
-    temp = "%s/tmp2.php"  % config['setup']['wwwdir']
-    dest = "%s/%s.php"  % ( config['setup']['wwwdir'], net_sta)
+    temp = "%s/tmp2.html"  % config['setup']['wwwdir']
+    dest = "%s/%s.html"  % ( config['setup']['wwwdir'], net_sta)
 
     htmlfile = open(temp, "w")
     htmlfile.write("""<html>
         <head>
-        <link rel="stylesheet" href="/monitor/vista/vendor/leaflet/leaflet/leaflet.css" />    
-       <link rel="stylesheet" href="/monitor/vista/vendor/fortawesome/fontawesome-free-5.15.1-web/css/all.min.css">    
-       <link rel="stylesheet" href="/monitor/vista/vendor/bootstrap4-glyphicons-master/bootstrap4-glyphicons/css/bootstrap-glyphicons.css">    
-       <link rel="stylesheet" href="/monitor/vista/estilo/escritorio.css">
-       <link rel="stylesheet" href="/monitor/vista/vendor/lightbox2-dev/src/css/lightbox.css">
-       <link rel="stylesheet" href="/monitor/vista/vendor/bootstrap/css/bootstrap.css">
-       <link rel="stylesheet" href="/monitor/vista/vendor/bootstrap-icons/bootstrap-icons.css">
-       <script  src="/monitor/vista/vendor/components/jquery/jquery.min.js"></script>
             <title>%s - Estaci&#243;n %s</title>
             <meta http-equiv='refresh' content='%d'>
             <link rel='SHORTCUT ICON' href='%s'>
         </head>
         <body bgcolor='#ffffff'>
-         <?php
-    include 'header.php';
-    ?>
-    <section>
-            <center><font size='+2'>%s - Estaci&#243;n %s</font>\n""" % \
+            <center><font size='+2'>%s - Station %s</font>\n""" % \
             (   config['setup']['title'], net_sta, int(config['setup']['refresh']),
                 config['setup']['icon'],
                 config['setup']['title'], net_sta.split("_")[-1]))
@@ -368,9 +337,9 @@ def makeStatHTML(net_sta, config):
         htmlfile.write("<P>%s</P>\n" % config.station[net_sta]['text'])
 
     htmlfile.write("""<p><center>
-    <table cellpadding='2' cellspacing='1' border='0' bgcolor='#000000' class="table-bordered">
+    <table cellpadding='2' cellspacing='1' border='0' bgcolor='#000000'>
     <tr>
-      <th bgcolor='#ffffff' align='center' rowspan='2'>Estaci&#243;n/<br>Canal</th>
+      <th bgcolor='#ffffff' align='center' rowspan='2'>Estaci&#243;n/<br>Channel</th>
       <th bgcolor='#ffffff' align='center' colspan='2'>Datos</th>
       <th bgcolor='#ffffff' align='center' colspan='2'>Feed</th>
       <th bgcolor='#ffffff' align='center' rowspan='2'>Diff.</th>
@@ -416,7 +385,6 @@ def makeStatHTML(net_sta, config):
          #              "station %s</center>\n" % (url, s))
     htmlfile.write("</p>\n")
     pageTrailer(htmlfile, config)
-    htmlfile.write("<?php include 'footer.php'; ?>")
     htmlfile.close()
     myrename(temp, dest)
 

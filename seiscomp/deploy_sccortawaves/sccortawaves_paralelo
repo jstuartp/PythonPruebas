@@ -168,7 +168,7 @@ class EventListener(client.Application):
                 # Definir el número de trabajos (n_jobs) a utilizar
                 num_trabajos = -1  # Utiliza todos los núcleos disponibles
                 resultados = Parallel(n_jobs=num_trabajos)(
-                    delayed(cortaMulti)(total[n].code, total.networks[n].stations[s].code,utcinicio, utcfin,rutaWaves,utctiempo) for s in range(len(total.networks[n].stations)))
+                    delayed(self.cortaMulti)(total[n].code, total.networks[n].stations[s].code,utcinicio, utcfin,rutaWaves,utctiempo) for s in range(len(total.networks[n].stations)))
                 print(resultados)
                 #for s in range(len(total.networks[n].stations)):   #paralelisar aqui en teoría
                 #    self.cortaMulti(total[n].code, total.networks[n].stations[s].code,utcinicio, utcfin,rutaWaves,utctiempo)
