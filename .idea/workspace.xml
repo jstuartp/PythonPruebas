@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="modificacion del sccortawaves, se usa plot con matplotlib y se cambian las imagenes" />
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="modificacion del sccortawaves, se usa plot con matplotlib y se cambian las imagenes">
+      <change afterPath="$PROJECT_DIR$/seiscomp/deploy_sccortawaves/sccortawaves_paralelo" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -30,7 +33,6 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -382,7 +384,15 @@
       <option name="project" value="LOCAL" />
       <updated>1738792351156</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="modificacion del sccortawaves, se usa plot con matplotlib y se cambian las imagenes">
+      <option name="closed" value="true" />
+      <created>1738935293425</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1738935293425</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
