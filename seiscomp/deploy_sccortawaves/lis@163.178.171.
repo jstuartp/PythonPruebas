@@ -1,12 +1,9 @@
 #!/usr/bin/env seiscomp-python
 # -*- coding: utf-8 -*-
 import glob
-import re
 
-import matplotlib
 from obspy.clients.fdsn import Client
 from obspy import read, UTCDateTime
-#import dill as pickle
 from concurrent.futures import ProcessPoolExecutor
 import sys
 import traceback
@@ -15,7 +12,6 @@ import os
 import pymysql
 import subprocess
 import matplotlib.pyplot as plt
-
 from seiscomp import core, client, io, math, logging
 from seiscomp import client, datamodel
 from seiscomp.client import Protocol
@@ -170,11 +166,14 @@ class EventListener(client.Application):
 
             for n in range(len(networks)):
                 # print(total[n].code)
-                #for s in range(len(total.networks[n].stations)):
+                for s in range(len(total.networks[n].stations)):
+                    params =[total[n].code,total.networks[n].stations[s].code,utcinicio, utcfin,rutaWaves,utctiempo]
+                    with ProcessPoolExecutor as executor:
+                        futures = [executor.submit(self,self.cortaMulti , *params) for param in params]
                     # Definir el número de trabajos (n_jobs) a utilizar
-                    num_trabajos = -1  # Utiliza todos los núcleos disponibles
-                    resultados = Parallel(n_jobs=num_trabajos,prefer="threads")( #prefer puede ser processes o threads
-                        delayed(self.cortaMulti)(total[n].code,total.networks[n].stations[s].code,utcinicio, utcfin,rutaWaves,utctiempo) for s in range(len(total.networks[n].stations)))
+                    #num_trabajos = -1  # Utiliza todos los núcleos disponibles
+                    #resultados = Parallel(n_jobs=num_trabajos)(
+                    #    delayed(self.cortaMulti)(total[n].code, total.networks[n].stations[s].code,utcinicio, utcfin,rutaWaves,utctiempo) for s in range(len(total.networks[n].stations)))
                     #print(resultados)
                     #for s in range(len(total.networks[n].stations)):   #paralelisar aqui en teoría
                     #    self.cortaMulti(total[n].code, total.networks[n].stations[s].code,utcinicio, utcfin,rutaWaves,utctiempo)
@@ -213,10 +212,10 @@ class EventListener(client.Application):
         utctiempo = UTCDateTime(tiempo)
         # Substract 5 minutes for the start time
         # start = now - core.TimeSpan(300, 0)
-        #inicio = tiempo - core.TimeSpan(300, 0)  # resta 5 minutos a la hora fija
-        #fin = tiempo + core.TimeSpan(300, 0)  # suma 5 minutos a la hora fija
-        #utcfin = UTCDateTime(fin)
-        #utcinicio = UTCDateTime(inicio)
+        inicio = tiempo - core.TimeSpan(300, 0)  # resta 5 minutos a la hora fija
+        fin = tiempo + core.TimeSpan(300, 0)  # suma 5 minutos a la hora fija
+        utcfin = UTCDateTime(fin)
+        utcinicio = UTCDateTime(inicio)
 
 
         #matriz = []
@@ -228,23 +227,171 @@ class EventListener(client.Application):
         print("PROCESANDO EVENTO")
         #datos = []
         #inventory = datamodel.Inventory()
-        num_trabajos = -1  # Utiliza todos los núcleos disponibles
-        resultados = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
-            delayed(self.PgaMulti)(file,rutaWaves,directorioImagen,imagenWave, utctiempo,event,now) for file in files)
-        # print(resultados)
-
-
 
         # recorriendo lista de networks para solicitar datos con el código de cada estación
-        #for file in files:
-        #   self.PgaMulti(file,rutaWaves,directorioImagen,imagenWave, utctiempo,event,now)
+        for file in files:
+            rutaCompleta= os.path.join(rutaWaves,file)
+
+            if os.path.isfile(rutaCompleta):
+                datos = []
+                nombreFile = file
+                nombreFileT = nombreFile.split(".")
+                imagenPng = directorioImagen + nombreFileT[0] +".png"
+                imagenPngBase = imagenWave + nombreFileT[0] +".png"
+                print(imagenPng)
+
+                redes= nombreFile.split("_")
+
+                estacion=redes[2].split(".")
 
 
+                try:
+                    # falla si no hay datos para la estacion en el tiempo dado
+
+                    inventory = myClient.get_stations(network=redes[1],
+                                                      station=estacion[0],
+                                                      level="RESP")
+
+                    # st = client.get_waveforms(total[n].code, total.networks[n].stations[s].code, "**", "HN*", inicio, fin,
+                    #  attach_response=True)
+                    #print(inventory)
+
+                    strNew = read(rutaCompleta, format="mseed")
+
+                    Logging.info("Data read for station %s \n" % estacion[0])
+
+
+
+
+                except Exception as err:
+                    Logging.error(
+                        "--FALLO EN LECTURA--No data or file for station  %s \n" % estacion[0])
+                    # print(f"FALLO TRY 1 Descripcion del error: {err}")
+                else:  # de existir datos continua con el calculo
+
+                    strNew.merge()
+                    #print(st)
+                    # copia para quitar respuesta
+                    #strNew = st.copy()
+                    # string con la ruta del archivo para referenciar en base de datos
+
+
+                    # Iteracion para filtrar e imprimir el resultado del pga
+                    chan = []
+
+                    for trx in strNew:
+                        try:
+                            trx.detrend("demean")
+                            trx.detrend("linear")
+                            trx.taper(max_percentage=float(self.taperMaxPercent), type=self.taperType)
+                            trx.filter(self.filterType, freqmin=float(self.filterFreqMin), freqmax=float(self.filterFreqMax), corners=float(self.filterCorners))  # Filtro estandar para el LIS
+                            trx = trx.remove_response(inventory, output="ACC")
+                            absoluto = abs(trx.data)
+                            maximo = max(absoluto)
+
+
+                            Logging.info(
+                                "--DATOS--Processing Station  %s " % trx.stats.station)
+                            Logging.info(
+                                "--DATOS----Processing Channel  %s " % trx.stats.channel)
+                            Logging.info(
+                                "--DATOS----PGA;  %s " % str(maximo))
+
+
+                        except:
+                            st_umask = trx.split()
+                            a = []
+                            for tr1 in st_umask:
+                                tr1.detrend("demean")
+                                tr1.detrend("linear")
+                                tr1.taper(max_percentage=float(self.taperMaxPercent), type=self.taperType)
+                                tr1.filter(self.filterType, freqmin=float(self.filterFreqMin), freqmax=float(self.filterFreqMax), corners=float(self.filterCorners)) # Filtro estandar para el LIS
+                                tr1 = tr1.remove_response(inventory, output="ACC")
+                                a.append(abs(max(tr1.data)))
+                                maximo = max(a)
+                                Logging.info(
+                                    "--DATOS--Processing Station  %s " % trx.stats.station)
+                                Logging.info(
+                                    "--DATOS----Processing Channel  %s " % trx.stats.channel)
+                                Logging.info(
+                                    "--DATOS----PGA;  %s " % str(maximo))
+
+
+                        chan.append(maximo)
+                        #trx.plot(outfile=imagenWave + "_" + str(trx.stats.channel)+".png")
+
+                    # print(trx.stats.station, trx.stats.location, trx.stats.channel)
+                    # print(str(maximo))
+                    #strNew.plot(outfile=imagenPng) #PLOTEO DE IMAGEN y se guarda el archivo
+                    #Nueva version de ploteo
+                    self.Plotear(imagenPng,strNew) #llamada a la funcion de ploteo propia
+
+
+                    try:
+                        coord = inventory.get_coordinates(
+                            redes[1] + "." + estacion[0] + ".00.HNZ")
+                    except:
+                        try:
+                            coord = inventory.get_coordinates(
+                                redes[1] + "." + estacion[0] + ".11.HNZ")
+                        except:
+                            coord = inventory.get_coordinates(
+                                redes[1] + "." + estacion[0] + "..HNZ")
+                    datos.append(utctiempo.strftime("%d/%m/%Y %H:%M:%S"))
+                    datos.append(str(now))
+                    datos.append(event.publicID())
+                    datos.append(estacion[0])
+                    datos.append(coord["latitude"])
+                    datos.append(coord["longitude"])
+
+                    try:
+                        datos.append(chan[0])
+                        datos.append(chan[1])
+                        datos.append(chan[2])
+                        datos.append(max(chan))
+                    except Exception as err:
+
+                        Logging.error(
+                            "--WARNING---------Fail in channels for station %s " % estacion[0])
+
+                        print(f"Faltan canales para procesar la estación  {err}")
+                    else:
+                        datos.append(imagenPngBase)    #guarda la ruta de la imagen png de las waves
+
+                        #proceso para insertar en bd
+                        #se consulta por el nombre de estacion y el nombre de evento
+                        idPga = self.chequeaBd(estacion[0],event.publicID())
+                        print(idPga)
+                        #si la estacion ya esta, se hace update
+                        if  not idPga:
+                            print("Entre al insertar")
+                            # si no esta se inserta
+                            self.insertaBd(datos)
+                        else:
+                            print("Entre al update")
+                            datos.append(idPga[0]['id'])
+                            self.updateBd(datos)
+                        #matriz.append(datos)
+
+                        Logging.info(
+                            "--EXITO---------Data processed for station %s " % estacion[0])
+
+                        print("Datos procesados para la estación  %s \n" % estacion[0])
+                #print(datos)
+            else:
+                print("NO ENCONTRE EL ARCHIVO")
+            del inventory
+            print("borre inventory")
+            del datos
+            print("borre datos")
+            del strNew
+            print("borre stream")
 
 
         print("\nEvento procesado")
         contadorfin = UTCDateTime(core.Time.GMT())
         contador = contadorfin - contador
+
         Logging.info(
             "--EXITO---------PGA procesado para evento  %s \n" % event.publicID())
         Logging.info(
@@ -263,12 +410,23 @@ class EventListener(client.Application):
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
+        """
+        conn = pymysql.connect(  #conexion compu lis
+            host='localhost',
+            user='stuart',
+            password='jspz2383',
+            db='tabla_pga',
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        """
+
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
                 sql = (
-                    "INSERT INTO `Pga` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`tipo_estacion`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`)"
-                    " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s ,%s)")
+                    "INSERT INTO `Pga` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`)"
+                    " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s)")
                 # print(values)
                 cursor.execute(sql, datos)
 
@@ -294,11 +452,22 @@ class EventListener(client.Application):
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
+        """
+        conn = pymysql.connect(  #conexion compu lis
+            host='localhost',
+            user='stuart',
+            password='jspz2383',
+            db='tabla_pga',
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        """
+
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
                 sql = (
-                    "UPDATE Pga SET `fecha_evento`=%s,`fecha_calculo`=%s,`nombre_evento`=%s,`tipo_estacion`=%s,`estacion`=%s, `latitud`=%s,"
+                    "UPDATE Pga SET `fecha_evento`=%s,`fecha_calculo`=%s,`nombre_evento`=%s,`estacion`=%s, `latitud`=%s,"
                     " `longitud`=%s, `hne_pga`=%s, `hnn_pga`=%s, `hnz_pga`=%s,`maximo`=%s ,`rutaWaveform`=%s"
                     "WHERE idpga = %s")
 
@@ -329,6 +498,17 @@ class EventListener(client.Application):
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
+        """
+        conn = pymysql.connect(  #conexion compu lis
+            host='localhost',
+            user='root',
+            password='lisucr01',
+            db='tabla_pga',
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        """
+
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
@@ -371,182 +551,8 @@ class EventListener(client.Application):
                 Logging.error(
                     "--FALLO EN ESCRITURA-- No data written for station %s \n" % station)
 
-
-    def PgaMulti(self,file,rutaWaves,directorioImagen, imagenWave, utctiempo, event, now):
-        #Procesa cada archivo de forma paralela:
-        rutaCompleta = os.path.join(rutaWaves, file)
-
-        if os.path.isfile(rutaCompleta):
-            datos = []
-            nombreFile = file
-            nombreFileT = nombreFile.split(".")
-            imagenPng = directorioImagen + nombreFileT[0] + ".png"
-            imagenPngBase = imagenWave + nombreFileT[0] + ".png"
-            # print(imagenPng)
-            # redes= nombreFile.split("_")
-            # estacion=redes[2].split(".")
-
-            try:
-                # falla si no hay datos para la estacion en el tiempo dado
-
-                strNew = read(rutaCompleta, format="mseed")
-                myTrace = strNew[0]
-                inventory = myClient.get_stations(network=myTrace.stats.network,
-                                                  station=myTrace.stats.station,
-                                                  level="RESP")
-
-                Logging.info("Data read for station %s \n" % myTrace.stats.station)
-
-            except Exception as err:
-                Logging.error(
-                    "--FALLO EN LECTURA--No data or damage file with name  %s \n" % rutaCompleta)
-                # print(f"FALLO TRY 1 Descripcion del error: {err}")
-            else:  # de existir datos continua con el calculo
-
-                strNew.merge()
-                # print(st)
-                # copia para quitar respuesta
-                # strNew = st.copy()
-                # string con la ruta del archivo para referenciar en base de datos
-                # Iteracion para filtrar e imprimir el resultado del pga
-                chan = []
-                for trx in strNew:
-                    try:
-                        trx.detrend("demean")
-                        trx.detrend("linear")
-                        trx.taper(max_percentage=float(self.taperMaxPercent), type=self.taperType)
-                        trx.filter(self.filterType, freqmin=float(self.filterFreqMin),
-                                   freqmax=float(self.filterFreqMax),
-                                   corners=float(self.filterCorners))  # Filtro estandar para el LIS
-                        trx = trx.remove_response(inventory, output="ACC")
-                        absoluto = abs(trx.data)
-                        maximo = max(absoluto)
-
-                        Logging.info(
-                            "--DATOS--Processing Station  %s " % trx.stats.station)
-                        Logging.info(
-                            "--DATOS----Processing Channel  %s " % trx.stats.channel)
-                        Logging.info(
-                            "--DATOS----PGA;  %s " % str(maximo))
-
-
-                    except:
-                        st_umask = trx.split()
-                        a = []
-                        for tr1 in st_umask:
-                            tr1.detrend("demean")
-                            tr1.detrend("linear")
-                            tr1.taper(max_percentage=float(self.taperMaxPercent), type=self.taperType)
-                            tr1.filter(self.filterType, freqmin=float(self.filterFreqMin),
-                                       freqmax=float(self.filterFreqMax),
-                                       corners=float(self.filterCorners))  # Filtro estandar para el LIS
-                            tr1 = tr1.remove_response(inventory, output="ACC")
-                            a.append(abs(max(tr1.data)))
-                            maximo = max(a)
-                            Logging.info(
-                                "--DATOS--Processing Station  %s " % trx.stats.station)
-                            Logging.info(
-                                "--DATOS----Processing Channel  %s " % trx.stats.channel)
-                            Logging.info(
-                                "--DATOS----PGA;  %s " % str(maximo))
-
-                    chan.append(maximo)
-                    #print(chan)
-                    # trx.plot(outfile=imagenWave + "_" + str(trx.stats.channel)+".png")
-
-                # print(trx.stats.station, trx.stats.location, trx.stats.channel)
-                # print(str(maximo))
-                #result = subprocess.run(strNew.plot(outfile=imagenPng), capture_output=True,
-                #                        text=True)
-                #print("despues del plot")
-                 #PLOTEO DE IMAGEN y se guarda el archivo
-                # Nueva version de ploteo ----Buscar como plotear en paralelo ---
-                #self.Plotear(imagenPng, strNew)  # llamada a la funcion de ploteo propia
-
-                try:
-                    coord = inventory.get_coordinates(
-                        myTrace.stats.network + "." + myTrace.stats.station + ".00.HNZ")
-                except Exception as err:
-                    Logging.error(
-                        "--Error en las coordenadas de  %s " % myTrace.stats.station)
-                    try:
-                        coord = inventory.get_coordinates(
-                            myTrace.stats.network + "." + myTrace.stats.station + ".11.HNZ")
-                    except Exception as err:
-                        Logging.error(
-                            "--Error en las coordenadas de  %s " % myTrace.stats.station)
-                        try:
-                            coord = inventory.get_coordinates(
-                                myTrace.stats.network + "." + myTrace.stats.station + "..HNZ")
-                        except Exception as err:
-                            try:
-                                coord = inventory.get_coordinates(
-                                    myTrace.stats.network + "." + myTrace.stats.station + ".01.HNZ")
-                            except:
-                                print("Me caigo")
-
-
-                datos.append(utctiempo.strftime("%d/%m/%Y %H:%M:%S"))   #fecha del evento
-                datos.append(str(now))                                  #fecha de calculo
-                datos.append(event.publicID())                          #id del evento
-                #nmd =myTrace.stats.station
-                try:
-                    if myTrace.stats.station[-1].isdigit():
-                        datos.append(2)
-                    else:
-                        datos.append(1)
-                except Exception as err:
-                    datos.append(0)
-                    print(err)
-
-                datos.append(myTrace.stats.station)  # nombre de la estacion
-                datos.append(coord["latitude"])                         #latitud de la estacion
-                datos.append(coord["longitude"])                        #longitud de la estacion
-
-                try:
-                    datos.append(chan[0])   #valor maximo para primer canal
-                    datos.append(chan[1])   #valor maximo para segundo canal
-                    datos.append(chan[2])   #valor maximo para tercer canal
-                    datos.append(max(chan)) #valor maximo de todos los canales
-                except Exception as err:
-
-                    Logging.error(
-                        "--WARNING---------Fail in channels for station %s " % myTrace.stats.station)
-
-                    print(f"Faltan canales para procesar la estación  {err}")
-                else:
-                    datos.append(imagenPngBase)  # guarda la ruta de la imagen png de las waves
-                    # proceso para insertar en bd
-                    # se consulta por el nombre de estacion y el nombre de evento
-                    idPga = self.chequeaBd(myTrace.stats.station, event.publicID())
-                    print(idPga)
-                    # si la estacion ya esta, se hace update
-                    if not idPga:
-                        #print("Entre al insertar")
-                        # si no esta se inserta
-                        self.insertaBd(datos)
-
-                    else:
-                        #print("Entre al update")
-                        datos.append(idPga[0]['id'])
-                        self.updateBd(datos)
-                    # matriz.append(datos)
-                    Logging.info(
-                        "--EXITO---------Data processed for station %s " % myTrace.stats.station)
-
-                    print("Datos procesados para la estación  %s \n" % myTrace.stats.station)
-            # print(datos)
-        else:
-            print("NO ENCONTRE EL ARCHIVO")
-        del inventory
-        del datos
-        del strNew
-
-
-
     def Plotear(self,imgagenPng,stream):
         # Configurar la figura y subgráficos
-        matplotlib.use('agg')
         fig, axes = plt.subplots(len(stream), 1, figsize=(12, 8), sharex=True)
 
         nombreEstacion = ""
