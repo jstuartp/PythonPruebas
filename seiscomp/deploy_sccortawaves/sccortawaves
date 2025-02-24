@@ -348,15 +348,11 @@ class EventListener(client.Application):
                     try:
                         coord = inventory.get_coordinates(
                             redes[1] + "." + estacion[0] + ".00.HNZ")
-                    except Exception as err:
+                    except:
                         try:
-                            Logging.error(
-                                "--Error en las coordenadas de  %s " % estacion[0])
                             coord = inventory.get_coordinates(
                                 redes[1] + "." + estacion[0] + ".11.HNZ")
-                        except Exception as err:
-                            Logging.error(
-                                "--Error en las coordenadas de  %s " % estacion[0])
+                        except:
                             coord = inventory.get_coordinates(
                                 redes[1] + "." + estacion[0] + "..HNZ")
                     datos.append(utctiempo.strftime("%d/%m/%Y %H:%M:%S"))

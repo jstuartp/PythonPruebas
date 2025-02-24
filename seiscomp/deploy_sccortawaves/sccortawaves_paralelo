@@ -6,7 +6,6 @@ import re
 import matplotlib
 from obspy.clients.fdsn import Client
 from obspy import read, UTCDateTime
-#import dill as pickle
 from concurrent.futures import ProcessPoolExecutor
 import sys
 import traceback
@@ -46,7 +45,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(True)
+        self.setLoggingToStdErr(False)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -211,15 +210,7 @@ class EventListener(client.Application):
 
         # tiempo= "2024-06-01 20:33:39.584" #para prueba local
         utctiempo = UTCDateTime(tiempo)
-        # Substract 5 minutes for the start time
-        # start = now - core.TimeSpan(300, 0)
-        #inicio = tiempo - core.TimeSpan(300, 0)  # resta 5 minutos a la hora fija
-        #fin = tiempo + core.TimeSpan(300, 0)  # suma 5 minutos a la hora fija
-        #utcfin = UTCDateTime(fin)
-        #utcinicio = UTCDateTime(inicio)
 
-
-        #matriz = []
 
         Logging.info("CALCULANDO PGA PARA NUEVO EVENTO %s" % event.publicID())
         Logging.info("Fecha del evento %s" % event.creationInfo().creationTime())
@@ -230,17 +221,12 @@ class EventListener(client.Application):
         #inventory = datamodel.Inventory()
         num_trabajos = -1  # Utiliza todos los núcleos disponibles
         resultados = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
-            delayed(self.PgaMulti)(file,rutaWaves,directorioImagen,imagenWave, utctiempo,event,now) for file in files)
+            delayed(self.PgaMulti)(file,rutaWaves,directorioImagen,imagenWave, utctiempo,event,now) for file in files) #PROCESO PARALELO
         # print(resultados)
 
-
-
-        # recorriendo lista de networks para solicitar datos con el código de cada estación
+        # recorriendo lista de networks para solicitar datos con el código de cada estación NO PARALELO
         #for file in files:
         #   self.PgaMulti(file,rutaWaves,directorioImagen,imagenWave, utctiempo,event,now)
-
-
-
 
         print("\nEvento procesado")
         contadorfin = UTCDateTime(core.Time.GMT())
@@ -251,11 +237,11 @@ class EventListener(client.Application):
             "-----Duracion total del Calculo(s)  %s segundos" % contador)
 
         print("Tiempo calculando PGA (s): %s" %contador)
-        #return matriz
+
 
     def insertaBd(self, datos):
 
-        conn = pymysql.connect(  # conexión casa Stuart
+        conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=my_host,
             user= my_user,
             password= my_password,
@@ -271,22 +257,17 @@ class EventListener(client.Application):
                     " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s ,%s)")
                 # print(values)
                 cursor.execute(sql, datos)
-
             # Commit changes
             conn.commit()
-
-
             Logging.info(
                 "--EXITO---------Data save to Database  \n" )
-
-
             print("PGA guardado en la Base de Datos")
         finally:
             conn.close()
 
     def updateBd(self, datos):
 
-        conn = pymysql.connect(  # conexión casa Stuart
+        conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=my_host,
             user=my_user,
             password=my_password,
@@ -303,15 +284,10 @@ class EventListener(client.Application):
                     "WHERE idpga = %s")
 
                 cursor.execute(sql, datos)
-
             # Commit changes
             conn.commit()
-
-
             Logging.info(
                 "--EXITO---------Data updated to Database  \n" )
-
-
             print("PGA actualizado en la Base de Datos")
         finally:
             conn.close()
@@ -321,7 +297,7 @@ class EventListener(client.Application):
 
     def chequeaBd(self, estacion,evento):
 
-        conn = pymysql.connect(  # conexión casa Stuart
+        conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=my_host,
             user=my_user,
             password=my_password,
@@ -347,6 +323,10 @@ class EventListener(client.Application):
             conn.close()
         return resultados
 
+
+    #Funcion para Cortar las waveforms
+    #Proceso externo para poder ejecutarlo en paralelo
+    #recive: network, estacion, hora inicio, hora final, ruta de donde se pondran los waves y la hora de ejecucion
     def cortaMulti(self, network,station,inicio,final,ruta,tiempo):
         #print(network,station,inicio,final,ruta,tiempo)
         try:
@@ -372,6 +352,9 @@ class EventListener(client.Application):
                     "--FALLO EN ESCRITURA-- No data written for station %s \n" % station)
 
 
+    #Funcion para calcular el PGA - Recorre todos los archivos del directorio y calcula el PGA a los mseed
+    #Externa para poder hacerla en paralelo
+    #recive: el archivo mseed, la ruta del archivo, el directorio donde copiara las png, directorio del evento, fecha, evento, fecha de calculo
     def PgaMulti(self,file,rutaWaves,directorioImagen, imagenWave, utctiempo, event, now):
         #Procesa cada archivo de forma paralela:
         rutaCompleta = os.path.join(rutaWaves, file)
@@ -456,9 +439,11 @@ class EventListener(client.Application):
 
                 # print(trx.stats.station, trx.stats.location, trx.stats.channel)
                 # print(str(maximo))
-                #result = subprocess.run(strNew.plot(outfile=imagenPng), capture_output=True,
-                #                        text=True)
-                #print("despues del plot")
+                Logging.info("Inicio de ploteo para %s" % imagenPng)
+                result = subprocess.run(["python3","/home/lis/seiscomp/bin/plotea.py","--imagenpng",imagenPng,"--ruta",rutaCompleta,"--maxpercent",self.taperMaxPercent,
+                                         "--tapertype",self.taperType,"--filtertype",self.filterType,"--filterfreqmin",self.filterFreqMin,
+                                         "--filterfreqmax",self.filterFreqMax, "--filtercorners",self.filterCorners])
+                Logging.info("Resultado del ploteo %s" % result)
                  #PLOTEO DE IMAGEN y se guarda el archivo
                 # Nueva version de ploteo ----Buscar como plotear en paralelo ---
                 #self.Plotear(imagenPng, strNew)  # llamada a la funcion de ploteo propia
