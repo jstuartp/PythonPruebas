@@ -5,10 +5,37 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="cambios al 16 de diciembre&#10;Modificaciones y utilitarios varios">
-      <change afterPath="$PROJECT_DIR$/seiscomp/deploy_sccortawaves/sccortawaves_paralelo" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/seiscomp/slmon_medidas" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seiscomp/slmon" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/slmon" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seiscomp/slmon.py" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/slmon_medidas.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/calculaPGA.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/plotea.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/promedios.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/sccortawavesMem" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/sccortawaves_110" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/sccortawaves_412" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/sccortawaves_OLDV1" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/scmypick" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/sczabbix" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/slmon" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/slmon_110.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/slmon_medidas" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/anteriores/slmon_medidas.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/cortaSDS.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/deploy_sccortawaves/lis@163.178.171" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/seiscomp/sccortawaves" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/calculaPGA.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/deploy_sccortawaves/lis@163.178.171." beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/plotea.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/promedios.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/sccortawavesMem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/sccortawaves_110" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/sccortawaves_412" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/sccortawaves_OLDV1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/scmypick" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/sczabbix" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/slmon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/slmon_110.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/slmon_medidas" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/slmon_medidas.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,7 +73,7 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/jstuartp/PythonPruebas.git&quot;,
-    &quot;accountId&quot;: &quot;fd9be6b4-181e-498a-8730-c3b47b6a9a48&quot;
+    &quot;accountId&quot;: &quot;508b8257-c4c6-4357-848d-4d4ce8808592&quot;
   }
 }</component>
   <component name="MarkdownSettingsMigration">
