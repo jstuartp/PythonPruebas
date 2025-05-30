@@ -1,0 +1,159 @@
+#!/usr/bin/env seiscomp-python
+# -*- coding: utf-8 -*-
+
+import os
+import heapq
+import argparse
+import sys
+from typing import List, Tuple
+
+from obspy import UTCDateTime, Stream
+from obspy.clients.filesystem.sds import Client
+from seiscomp import core, client, io, math, logging
+from seiscomp import client, datamodel
+from seiscomp.client import Protocol
+from seiscomp import logging as Logging
+
+class EventListener(client.Application):
+
+    def __init__(self, argc, argv):
+        client.Application.__init__(self, argc, argv)
+        self.setMessagingEnabled(True)
+        self.setDatabaseEnabled(False, False)
+        self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
+        self.addMessagingSubscription("EVENT")
+        self.setLoggingToStdErr(True)
+
+    def doSomethingWithEvent(self, obj):
+        # Parámetros de ejemplo
+        event = datamodel.Event.Cast(obj)
+        fechaEvento = str(event.creationInfo().creationTime())
+        fechaEvento = fechaEvento.replace(" ", "")
+        fechaEvento = fechaEvento.replace(":", "_")
+        fechaEvento = fechaEvento.replace(".", "_")
+        tiempo = event.creationInfo().creationTime()
+
+        # Substract 5 minutes for the start time
+        # start = now - core.TimeSpan(300, 0)
+        inicio = tiempo - core.TimeSpan(300, 0)  # resta 5 minutos a la hora fija
+
+        fin = tiempo + core.TimeSpan(300, 0)  # suma 5 minutos a la hora fija
+        utcfin = UTCDateTime(fin)
+        utcinicio = UTCDateTime(inicio)
+        utctiempo = UTCDateTime(tiempo)
+        SDS_ROOT = "/home/lis/seiscomp/var/lib/archive"
+        MAX_STREAMS = 1000
+        TOP_N = 10
+        rutaWaves = "/home/lis/waves/corta/" + event.publicID() + fechaEvento + "/"
+        #END_TIME    = UTCDateTime()
+        #START_TIME  = END_TIME - 3600  # última hora
+
+        top_pgas = self.compute_top_pga_and_save(
+            sds_root=SDS_ROOT,
+            n_streams=MAX_STREAMS,
+            starttime=utcinicio,
+            endtime=utcfin,
+            top_n=TOP_N,
+            output_dir=rutaWaves
+        )
+        print("Top 10 PGA (unidades de aceleración):")
+        for i, p in enumerate(top_pgas, 1):
+            print(f"{i:2d}: {p:.6e}")
+
+
+    def compute_top_pga_and_save(self,
+        sds_root: str,
+        n_streams: int,
+        starttime: UTCDateTime,
+        endtime: UTCDateTime,
+        top_n: int,
+        output_dir: str
+    ) -> List[float]:
+        """
+        Extrae hasta `n_streams` flujos desde un archivo SDS en `sds_root`
+        para el intervalo [starttime, endtime], calcula el PGA de cada uno,
+        mantiene los `top_n` valores más altos y guarda esas waveforms en
+        MiniSEED dentro de `output_dir`.
+
+        :param sds_root: ruta al directorio raíz del SDS (p. ej. "seiscomp/var/lib/archive")
+        :param n_streams: número máximo de flujos a extraer
+        :param starttime: tiempo inicial (UTCDateTime)
+        :param endtime: tiempo final (UTCDateTime)
+        :param top_n: cuántos PGA más altos conservar
+        :param output_dir: carpeta donde guardar los archivos .mseed
+        :return: lista de floats con los mayores PGA encontrados
+        """
+        # Crear directorio de salida si no existe
+        os.makedirs(output_dir, exist_ok=True)
+
+        client = Client(sds_root)  # Cliente SDS de ObsPy :contentReference[oaicite:0]{index=0}
+        print(client)
+        all_nslc: List[Tuple[str,str,str,str]] = client.get_all_nslc()  # :contentReference[oaicite:1]{index=1}
+
+        archivo = open("/home/lis/waves/SDS.log", "a")
+        archivo.write(str(UTCDateTime.now()))
+        archivo.write("--Esta es la lista %s--\n" % all_nslc)
+        archivo.close()
+
+        # Min-heap donde guardamos tuplas (pga, Stream)
+        heap: List[Tuple[float, Stream]] = []
+
+        for net, sta, loc, cha in all_nslc[:n_streams]:
+            print("entre al for")
+            try:
+                st = client.get_waveforms(net, sta, loc, "HN*", starttime, endtime)
+                # Calcular PGA: valor máximo absoluto de todas las trazas
+                #print(st)
+                pga = max(abs(tr.data).max() for tr in st)
+                if len(heap) < top_n:
+                    heapq.heappush(heap, (pga, st))
+                else:
+                    heapq.heappushpop(heap, (pga, st))
+            except Exception:
+                # Omite canales sin datos o con error de lectura
+                continue
+
+        # Ordenar de mayor a menor PGA
+        top = sorted(heap, key=lambda x: x[0], reverse=True)
+
+        # Guardar cada Stream en MiniSEED
+        for idx, (pga_val, st) in enumerate(top, start=1):
+            # Construir nombre de archivo usando metadatos de la primera traza
+            tr = st[0]
+            t0 = tr.stats.starttime.strftime("%Y%m%dT%H%M%S")
+            fname = f"{idx:02d}_{tr.stats.network}.{tr.stats.station}.{tr.stats.location or '--'}.{tr.stats.channel}_{t0}.mseed"
+            filepath = os.path.join(output_dir, fname)
+            st.write(filepath, format="MSEED")
+
+        # Devolver solo los valores de PGA
+        return [pga for pga, _ in top]
+
+
+    def updateObject(self, parentID, scobject):
+        # called if an updated object is received
+        event = datamodel.Event.Cast(scobject)
+        if event:
+            print("Evento actualizado {}".format(event.publicID()))
+            self.doSomethingWithEvent(event)
+
+    def addObject(self, parentID, scobject):
+        # called if a new object is received
+        event = datamodel.Event.Cast(scobject)
+        if event:
+            print("Nuevo evento reportado {}".format(event.publicID()))
+            self.doSomethingWithEvent(event)
+
+    def run(self):
+        # does not need to be reimplemented. it is just done to illustrate
+        # how to override methods
+        print("Hola! Estoy corriendo, esperando eventos.")
+        return client.Application.run(self)
+
+def main():
+    app = EventListener(len(sys.argv), sys.argv)
+    return app()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+

@@ -5,9 +5,10 @@ import re
 
 import matplotlib
 from obspy.clients.fdsn import Client
+from obspy.clients.filesystem.sds import Client as SDS_Client
 from obspy import read, UTCDateTime
-from threading import Timer
-import time
+from typing import List, Tuple
+import heapq
 from concurrent.futures import ProcessPoolExecutor
 import sys
 import traceback
@@ -28,6 +29,8 @@ from joblib import Parallel, delayed
 #Se crea el objeto cliente FDSN para obtener datos y el inventario
 host = ("http://localhost:8080")  # SEISCOMP servidor Virtual
 #host = ("http://localhost:8080")  # SEISCOMP computadora local
+sdsroot= "/home/lis/seiscomp/var/lib/archive"
+mySDSClient = SDS_Client(sdsroot)
 myClient = Client(host)
 total = myClient.get_stations()
 networks = myClient.get_stations(level="network")
@@ -47,7 +50,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(False)
+        self.setLoggingToStdErr(True)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -126,7 +129,7 @@ class EventListener(client.Application):
         self.cortaWaves(obj)
 
         #calcula el pga
-        self.calculoPGA(obj)
+        #self.calculoPGA(obj)
         Logging.info("TERMINE DE CALCULAR PGA")
         evento = datamodel.Event.Cast(obj)
         parametroa= self.rutaImagenes+evento.publicID()+"/"
@@ -167,9 +170,24 @@ class EventListener(client.Application):
             utcfin = UTCDateTime(fin)
             utcinicio = UTCDateTime(inicio)
             utctiempo = UTCDateTime(tiempo)
+            n_streams = 1000
             #Llamando al subproceso para cortar solo el top10 de las waves con mayor PGA
-            lista = []
 
+
+
+            lista = []
+            records = mySDSClient.get_all_nslc()  # :contentReference[oaicite:1]{index=1}
+
+            for net, sta in records:
+                # print(total[n].code)
+                # for s in range(len(total.networks[n].stations)):
+                # Definir el número de trabajos (n_jobs) a utilizar
+                num_trabajos = -1  # Utiliza todos los núcleos disponibles
+                resultados = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
+                    delayed(self.cortaMulti)(net, sta, utcinicio, utcfin,
+                                             rutaWaves, utctiempo) for s in range(len(sta)))
+
+            """"
             for n in range(len(networks)):
                 # print(total[n].code)
                 #for s in range(len(total.networks[n].stations)):
@@ -180,6 +198,7 @@ class EventListener(client.Application):
                     #print(resultados)
                     #for s in range(len(total.networks[n].stations)):   #paralelisar aqui en teoría
                     #    self.cortaMulti(total[n].code, total.networks[n].stations[s].code,utcinicio, utcfin,rutaWaves,utctiempo)
+                    """
         except Exception as err:
 
             Logging.error("--FALLO FATAL-- Something is broken: %s" % str(err))
@@ -333,8 +352,8 @@ class EventListener(client.Application):
     def cortaMulti(self, network,station,inicio,final,ruta,tiempo):
         #print(network,station,inicio,final,ruta,tiempo)
         try:
-            st = myClient.get_waveforms(network, station, "**", "HN*",
-                                        inicio, final, attach_response=True)
+            st = mySDSClient.get_waveforms(network, station, "**", "HN*",
+                                        inicio, final)
             # instucciones de log
             Logging.info("Pidiendo Stream para %s" % station)
             # fin de log
@@ -568,20 +587,16 @@ class EventListener(client.Application):
     def updateObject(self, parentID, scobject):
         # called if an updated object is received
         event = datamodel.Event.Cast(scobject)
-        retraso_seg = 5 * 60  # 5 minutos en segundos
         if event:
             print("Evento actualizado {}".format(event.publicID()))
-            time.sleep(retraso_seg)
             self.doSomethingWithEvent(event)
-
-            #self.doSomethingWithEvent(event)
 
     def addObject(self, parentID, scobject):
         # called if a new object is received
         event = datamodel.Event.Cast(scobject)
         if event:
-            print("Nuevo evento reportado {}".format(event.publicID())) #NO HACER NADA CON NUEVO SOLO SE PROCESA UPDATE
-            #self.doSomethingWithEvent(event)
+            print("Nuevo evento reportado {}".format(event.publicID()))
+            self.doSomethingWithEvent(event)
 
     def run(self):
         # does not need to be reimplemented. it is just done to illustrate
