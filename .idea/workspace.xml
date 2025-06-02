@@ -4,12 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="cambios al 05_28&#10;Se crea cortaSDS.py para usar el SDS de seiscomp, falta probar con valores de aceleracion">
-      <change afterPath="$PROJECT_DIR$/seiscomp/cortaSDS" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/seiscomp/cortaSDS.py_OLD" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/seiscomp/sccortawaves_SDS" afterDir="false" />
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="cambios al 05_30">
+      <change afterPath="$PROJECT_DIR$/seiscomp/plotea2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seiscomp/cortaSDS.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/anteriores/plotea.py" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/plotea.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/seiscomp/sccortawaves" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/sccortawaves" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -94,6 +92,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/seiscomp" />
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
@@ -389,7 +388,15 @@
       <option name="project" value="LOCAL" />
       <updated>1748466010662</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="cambios al 05_30">
+      <option name="closed" value="true" />
+      <created>1748640580509</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1748640580509</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -416,7 +423,8 @@
     <MESSAGE value="update 6 de noviembre, incluido archivo sczabbix" />
     <MESSAGE value="cambios al 16 de diciembre&#10;Modificaciones y utilitarios varios" />
     <MESSAGE value="cambios al 05_28&#10;Se crea cortaSDS.py para usar el SDS de seiscomp, falta probar con valores de aceleracion" />
-    <option name="LAST_COMMIT_MESSAGE" value="cambios al 05_28&#10;Se crea cortaSDS.py para usar el SDS de seiscomp, falta probar con valores de aceleracion" />
+    <MESSAGE value="cambios al 05_30" />
+    <option name="LAST_COMMIT_MESSAGE" value="cambios al 05_30" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

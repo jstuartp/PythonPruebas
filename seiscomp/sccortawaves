@@ -132,6 +132,7 @@ class EventListener(client.Application):
         parametroa= self.rutaImagenes+evento.publicID()+"/"
         #Activar script python para copiar imagenes a servidor web
         result = subprocess.run(['scp','-r', parametroa,self.direccionWebServer], capture_output=True, text=True)
+        Logging.info("Resultado de copiar imagenes: %s" % str(result))
         Logging.info("IMAGENES COPIADAS")
 
 

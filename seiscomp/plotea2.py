@@ -28,6 +28,7 @@ def Plotear(imgagenpng, ruta,taperMaxPercent,taperType,filterType,filterFreqMin,
                                        corners=float(filterCorners))
     matplotlib.use('agg')
     fig, axes = plt.subplots(len(strNew), 1, figsize=(12, 8), sharex=True)
+    max_amp_global = max(abs(tr.data).max() for tr in strNew)
 
     nombreEstacion = ""
     archivo = open("/home/lis/waves/Plotea.log", "a")
@@ -35,29 +36,64 @@ def Plotear(imgagenpng, ruta,taperMaxPercent,taperType,filterType,filterFreqMin,
     archivo.write("--Voy a procesar imagen de %s--\n" %imgagenpng)
     archivo.close()
 
-    # Graficar cada traza en su respectivo subgráfico
-    for i, trace in enumerate(strNew):
-        nombreEstacion = trace.stats.station
-        ax = axes[i]
-        # Convertir los tiempos a segundos relativos desde el inicio de la traza
-        times = trace.times()
-        ax.plot(trace.data, label=f"Traza: {trace.id}", color='blue')
-        ax.set_ylabel("Amplitud")
-        ax.legend(loc="upper right")
-        ax.grid(True)
-        # Centrar el eje Y en 0 para cada traza
+    n_trazas = len(strNew)
+    fig, axes = plt.subplots(
+        n_trazas,
+        1,
+        figsize=(10, 7),
+        sharex=True,
+        gridspec_kw={'height_ratios': [1] * n_trazas}
+    )
+    if n_trazas == 1:
+        axes = [axes]  # Asegurar que axes sea lista si hay una sola traza
 
-    # Etiquetas generales del gráfico
-    fig.suptitle("Grafica PGA para %s" % nombreEstacion, fontsize=14)
-    axes[-1].set_xlabel("Tiempo")
+    # 5) Colores asignados por canal
+    colores = {'HNZ': 'tab:red', 'HNN': 'tab:green', 'HNE': 'tab:blue'}
 
-    # Formato automático de las fechas en el eje X
-    plt.gcf().autofmt_xdate()
+    # 6) Registrar el instante inicial y final (UTC)
+    inicio = strNew[0].stats.starttime
+    fin = strNew[0].stats.endtime
 
-    # Guardar el gráfico en un archivo
-    # output_file = "01-30-2025-14-50-37_MF_PLRL.png"
+    # 7) Graficar cada traza con tiempos reales en segundos
+    for idx, trace in enumerate(strNew):
+        ax = axes[idx]
+        chan = trace.stats.channel
+        times = trace.times()  # Segundos relativos desde trace.stats.starttime :contentReference[oaicite:15]{index=15}
+        ax.plot(
+            times,
+            trace.data,
+            color=colores.get(chan, 'k'),
+            linewidth=0.8,
+            alpha=0.9,
+            label=f"{trace.stats.network}.{trace.stats.station}.{trace.stats.location or '--'}.{chan}"
+        )
+        ax.set_ylabel("Amplitud (counts)")
+        ax.set_ylim(-max_amp_global * 1.05, max_amp_global * 1.05)
+        ax.grid(True, which='major', linestyle='--', linewidth=0.5, alpha=0.7)
+        # Mostrar etiqueta en texto dentro del subplot
+        ax.text(
+            0.01, 0.9,
+            f"{trace.id}   Fs={trace.stats.sampling_rate:.1f} Hz",
+            transform=ax.transAxes,
+            fontsize=9,
+            verticalalignment='top',
+            bbox=dict(boxstyle="round", facecolor="white", alpha=0.6, edgecolor="none")
+        )
+
+    # 8) Etiqueta común del eje X
+    axes[-1].set_xlabel("Tiempo (s) desde inicio")
+    fig.suptitle(
+        f"Estación {strNew[0].stats.station} — {inicio.isoformat()} a {fin.isoformat()} (UTC)",
+        fontsize=14
+    )
+
+    # 9) Ajustar espacio y colocar leyenda compacta en cada subplot
+    for ax in axes:
+        ax.legend(loc="upper right", fontsize="x-small", frameon=False)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.savefig(imgagenpng, dpi=300)
-    plt.close()
+    plt.close(fig)
     archivo = open("/home/lis/waves/Plotea.log", "a")
     archivo.write(str(UTCDateTime.now()))
     archivo.write("--Termine la imagen de %s--\n" % nombreEstacion)
