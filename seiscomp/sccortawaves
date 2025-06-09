@@ -162,9 +162,9 @@ class EventListener(client.Application):
 
             # Substract 5 minutes for the start time
             # start = now - core.TimeSpan(300, 0)
-            inicio = tiempo - core.TimeSpan(300, 0)  # resta 5 minutos a la hora fija
+            inicio = tiempo - core.TimeSpan(180, 0)  # resta 5 minutos a la hora fija
 
-            fin = tiempo + core.TimeSpan(300, 0)  # suma 5 minutos a la hora fija
+            fin = tiempo + core.TimeSpan(180, 0)  # suma 5 minutos a la hora fija
             utcfin = UTCDateTime(fin)
             utcinicio = UTCDateTime(inicio)
             utctiempo = UTCDateTime(tiempo)
@@ -570,7 +570,7 @@ class EventListener(client.Application):
     def updateObject(self, parentID, scobject):
         # called if an updated object is received
         event = datamodel.Event.Cast(scobject)
-        retraso_seg = 5 * 60  # 5 minutos en segundos
+        retraso_seg = 3.2 * 60  # 3 minutos en segundos
         if event:
             print("Evento actualizado {}".format(event.publicID()))
             time.sleep(retraso_seg)
