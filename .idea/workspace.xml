@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="cambios al 05_30">
-      <change afterPath="$PROJECT_DIR$/seiscomp/plotea2.py" afterDir="false" />
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="cambios del 02/06&#10;Nuevo script para ploetar, plotea2.py es el que esta en uso">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seiscomp/anteriores/plotea.py" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/plotea.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/seiscomp/plotea2.py" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/plotea2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/seiscomp/sccortawaves" beforeDir="false" afterPath="$PROJECT_DIR$/seiscomp/sccortawaves" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -396,7 +395,15 @@
       <option name="project" value="LOCAL" />
       <updated>1748640580509</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="cambios del 02/06&#10;Nuevo script para ploetar, plotea2.py es el que esta en uso">
+      <option name="closed" value="true" />
+      <created>1748898006665</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1748898006665</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -424,7 +431,8 @@
     <MESSAGE value="cambios al 16 de diciembre&#10;Modificaciones y utilitarios varios" />
     <MESSAGE value="cambios al 05_28&#10;Se crea cortaSDS.py para usar el SDS de seiscomp, falta probar con valores de aceleracion" />
     <MESSAGE value="cambios al 05_30" />
-    <option name="LAST_COMMIT_MESSAGE" value="cambios al 05_30" />
+    <MESSAGE value="cambios del 02/06&#10;Nuevo script para ploetar, plotea2.py es el que esta en uso" />
+    <option name="LAST_COMMIT_MESSAGE" value="cambios del 02/06&#10;Nuevo script para ploetar, plotea2.py es el que esta en uso" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -443,6 +451,11 @@
           <url>file://$PROJECT_DIR$/seiscomp/deploy_sccortawaves/sccortawaves_2</url>
           <line>2</line>
           <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/seiscomp/plotea2.py</url>
+          <line>2</line>
+          <option name="timeStamp" value="4" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

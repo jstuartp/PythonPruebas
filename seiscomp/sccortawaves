@@ -399,13 +399,13 @@ class EventListener(client.Application):
                 chan = []
                 for trx in strNew:
                     try:
+                        trx = trx.remove_response(inventory, output="ACC")
                         trx.detrend("demean")
                         trx.detrend("linear")
                         trx.taper(max_percentage=float(self.taperMaxPercent), type=self.taperType)
                         trx.filter(self.filterType, freqmin=float(self.filterFreqMin),
                                    freqmax=float(self.filterFreqMax),
                                    corners=float(self.filterCorners))  # Filtro estandar para el LIS
-                        trx = trx.remove_response(inventory, output="ACC")
                         absoluto = abs(trx.data)
                         maximo = max(absoluto)
 
@@ -421,13 +421,14 @@ class EventListener(client.Application):
                         st_umask = trx.split()
                         a = []
                         for tr1 in st_umask:
+                            tr1 = tr1.remove_response(inventory, output="ACC")
                             tr1.detrend("demean")
                             tr1.detrend("linear")
                             tr1.taper(max_percentage=float(self.taperMaxPercent), type=self.taperType)
                             tr1.filter(self.filterType, freqmin=float(self.filterFreqMin),
                                        freqmax=float(self.filterFreqMax),
                                        corners=float(self.filterCorners))  # Filtro estandar para el LIS
-                            tr1 = tr1.remove_response(inventory, output="ACC")
+
                             a.append(abs(max(tr1.data)))
                             maximo = max(a)
                             Logging.info(

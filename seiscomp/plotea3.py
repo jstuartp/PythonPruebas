@@ -15,50 +15,19 @@ import os
 import csv
 from time import strftime
 
-# FDSN server used to obtain station metadata
-FDSN_HOST = "http://localhost:8080"
 
 
 
 
-
-def Plotear(imgagenpng, ruta, taperMaxPercent, taperType, filterType,
-            filterFreqMin, filterFreqMax, filterCorners):
-    """Plot seismic traces applying instrument response."""
-    # Read the mseed file
+def Plotear(imgagenpng, ruta,taperMaxPercent,taperType,filterType,filterFreqMin,filterFreqMax,filterCorners):
+    # Configurar la figura y subgráficos
     strNew = read(ruta, format="mseed")
-
-    client = Client(FDSN_HOST)
-
-    # Preprocess each trace independently and remove instrument response
-    for tr in strNew:
-        try:
-            inv = client.get_stations(
-                network=tr.stats.network,
-                station=tr.stats.station,
-                location=tr.stats.location or "",
-                channel=tr.stats.channel,
-                starttime=tr.stats.starttime,
-                endtime=tr.stats.endtime,
-                level="response",
-            )
-
-            tr.detrend("demean")
-            tr.detrend("linear")
-            tr.taper(max_percentage=float(taperMaxPercent), type=taperType)
-            tr.filter(
-                filterType,
-                freqmin=float(filterFreqMin),
-                freqmax=float(filterFreqMax),
-                corners=float(filterCorners),
-            )
-            tr.remove_response(inv, output="ACC")
-            # Convert from m/s^2 to cm/s^2
-            tr.data *= 100.0
-        except Exception as e:
-            print(f"Error processing {tr.id}: {e}")
-
-    matplotlib.use("agg")
+    strNew.detrend("demean")
+    strNew.taper(max_percentage=float(taperMaxPercent), type=taperType)
+    strNew.filter(filterType, freqmin=float(filterFreqMin),
+                                       freqmax=float(filterFreqMax),
+                                       corners=float(filterCorners))
+    matplotlib.use('agg')
     fig, axes = plt.subplots(len(strNew), 1, figsize=(12, 8), sharex=True)
     max_amp_global = max(abs(tr.data).max() for tr in strNew)
 
@@ -90,8 +59,7 @@ def Plotear(imgagenpng, ruta, taperMaxPercent, taperType, filterType,
     for idx, trace in enumerate(strNew):
         ax = axes[idx]
         chan = trace.stats.channel
-        # Segundos relativos desde el inicio de la traza
-        times = trace.times()
+        times = trace.times()  # Segundos relativos desde trace.stats.starttime :contentReference[oaicite:15]{index=15}
         ax.plot(
             times,
             trace.data,
@@ -100,7 +68,7 @@ def Plotear(imgagenpng, ruta, taperMaxPercent, taperType, filterType,
             alpha=0.9,
             label=f"{trace.stats.network}.{trace.stats.station}.{trace.stats.location or '--'}.{chan}"
         )
-        ax.set_ylabel("Aceleraci\xc3\xb3n (cm/s\xb2)")
+        ax.set_ylabel("Amplitud (counts)")
         ax.set_ylim(-max_amp_global * 1.05, max_amp_global * 1.05)
         ax.grid(True, which='major', linestyle='--', linewidth=0.5, alpha=0.7)
         # Mostrar etiqueta en texto dentro del subplot
