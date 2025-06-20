@@ -39,11 +39,17 @@ import numpy as np
 from dotenv import load_dotenv
 from pathlib import Path
 
-#CONSTANTES BASES DE DATOS
+#CONSTANTES BASES DE DATOS SEISCOMP
 my_host = 'localhost'
 my_user = 'root'
 my_password = 'jspz2383'
 my_db = 'seiscomp'
+
+#CONSTANTES BASES DE DATOS LOCAL
+local_host = 'localhost'
+local_user = 'root'
+local_password = 'jspz2383'
+local_db = 'sismos_lis'
 
 
 # Parámetros configurables
@@ -280,11 +286,22 @@ class EventListener(client.Application):
             # logica: SI el ultimo pga del arreglo resultados es mayor a 3ms -- mandar el arreglo st a cortar
             self.cortaWaves(streams,evento,t0)
             # consultar el evento.id, traer los datos
+
             datosEvento = self.obtener_datos_por_id(evento)
+            datosEvento.append(resultados[0]["pga"])
+            datosEvento.append(resultados[0]["station"])
             # chequear si el evento no existe en la tabla nueva
+            idEvento = self.chequeaEvento(evento)
+            print(idEvento)
             # si no existe mandar a guardar en tabla de eventos nueva
+            if not idEvento:
+                # si no esta se inserta
+                print("VOY A INSERTAR")
+                self.insertarEvento(datosEvento)
+
             # si ya existe, no guardar el evento
             # mandar a guardar los pga, iterando el arreglo y preguntando por cada estacion
+
             # si la estación ya esta en la tabla pga -- hacer update
             # si la estacion no esta en la tabla pga -- hacer insert
             # mandar a plotear todo enviando la carpeta donde estan los mseed
@@ -335,7 +352,39 @@ class EventListener(client.Application):
 
 
 
+    def insertarEvento(self, datos):
 
+        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+            host=local_host,
+            user= local_user,
+            password= local_password,
+            db= local_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        print(datos)
+        try:
+            with (conn.cursor() as cursor):
+                # Create a new record
+                sql = (
+                    "INSERT INTO sismos_lis.historico_sismos ("
+                    "idEvento,"
+                    "fechaEvento,"
+                    "latitudEvento,"
+                    "longitudEvento,"
+                    "magnitudEvento,"
+                    "aceleracionEvento,"
+                    "lugarAceleracion"
+                    ") VALUES (%s, %s, %s, %s, %s, %s, %s);")
+                # print(values)
+                cursor.execute(sql, datos)
+            # Commit changes
+            conn.commit()
+            Logging.info(
+                "--EXITO---------New event saved  \n" )
+            print("Nuevos sismo registrado")
+        finally:
+            conn.close()
 
     def insertaBd(self, datos):
 
@@ -393,40 +442,29 @@ class EventListener(client.Application):
 
     #Consulta a la base para extraer los datos del evento
     def obtener_datos_por_id(self,eventoId):
-
+        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+            host=my_host,
+            user=my_user,
+            password=my_password,
+            db=my_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
         try:
-
-            conn = pymysql.connect(  # conexión usa parametros puestos arriba
-                host=my_host,
-                user=my_user,
-                password=my_password,
-                db=my_db,
-                charset='utf8mb4',
-                cursorclass=pymysql.cursors.DictCursor
-            )
-
-            if conn.is_connected():
-                cursor = conn.cursor()
-                consulta = ("select distinct PEvent.publicID,Event._oid, Origin.time_value as hora, Origin._oid, ROUND(M.magnitude_value,1) as magnitud,"
-                            "ROUND(Origin.latitude_value,3) as latitud, ROUND(Origin.longitude_value,3) as longitud, ROUND(Origin.depth_value,2) as profundidad)"
-                            "from Origin,PublicObject as POrigin,Event,PublicObject as PEvent, Magnitude as M"
-                            "where POrigin.publicID=Event.preferredOriginID and  M._parent_oid = Origin._oid"
-                            "and Origin._oid=POrigin._oid and Event._oid=PEvent._oid"
-                            "and PEvent.publicID = %s"
-                            "Order by Origin.time_value DESC;")
-                cursor.execute(consulta, (eventoId,))
+            with (conn.cursor() as cursor):
+                consulta = ("select distinct PEvent.publicID, Origin.time_value as hora,  ROUND(Origin.latitude_value,3) as latitud,"
+                            "ROUND(Origin.longitude_value,3) as longitud,"
+                            "ROUND(M.magnitude_value,1) as magnitud "
+                            "from Origin,PublicObject as POrigin,Event,PublicObject as PEvent, Magnitude as M "
+                            "where POrigin.publicID=Event.preferredOriginID and  M._parent_oid = Origin._oid "
+                            "and Origin._oid=POrigin._oid and Event._oid=PEvent._oid "
+                            "and PEvent.publicID = %s Order by Origin.time_value DESC;")
+                print(consulta)
+                cursor.execute(consulta, eventoId)
                 resultado = cursor.fetchall()
-                return resultado
-
-        except Exception as e:
-            print(f"Error al conectar a la base de datos: {e}")
-            return []
-
         finally:
-            if 'cursor' in locals():
-                cursor.close()
-            if 'conn' in locals() and conn.is_connected():
                 conn.close()
+        return resultado
 
 
 
@@ -461,10 +499,10 @@ class EventListener(client.Application):
     def chequeaEvento(self,evento):
 
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
-            host=my_host,
-            user=my_user,
-            password=my_password,
-            db=my_db,
+            host=local_host,
+            user=local_user,
+            password=local_password,
+            db=local_db,
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
@@ -472,10 +510,10 @@ class EventListener(client.Application):
             with (conn.cursor() as cursor):
                 # Create a new record
 
-                consulta_sql = "select  Pga.idpga as id From Pga WHERE nombre_evento = %s AND estacion = %s"
+                consulta_sql = "select  id as id From historico_sismos WHERE idEvento = %s "
 
                 # Ejecutar la consulta pasando los parámetros
-                cursor.execute(consulta_sql, (evento, estacion))
+                cursor.execute(consulta_sql,evento)
 
                 # Obtener todos los resultados
                 resultados = cursor.fetchall()
@@ -485,14 +523,6 @@ class EventListener(client.Application):
         finally:
             conn.close()
         return resultados
-
-
-
-
-
-
-
-
 
 
 
