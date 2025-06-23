@@ -232,6 +232,7 @@ class EventListener(client.Application):
 
         resultados = []
         streams = []
+        pgas = []
 
         # 4. Recorre todos los canales de aceleración del inventario
         for net in inventory:
@@ -242,65 +243,81 @@ class EventListener(client.Application):
                 location = "**"
                 channel = "HN*"
 
+
                 # 5. Leer la traza
                 try:
                     st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
                     st.merge(method=1, fill_value='interpolate')
+                    net = inventory.select(network=network, station=station)[0]
+                    sta = net.stations[0]
+
                     if not st or len(st) == 0:
                         continue
                     #tr = st[0]
                     # 6. Aplicar respuesta y calcular PGA
+                    resultados.append({
+                        "fecha_evento": t0,
+                        "fecha_calculo": datetime.now(),
+                        "evento": evento,
+                        "tipo": 1,
+                        "estacion": station,
+                        "latitud": {sta.latitude},
+                        "longitud": {sta.longitude},
+                    })
+                    streams.append({
+                        "evento": evento,
+                        "network": network,
+                        "station": station,
+                        "st": st.copy(),
+                        "t1": t1,
+                        "t2": t2,
+                    })
                     for tr in st:
 
                         pga = self.calculate_pga(tr, inventory, network, station, location, channel)
-                        #if pga < MIN_PGA_CM_S2:
-                        #    continue
-
-                        resultados.append({
+                        pgas.append({
                             "pga": pga,
-                            "network": network,
-                            "station": station,
-                            "location": tr.stats.location,
-                            "channel": tr.stats.channel,
-                            "trace": tr.copy(),  # Guardar la traza para recortar/exportar luego
-                            "t1": t1,
-                            "t2": t2, #FALTA ENVIAR MAS DATOS PARA LA BD PGA
+                            "station": station
                         })
-                        streams.append({
-                            "evento": evento,
-                            "network": network,
-                            "station": station,
-                            "st":st.copy(),
-                            "t1": t1,
-                            "t2": t2,
+                        resultados.append({
+                            str(tr.stats.channel).lower(): pga
                         })
+
+
+
                 except Exception as e:
                     logging.warning(f"Error en {network}.{station}: {e}")
                     continue
 
         # 7. Ordenar y seleccionar los 20 registros con mayor PGA
-        resultados = sorted(resultados, key=lambda x: -x["pga"])
+        pgas = sorted(pgas, key=lambda x: -x["pga"])
 
-        #resultados = resultados[:TOP_N]
-        if resultados[0]["pga"] > 2.5:
+        #print(resultados)
+        if pgas[0]["pga"] > 2.5:
             # logica: SI el ultimo pga del arreglo resultados es mayor a 3ms -- mandar el arreglo st a cortar
-            self.cortaWaves(streams,evento,t0)
+            #self.cortaWaves(streams,evento,t0)
             # consultar el evento.id, traer los datos
-
             datosEvento = self.obtener_datos_por_id(evento)
-            datosEvento.append(resultados[0]["pga"])
-            datosEvento.append(resultados[0]["station"])
             # chequear si el evento no existe en la tabla nueva
             idEvento = self.chequeaEvento(evento)
-            print(idEvento)
             # si no existe mandar a guardar en tabla de eventos nueva
             if not idEvento:
                 # si no esta se inserta
-                print("VOY A INSERTAR")
-                self.insertarEvento(datosEvento)
+                self.insertarEvento(datosEvento,pgas[0]["pga"],pgas[0]["station"])
 
             # si ya existe, no guardar el evento
+
             # mandar a guardar los pga, iterando el arreglo y preguntando por cada estacion
+            for res in resultados:
+                # chequeo si el evento ya tiene pgas guardados para cada estacion
+                print(res["estacion"])
+                idPga = self.chequeaBdPga(res["estacion"],res["evento"])
+                if not idPga:
+                    # print("Entre al insertar")
+                    # si no esta se inserta
+                    self.insertaBd(res)
+                else:
+                    self.updateBd(res,idPga)
 
             # si la estación ya esta en la tabla pga -- hacer update
             # si la estacion no esta en la tabla pga -- hacer insert
@@ -310,15 +327,14 @@ class EventListener(client.Application):
 
 
             # 8. Recortar, exportar a MiniSEED y reportar
-            for idx, res in enumerate(resultados, 1):
+            for idx, res1 in enumerate(resultados, 1):
                 # Recortar la traza en la ventana deseada (si es necesario)
-                tr = res["trace"]
-                tr.trim(starttime=res["t1"], endtime=res["t2"])
+
 
                 # Generar nombre de archivo
-                fname = f"{OUTPUT_DIR}/PGA_{res['pga']:.2f}_{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
+                fname = f"{OUTPUT_DIR}/PGA_{res1['pga']:.2f}_{res1['network']}_{res1['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
                 # tr.write(fname, format="MSEED")
-                print(f"[{idx}] {fname} PGA={res['pga']:.2f} cm/s²")
+                print(f"[{idx}] {fname} PGA={res1['pga']:.2f} cm/s²")
             #mandar a guardar a bd, pga y evento
         else:
             print("La mayor aceleracion es despreciable")
@@ -352,7 +368,7 @@ class EventListener(client.Application):
 
 
 
-    def insertarEvento(self, datos):
+    def insertarEvento(self, datos,maxpga,stationpga):
 
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=local_host,
@@ -362,7 +378,8 @@ class EventListener(client.Application):
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
-        print(datos)
+        #arreglo para insertar valores junto con los datos por parametro
+        valores = [datos["publicID"],datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],maxpga,stationpga]
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
@@ -377,7 +394,7 @@ class EventListener(client.Application):
                     "lugarAceleracion"
                     ") VALUES (%s, %s, %s, %s, %s, %s, %s);")
                 # print(values)
-                cursor.execute(sql, datos)
+                cursor.execute(sql, valores)
             # Commit changes
             conn.commit()
             Logging.info(
@@ -388,6 +405,7 @@ class EventListener(client.Application):
 
     def insertaBd(self, datos):
 
+        #print(datos)
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=my_host,
             user= my_user,
@@ -403,7 +421,7 @@ class EventListener(client.Application):
                     "INSERT INTO `Pga` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`tipo_estacion`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`)"
                     " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s ,%s)")
                 # print(values)
-                cursor.execute(sql, datos)
+                #cursor.execute(sql, datos)
             # Commit changes
             conn.commit()
             Logging.info(
@@ -412,8 +430,9 @@ class EventListener(client.Application):
         finally:
             conn.close()
 
-    def updateBd(self, datos):
+    def updateBd(self, datos,idPga):
 
+        print(datos)
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=my_host,
             user=my_user,
@@ -430,7 +449,7 @@ class EventListener(client.Application):
                     " `longitud`=%s, `hne_pga`=%s, `hnn_pga`=%s, `hnz_pga`=%s,`maximo`=%s ,`rutaWaveform`=%s"
                     "WHERE idpga = %s")
 
-                cursor.execute(sql, datos)
+               # cursor.execute(sql, (datos,idPga))
             # Commit changes
             conn.commit()
             Logging.info(
@@ -459,16 +478,16 @@ class EventListener(client.Application):
                             "where POrigin.publicID=Event.preferredOriginID and  M._parent_oid = Origin._oid "
                             "and Origin._oid=POrigin._oid and Event._oid=PEvent._oid "
                             "and PEvent.publicID = %s Order by Origin.time_value DESC;")
-                print(consulta)
+                #print(consulta)
                 cursor.execute(consulta, eventoId)
-                resultado = cursor.fetchall()
+                resultado = cursor.fetchone()
         finally:
                 conn.close()
         return resultado
 
 
 
-    def chequeaBd(self, estacion,evento):
+    def chequeaBdPga(self, estacion,evento):
 
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=my_host,
