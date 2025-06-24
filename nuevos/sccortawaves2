@@ -230,7 +230,7 @@ class EventListener(client.Application):
         # 3. Crear cliente SDS
         sds_client = SDSClient(SDS_ROOT)
 
-        resultados = []
+        resultados = [{}]
         streams = []
         pgas = []
 
@@ -261,8 +261,8 @@ class EventListener(client.Application):
                         "evento": evento,
                         "tipo": 1,
                         "estacion": station,
-                        "latitud": {sta.latitude},
-                        "longitud": {sta.longitude},
+                        "latitud": sta.latitude,
+                        "longitud": sta.longitude,
                     })
                     streams.append({
                         "evento": evento,
@@ -273,15 +273,13 @@ class EventListener(client.Application):
                         "t2": t2,
                     })
                     for tr in st:
-
                         pga = self.calculate_pga(tr, inventory, network, station, location, channel)
                         pgas.append({
                             "pga": pga,
                             "station": station
                         })
-                        resultados.append({
-                            str(tr.stats.channel).lower(): pga
-                        })
+                        resultados.append({str(tr.stats.channel).lower() :pga})
+
 
 
 
@@ -308,12 +306,14 @@ class EventListener(client.Application):
             # si ya existe, no guardar el evento
 
             # mandar a guardar los pga, iterando el arreglo y preguntando por cada estacion
-            for res in resultados:
+            #print(resultados)
+            for  res in resultados:
                 # chequeo si el evento ya tiene pgas guardados para cada estacion
-                print(res["estacion"])
+                print(res)
                 idPga = self.chequeaBdPga(res["estacion"],res["evento"])
+                print(res)
                 if not idPga:
-                    # print("Entre al insertar")
+                    print("Entre al insertar")
                     # si no esta se inserta
                     self.insertaBd(res)
                 else:
@@ -405,12 +405,14 @@ class EventListener(client.Application):
 
     def insertaBd(self, datos):
 
-        #print(datos)
+        print(datos)
+        valores = [datos['fecha_evento'], datos['fecha_calculo'],datos['evento'],datos['tipo'],datos['estacion'],datos['latitud'],
+                   datos['longitud']]
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
-            host=my_host,
-            user= my_user,
-            password= my_password,
-            db= my_db,
+            host=local_host,
+            user= local_user,
+            password= local_password,
+            db= local_db,
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
@@ -432,12 +434,12 @@ class EventListener(client.Application):
 
     def updateBd(self, datos,idPga):
 
-        print(datos)
+        #print(datos)
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
-            host=my_host,
-            user=my_user,
-            password=my_password,
-            db=my_db,
+            host=local_host,
+            user=local_user,
+            password=local_password,
+            db=local_db,
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
@@ -449,7 +451,7 @@ class EventListener(client.Application):
                     " `longitud`=%s, `hne_pga`=%s, `hnn_pga`=%s, `hnz_pga`=%s,`maximo`=%s ,`rutaWaveform`=%s"
                     "WHERE idpga = %s")
 
-               # cursor.execute(sql, (datos,idPga))
+                cursor.execute(sql, (datos,idPga))
             # Commit changes
             conn.commit()
             Logging.info(
@@ -490,13 +492,15 @@ class EventListener(client.Application):
     def chequeaBdPga(self, estacion,evento):
 
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
-            host=my_host,
-            user=my_user,
-            password=my_password,
-            db=my_db,
+            host=local_host,
+            user=local_user,
+            password=local_password,
+            db=local_db,
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
+        print(estacion)
+        print(evento)
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
@@ -505,6 +509,7 @@ class EventListener(client.Application):
 
                 # Ejecutar la consulta pasando los parámetros
                 cursor.execute(consulta_sql, (evento, estacion))
+                print(consulta_sql)
 
                 # Obtener todos los resultados
                 resultados = cursor.fetchall()
