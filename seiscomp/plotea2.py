@@ -48,8 +48,8 @@ def Plotear(imgagenpng, ruta, taperMaxPercent, taperType, filterType,
             tr.taper(max_percentage=float(taperMaxPercent), type=taperType)
             tr.filter(
                 filterType,
-                freqmin=float(filterFreqMin),
-                freqmax=float(filterFreqMax),
+                freqmin=float(0.1),
+                freqmax=float(10),
                 corners=float(filterCorners),
             )
             tr.remove_response(inv, output="ACC")
@@ -100,7 +100,7 @@ def Plotear(imgagenpng, ruta, taperMaxPercent, taperType, filterType,
             alpha=0.9,
             label=f"{trace.stats.network}.{trace.stats.station}.{trace.stats.location or '--'}.{chan}"
         )
-        ax.set_ylabel("Aceleraci\xc3\xb3n (cm/s\xb2)")
+        ax.set_ylabel("Amplitud (cm/s\xb2)")
         ax.set_ylim(-max_amp_global * 1.05, max_amp_global * 1.05)
         ax.grid(True, which='major', linestyle='--', linewidth=0.5, alpha=0.7)
         # Mostrar etiqueta en texto dentro del subplot

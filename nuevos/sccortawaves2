@@ -18,6 +18,8 @@ import os
 import pymysql
 import subprocess
 import matplotlib.pyplot as plt
+from soupsieve.css_types import pickle_register
+
 from seiscomp import core, client, io, math, logging
 from seiscomp import client, datamodel
 from seiscomp.client import Protocol
@@ -230,7 +232,7 @@ class EventListener(client.Application):
         # 3. Crear cliente SDS
         sds_client = SDSClient(SDS_ROOT)
 
-        resultados = [{}]
+        resultados = []
         streams = []
         pgas = []
 
@@ -242,6 +244,7 @@ class EventListener(client.Application):
                 station = sta.code
                 location = "**"
                 channel = "HN*"
+                pgasChannel = []
 
 
                 # 5. Leer la traza
@@ -255,6 +258,14 @@ class EventListener(client.Application):
                         continue
                     #tr = st[0]
                     # 6. Aplicar respuesta y calcular PGA
+                    for tr in st:
+                        pga = self.calculate_pga(tr, inventory, network, station, location, channel)
+                        pgas.append({
+                            "pga": pga,
+                            "station": station
+                        })
+                        pgasChannel.append({str(tr.stats.channel).lower() :pga})
+                    #print(pgasChannel)
                     resultados.append({
                         "fecha_evento": t0,
                         "fecha_calculo": datetime.now(),
@@ -264,6 +275,9 @@ class EventListener(client.Application):
                         "latitud": sta.latitude,
                         "longitud": sta.longitude,
                     })
+                    ultimo = resultados[-1]
+                    for i in pgasChannel:
+                        ultimo.update(i)
                     streams.append({
                         "evento": evento,
                         "network": network,
@@ -272,13 +286,7 @@ class EventListener(client.Application):
                         "t1": t1,
                         "t2": t2,
                     })
-                    for tr in st:
-                        pga = self.calculate_pga(tr, inventory, network, station, location, channel)
-                        pgas.append({
-                            "pga": pga,
-                            "station": station
-                        })
-                        resultados.append({str(tr.stats.channel).lower() :pga})
+
 
 
 
@@ -291,9 +299,9 @@ class EventListener(client.Application):
         pgas = sorted(pgas, key=lambda x: -x["pga"])
 
         #print(resultados)
-        if pgas[0]["pga"] > 2.5:
-            # logica: SI el ultimo pga del arreglo resultados es mayor a 3ms -- mandar el arreglo st a cortar
-            #self.cortaWaves(streams,evento,t0)
+        # si existen al menos 5 estaciones que superan el umbral, se registra
+        if pgas[4]["pga"] >= 2.5:
+            self.cortaWaves(streams,evento,t0)
             # consultar el evento.id, traer los datos
             datosEvento = self.obtener_datos_por_id(evento)
             # chequear si el evento no existe en la tabla nueva
@@ -309,40 +317,20 @@ class EventListener(client.Application):
             #print(resultados)
             for  res in resultados:
                 # chequeo si el evento ya tiene pgas guardados para cada estacion
-                print(res)
+                #print(res)
                 idPga = self.chequeaBdPga(res["estacion"],res["evento"])
-                print(res)
                 if not idPga:
                     print("Entre al insertar")
-                    # si no esta se inserta
+                    # si la estacion no esta en la tabla pga -- hacer insert
                     self.insertaBd(res)
                 else:
+                    # si la estación ya esta en la tabla pga -- hacer update
                     self.updateBd(res,idPga)
 
-            # si la estación ya esta en la tabla pga -- hacer update
-            # si la estacion no esta en la tabla pga -- hacer insert
+
             # mandar a plotear todo enviando la carpeta donde estan los mseed
-
-
-
-
-            # 8. Recortar, exportar a MiniSEED y reportar
-            for idx, res1 in enumerate(resultados, 1):
-                # Recortar la traza en la ventana deseada (si es necesario)
-
-
-                # Generar nombre de archivo
-                fname = f"{OUTPUT_DIR}/PGA_{res1['pga']:.2f}_{res1['network']}_{res1['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
-                # tr.write(fname, format="MSEED")
-                print(f"[{idx}] {fname} PGA={res1['pga']:.2f} cm/s²")
-            #mandar a guardar a bd, pga y evento
         else:
-            print("La mayor aceleracion es despreciable")
-
-
-
-
-        print(f"¡Proceso finalizado! Se han almacenado {len(resultados)} archivos MiniSEED en {OUTPUT_DIR}")
+            Logging.info("El evento %s No cumple con el umbral de aceleracion" %evento)
 
 
     def cortaWaves(self,streams,evento,t0):
@@ -359,7 +347,7 @@ class EventListener(client.Application):
             tr.trim(starttime=res["t1"], endtime=res["t2"])
 
             # Generar nombre de archivo//HACER DIRECTORIO POR CADA EVENTO
-            fname = f"{ruta}/_{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
+            fname = f"{ruta}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
             try:
                 tr.write(fname, format="MSEED")
             except Exception as err:
@@ -405,60 +393,81 @@ class EventListener(client.Application):
 
     def insertaBd(self, datos):
 
-        print(datos)
-        valores = [datos['fecha_evento'], datos['fecha_calculo'],datos['evento'],datos['tipo'],datos['estacion'],datos['latitud'],
-                   datos['longitud']]
-        conn = pymysql.connect(  # conexión usa parametros puestos arriba
-            host=local_host,
-            user= local_user,
-            password= local_password,
-            db= local_db,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor
-        )
+        #print(datos)
+        valores =[]
         try:
-            with (conn.cursor() as cursor):
-                # Create a new record
-                sql = (
-                    "INSERT INTO `Pga` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`tipo_estacion`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`)"
-                    " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s ,%s)")
-                # print(values)
-                #cursor.execute(sql, datos)
-            # Commit changes
-            conn.commit()
-            Logging.info(
-                "--EXITO---------Data save to Database  \n" )
-            print("PGA guardado en la Base de Datos")
-        finally:
-            conn.close()
+            valores = [datos['fecha_evento'], datos['fecha_calculo'],datos['evento'],datos['tipo'],datos['estacion'],datos['latitud'],
+                       datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),"AA"]
+        except Exception as err:
+            Logging.error(
+                "--ERROR---------Fail in channels for station %s " % datos['estacion'])
+            Logging.error(
+                "--ERROR---------Error data %s " % err)
+        else:
+            #print(valores)
+            conn = pymysql.connect(  # conexión usa parametros puestos arriba
+                host=local_host,
+                user= local_user,
+                password= local_password,
+                db= local_db,
+                charset='utf8mb4',
+                cursorclass=pymysql.cursors.DictCursor
+            )
+            try:
+                with (conn.cursor() as cursor):
+                    # Create a new record
+                    sql = (
+                        "INSERT INTO `Pga` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`tipo_estacion`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`)"
+                        " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s ,%s)")
+                    # print(values)
+                    cursor.execute(sql, valores)
+                # Commit changes
+                conn.commit()
+                Logging.info(
+                    "--EXITO---------Data save to Database  \n" )
+                print("PGA guardado en la Base de Datos")
+            finally:
+                conn.close()
 
     def updateBd(self, datos,idPga):
 
         #print(datos)
-        conn = pymysql.connect(  # conexión usa parametros puestos arriba
-            host=local_host,
-            user=local_user,
-            password=local_password,
-            db=local_db,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor
-        )
+        valores = []
+        data_id = idPga[0]['id']
         try:
-            with (conn.cursor() as cursor):
-                # Create a new record
-                sql = (
-                    "UPDATE Pga SET `fecha_evento`=%s,`fecha_calculo`=%s,`nombre_evento`=%s,`tipo_estacion`=%s,`estacion`=%s, `latitud`=%s,"
-                    " `longitud`=%s, `hne_pga`=%s, `hnn_pga`=%s, `hnz_pga`=%s,`maximo`=%s ,`rutaWaveform`=%s"
-                    "WHERE idpga = %s")
-
-                cursor.execute(sql, (datos,idPga))
-            # Commit changes
-            conn.commit()
-            Logging.info(
-                "--EXITO---------Data updated to Database  \n" )
-            print("PGA actualizado en la Base de Datos")
-        finally:
-            conn.close()
+            valores = [datos['fecha_evento'], datos['fecha_calculo'],datos['evento'],datos['tipo'],datos['estacion'],datos['latitud'],
+                       datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),"AA",data_id]
+        except Exception as err:
+            Logging.error(
+                "--ERROR---------Fail in channels for station %s " % datos['estacion'])
+            Logging.error(
+                "--ERROR---------Error data %s " % err)
+            print(datos)
+        else:
+            print(valores)
+            conn = pymysql.connect(  # conexión usa parametros puestos arriba
+                host=local_host,
+                user=local_user,
+                password=local_password,
+                db=local_db,
+                charset='utf8mb4',
+                cursorclass=pymysql.cursors.DictCursor
+            )
+            try:
+                with (conn.cursor() as cursor):
+                    # Create a new record
+                    sql = (
+                        "UPDATE Pga SET `fecha_evento`=%s,`fecha_calculo`=%s,`nombre_evento`=%s,`tipo_estacion`=%s,`estacion`=%s, `latitud`=%s,"
+                        " `longitud`=%s, `hne_pga`=%s, `hnn_pga`=%s, `hnz_pga`=%s,`maximo`=%s ,`rutaWaveform`=%s"
+                        "WHERE idpga = %s")
+                    cursor.execute(sql, valores)
+                # Commit changes
+                conn.commit()
+                Logging.info(
+                    "--EXITO---------Data updated to Database  \n" )
+                print("PGA actualizado en la Base de Datos")
+            finally:
+                conn.close()
 
 
     #Consulta a la base para extraer los datos del evento
@@ -499,8 +508,8 @@ class EventListener(client.Application):
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
-        print(estacion)
-        print(evento)
+        #print(estacion)
+        #print(evento)
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
@@ -509,7 +518,7 @@ class EventListener(client.Application):
 
                 # Ejecutar la consulta pasando los parámetros
                 cursor.execute(consulta_sql, (evento, estacion))
-                print(consulta_sql)
+                #print(consulta_sql)
 
                 # Obtener todos los resultados
                 resultados = cursor.fetchall()
@@ -540,7 +549,7 @@ class EventListener(client.Application):
                 cursor.execute(consulta_sql,evento)
 
                 # Obtener todos los resultados
-                resultados = cursor.fetchall()
+                resultados = cursor.fetchone()
 
             # Commit changes
             conn.commit()
