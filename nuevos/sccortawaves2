@@ -235,73 +235,82 @@ class EventListener(client.Application):
         resultados = []
         streams = []
         pgas = []
+        maximos = []
 
         # 4. Recorre todos los canales de aceleración del inventario
         for net in inventory:
             for sta in net:
+                if sta.end_date is None:
+                    network = net.code
+                    station = sta.code
+                    print(station)
+                    location = "**"
+                    channel = "HN*"
+                    pgasChannel = []
 
-                network = net.code
-                station = sta.code
-                location = "**"
-                channel = "HN*"
-                pgasChannel = []
+                    # 5. Leer la traza
+                    try:
+                        st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
+                        stRaw = st
+                        st.merge(method=1, fill_value='interpolate')
+                        net = inventory.select(network=network, station=station)[0]
+                        mysta = net.stations[0]
 
-
-                # 5. Leer la traza
-                try:
-                    st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
-                    st.merge(method=1, fill_value='interpolate')
-                    net = inventory.select(network=network, station=station)[0]
-                    sta = net.stations[0]
-
-                    if not st or len(st) == 0:
-                        continue
-                    #tr = st[0]
-                    # 6. Aplicar respuesta y calcular PGA
-                    for tr in st:
-                        pga = self.calculate_pga(tr, inventory, network, station, location, channel)
-                        pgas.append({
-                            "pga": pga,
-                            "station": station
+                        if not st or len(st) == 0:
+                            continue
+                        #tr = st[0]
+                        # 6. Aplicar respuesta y calcular PGA
+                        m = 0.0
+                        for tr in st:
+                            pga = self.calculate_pga(tr, inventory, network, station, location, channel)
+                            if pga > m:
+                                m = pga
+                          #  pgas.append({
+                          #      "pga": pga
+                           # })
+                            pgasChannel.append({str(tr.stats.channel).lower() :pga})
+                        maximos.append({
+                            "station" : station,
+                            "maximos" : m
                         })
-                        pgasChannel.append({str(tr.stats.channel).lower() :pga})
-                    #print(pgasChannel)
-                    resultados.append({
-                        "fecha_evento": t0,
-                        "fecha_calculo": datetime.now(),
-                        "evento": evento,
-                        "tipo": 1,
-                        "estacion": station,
-                        "latitud": sta.latitude,
-                        "longitud": sta.longitude,
-                    })
-                    ultimo = resultados[-1]
-                    for i in pgasChannel:
-                        ultimo.update(i)
-                    streams.append({
-                        "evento": evento,
-                        "network": network,
-                        "station": station,
-                        "st": st.copy(),
-                        "t1": t1,
-                        "t2": t2,
-                    })
+                        #print(pgasChannel)
+                        resultados.append({
+                            "fecha_evento": t0,
+                            "fecha_calculo": datetime.now(),
+                            "evento": evento,
+                            "tipo": 1,
+                            "estacion": station,
+                            "latitud": mysta.latitude,
+                            "longitud": mysta.longitude,
+                        })
+                        ultimo = resultados[-1]
+                        for i in pgasChannel:
+                            ultimo.update(i)
+                        streams.append({
+                            "evento": evento,
+                            "network": network,
+                            "station": station,
+                            "st": stRaw.copy(),
+                            "t1": t1,
+                            "t2": t2,
+                        })
 
-
-
-
-
-                except Exception as e:
-                    logging.warning(f"Error en {network}.{station}: {e}")
-                    continue
+                    except Exception as e:
+                        logging.warning(f"Error en {network}.{station}: {e}")
+                        continue
 
         # 7. Ordenar y seleccionar los 20 registros con mayor PGA
-        pgas = sorted(pgas, key=lambda x: -x["pga"])
+        maximos = sorted(maximos, key=lambda x: -x["maximos"])
+
 
         #print(resultados)
         # si existen al menos 5 estaciones que superan el umbral, se registra
-        if pgas[4]["pga"] >= 2.5:
-            self.cortaWaves(streams,evento,t0)
+        print(maximos[4]["maximos"])
+        if maximos[4]["maximos"] >= 2:
+            self.cortaWaves(streams, evento, t0)
+            result = subprocess.run(
+                ["python3", "/home/stuart/seiscomp/bin/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento])
+            Logging.info("Resultado del ploteo %s" % result)
             # consultar el evento.id, traer los datos
             datosEvento = self.obtener_datos_por_id(evento)
             # chequear si el evento no existe en la tabla nueva
@@ -309,7 +318,9 @@ class EventListener(client.Application):
             # si no existe mandar a guardar en tabla de eventos nueva
             if not idEvento:
                 # si no esta se inserta
-                self.insertarEvento(datosEvento,pgas[0]["pga"],pgas[0]["station"])
+                self.insertarEvento(datosEvento,maximos[0]["maximos"],maximos[0]["station"])
+
+                #plotear aqui
 
             # si ya existe, no guardar el evento
 
@@ -320,7 +331,7 @@ class EventListener(client.Application):
                 #print(res)
                 idPga = self.chequeaBdPga(res["estacion"],res["evento"])
                 if not idPga:
-                    print("Entre al insertar")
+                    #print("Entre al insertar")
                     # si la estacion no esta en la tabla pga -- hacer insert
                     self.insertaBd(res)
                 else:
@@ -331,6 +342,8 @@ class EventListener(client.Application):
             # mandar a plotear todo enviando la carpeta donde estan los mseed
         else:
             Logging.info("El evento %s No cumple con el umbral de aceleracion" %evento)
+
+
 
 
     def cortaWaves(self,streams,evento,t0):
@@ -349,10 +362,12 @@ class EventListener(client.Application):
             # Generar nombre de archivo//HACER DIRECTORIO POR CADA EVENTO
             fname = f"{ruta}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
             try:
-                tr.write(fname, format="MSEED")
+                tr.write(fname, format="mseed")
             except Exception as err:
                 Logging.error(
                     "--FALLO EN ESCRITURA-- No data written for station %s \n" % res['station'])
+                Logging.error(
+                "--FALLO EN ESCRITURA-- ErrorMessange %s \n" % err)
 
 
 
@@ -425,7 +440,7 @@ class EventListener(client.Application):
                 conn.commit()
                 Logging.info(
                     "--EXITO---------Data save to Database  \n" )
-                print("PGA guardado en la Base de Datos")
+                #print("PGA guardado en la Base de Datos")
             finally:
                 conn.close()
 
@@ -442,9 +457,9 @@ class EventListener(client.Application):
                 "--ERROR---------Fail in channels for station %s " % datos['estacion'])
             Logging.error(
                 "--ERROR---------Error data %s " % err)
-            print(datos)
+            #print(datos)
         else:
-            print(valores)
+            #print(valores)
             conn = pymysql.connect(  # conexión usa parametros puestos arriba
                 host=local_host,
                 user=local_user,
@@ -465,7 +480,7 @@ class EventListener(client.Application):
                 conn.commit()
                 Logging.info(
                     "--EXITO---------Data updated to Database  \n" )
-                print("PGA actualizado en la Base de Datos")
+                #print("PGA actualizado en la Base de Datos")
             finally:
                 conn.close()
 

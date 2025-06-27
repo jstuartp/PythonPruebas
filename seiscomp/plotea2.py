@@ -17,16 +17,24 @@ from time import strftime
 
 # FDSN server used to obtain station metadata
 FDSN_HOST = "http://localhost:8080"
+# CONSTANTES FIJAS PARA PLTEAR
+taperMaxPercent = 0.05
+taperType = "hann"
+filterType = "bandpass"
+filterFreqMin = 0.05
+filterFreqMax = 25
+filterCorners = 2
 
 
 
 
-
-def Plotear(imgagenpng, ruta, taperMaxPercent, taperType, filterType,
-            filterFreqMin, filterFreqMax, filterCorners):
+def Plotear(imgagenpng, ruta,directorio):
     """Plot seismic traces applying instrument response."""
+    rutaImagen=imgagenpng.split("/")[-1]
+    rutaImagen = rutaImagen.split(".")[0]
+    nombrearchivo = ruta+"/"+directorio + "/" + rutaImagen+".png"
     # Read the mseed file
-    strNew = read(ruta, format="mseed")
+    strNew = read(imgagenpng, format="mseed")
 
     client = Client(FDSN_HOST)
 
@@ -48,8 +56,8 @@ def Plotear(imgagenpng, ruta, taperMaxPercent, taperType, filterType,
             tr.taper(max_percentage=float(taperMaxPercent), type=taperType)
             tr.filter(
                 filterType,
-                freqmin=float(0.1),
-                freqmax=float(10),
+                freqmin=filterFreqMin,
+                freqmax=filterFreqMax,
                 corners=float(filterCorners),
             )
             tr.remove_response(inv, output="ACC")
@@ -63,7 +71,7 @@ def Plotear(imgagenpng, ruta, taperMaxPercent, taperType, filterType,
     max_amp_global = max(abs(tr.data).max() for tr in strNew)
 
     nombreEstacion = ""
-    archivo = open("/home/lis/waves/Plotea.log", "a")
+    archivo = open("/home/stuart/waves/Plotea.log", "a")
     archivo.write(str(UTCDateTime.now()))
     archivo.write("--Voy a procesar imagen de %s--\n" %imgagenpng)
     archivo.close()
@@ -125,9 +133,9 @@ def Plotear(imgagenpng, ruta, taperMaxPercent, taperType, filterType,
         ax.legend(loc="upper right", fontsize="x-small", frameon=False)
 
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.savefig(imgagenpng, dpi=300)
+    plt.savefig(nombrearchivo, dpi=300)
     plt.close(fig)
-    archivo = open("/home/lis/waves/Plotea.log", "a")
+    archivo = open("/home/stuart/waves/Plotea.log", "a")
     archivo.write(str(UTCDateTime.now()))
     archivo.write("--Termine la imagen de %s--\n" % nombreEstacion)
     archivo.close()
@@ -139,19 +147,14 @@ def main():
     parser = argparse.ArgumentParser(description="Recibe parámetros string y float")
     parser.add_argument("--imagenpng", type=str, required=True, help="donde guardar imagenes")
     parser.add_argument("--ruta", type=str, required=True, help="ruta del mseed")
-    parser.add_argument("--maxpercent", type=float, required=True, help="Taper max percent")
-    parser.add_argument("--tapertype", type=str, required=True, help="Taper Type")
-    parser.add_argument("--filtertype", type=str, required=True, help="Filter Type")
-    parser.add_argument("--filterfreqmin", type=float, required=True, help="Filter freq min")
-    parser.add_argument("--filterfreqmax", type=float, required=True, help="Filter freq max")
-    parser.add_argument("--filtercorners", type=float, required=True, help="Filter corners")
+    parser.add_argument("--directorio", type=str, required=True, help="directorio")
     args = parser.parse_args()
-    archivo = open("/home/lis/waves/Plotea.log", "a")
+    archivo = open("/home/stuart/waves/Plotea.log", "a")
     archivo.write(str(UTCDateTime.now()))
     archivo.write("--Estos son los argumentos %s--\n" % args)
     archivo.close()
 
-    Plotear(args.imagenpng,args.ruta,args.maxpercent,args.tapertype,args.filtertype,args.filterfreqmin,args.filterfreqmax,args.filtercorners)
+    Plotear(args.imagenpng,args.ruta)
 
 
 
