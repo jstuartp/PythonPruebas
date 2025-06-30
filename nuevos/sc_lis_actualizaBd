@@ -1,0 +1,233 @@
+#!/usr/bin/env seiscomp-python
+# -*- coding: utf-8 -*-
+import glob
+import re
+
+
+import sys
+
+import pymysql
+
+
+from seiscomp import core, client, io, math, logging
+from seiscomp import client, datamodel
+from seiscomp.client import Protocol
+from seiscomp import logging as Logging
+
+from seiscomp import datamodel, client, logging
+
+
+
+#CONSTANTES BASES DE DATOS SEISCOMP
+my_host = 'localhost'
+my_user = 'root'
+my_password = 'jspz2383'
+my_db = 'seiscomp'
+
+#CONSTANTES BASES DE DATOS LOCAL
+local_host = 'localhost'
+local_user = 'root'
+local_password = 'jspz2383'
+local_db = 'sismos_lis'
+
+
+class EventListener(client.Application):
+
+    def __init__(self, argc, argv):
+        client.Application.__init__(self, argc, argv)
+        self.setMessagingEnabled(True)
+        self.setDatabaseEnabled(False, False)
+        self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
+        self.addMessagingSubscription("EVENT")
+        self.setLoggingToStdErr(True)
+        
+        #seccion para manejar info de configuracion y loggin
+        self.addMessagingSubscription("CONFIG")
+        Logging.info("Inicio de Listener para Eventos Nuevos")
+
+    def initConfiguration(self):
+
+        if not client.Application.initConfiguration(self):
+            return (False)
+        return True
+    
+    
+    
+    
+    def doSomethingWithEvent(self, obj):
+
+        evento = datamodel.Event.Cast(obj)
+        self.proceso(evento)
+
+
+    #proceso principal del script
+    def proceso(self,evento):
+        #se leen los datos de la tabla seiscomp y se cargan a un arreglo
+        datosEvento = self.obtener_datos_por_id(evento.publicID())
+        #se chequea la hora del evento
+        fechaEvento = self.chequeaEvento(evento.publicID())
+        # si no existe mandar a guardar en tabla de eventos nueva
+        if not fechaEvento:
+              # si no esta se inserta
+              self.insertarEvento(datosEvento)
+        else:
+            #si llega un evento mas nuevo, lo actualiza
+            if fechaEvento < evento.creationInfo().creationTime():
+                #actualizar evento
+                self.actualizaEvento(datosEvento,evento.publicID())
+        #si no hay evento mas nuevo, no se hace nada
+
+
+
+    #inserta el evento en la nueva tabla
+    def insertarEvento(self, datos):
+
+        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+            host=local_host,
+            user= local_user,
+            password= local_password,
+            db= local_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        #arreglo para insertar valores junto con los datos por parametro
+        valores = [datos["publicID"],datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"]]
+        try:
+            with (conn.cursor() as cursor):
+                # Create a new record
+                sql = (
+                    "INSERT INTO sismos_lis.todos_sismos ("
+                    "idEvento,"
+                    "fechaEvento,"
+                    "latitudEvento,"
+                    "longitudEvento,"
+                    "magnitudEvento"
+                    ") VALUES (%s, %s, %s, %s, %s);")
+                # print(values)
+                cursor.execute(sql, valores)
+            # Commit changes
+            conn.commit()
+            Logging.info(
+                "--EXITO---------New event saved  \n" )
+            #print("Nuevos sismo registrado")
+        finally:
+            conn.close()
+
+    #actualiza en caso de que llegue un evento igual, pero con fecha actualizada
+    def actualizaEvento(self, datos,idEvento):
+
+        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+            host=local_host,
+            user= local_user,
+            password= local_password,
+            db= local_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        #arreglo para insertar valores junto con los datos por parametro
+        valores = [datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],idEvento]
+        try:
+            with (conn.cursor() as cursor):
+                # Create a new record
+                sql = (
+                    "UPDATE sismos_lis.todos_sismos SET "
+                    "'fechaEvento' =%s,"
+                    "'latitudEvento'=%s,"
+                    "'longitudEvento'=%s,"
+                    "'magnitudEvento'=%s,"
+                    "WHERE idEvento = %s")
+                # print(values)
+                cursor.execute(sql, valores)
+            # Commit changes
+            conn.commit()
+            Logging.info(
+                "--EXITO---------New event saved  \n" )
+            #print("Nuevos sismo registrado")
+        finally:
+            conn.close()
+
+
+    #Consulta a la base seiscomp para extraer los datos del evento
+    def obtener_datos_por_id(self,eventoId):
+        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+            host=my_host,
+            user=my_user,
+            password=my_password,
+            db=my_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        try:
+            with (conn.cursor() as cursor):
+                consulta = ("select distinct PEvent.publicID, Origin.time_value as hora,  ROUND(Origin.latitude_value,3) as latitud,"
+                            "ROUND(Origin.longitude_value,3) as longitud,"
+                            "ROUND(M.magnitude_value,1) as magnitud "
+                            "from Origin,PublicObject as POrigin,Event,PublicObject as PEvent, Magnitude as M "
+                            "where POrigin.publicID=Event.preferredOriginID and  M._parent_oid = Origin._oid "
+                            "and Origin._oid=POrigin._oid and Event._oid=PEvent._oid "
+                            "and PEvent.publicID = %s Order by Origin.time_value DESC;")
+                #print(consulta)
+                cursor.execute(consulta, eventoId)
+                resultado = cursor.fetchone()
+        finally:
+                conn.close()
+        return resultado
+
+
+    #chequea la fecha del evento a insertar, si ya existe
+    def chequeaEvento(self,evento):
+
+        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+            host=local_host,
+            user=local_user,
+            password=local_password,
+            db=local_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        try:
+            with (conn.cursor() as cursor):
+                # Create a new record
+                consulta_sql = "select  fechaEvento as fecha From todos_sismos WHERE idEvento = %s "
+                # Ejecutar la consulta pasando los parámetros
+                cursor.execute(consulta_sql,evento)
+                # Obtener todos los resultados
+                resultados = cursor.fetchone()
+            # Commit changes
+            conn.commit()
+        finally:
+            conn.close()
+        return resultados
+
+
+
+    def updateObject(self, parentID, scobject):
+        # called if an updated object is received
+        event = datamodel.Event.Cast(scobject)
+        if event:
+            print("Evento actualizado {}".format(event.publicID()))
+            self.doSomethingWithEvent(event)
+
+
+
+    def addObject(self, parentID, scobject):
+        # called if a new object is received
+        event = datamodel.Event.Cast(scobject)
+        if event:
+            print("Nuevo evento reportado {}".format(event.publicID())) #NO HACER NADA CON NUEVO SOLO SE PROCESA UPDATE
+            #self.doSomethingWithEvent(event)
+
+    def run(self):
+        # does not need to be reimplemented. it is just done to illustrate
+        # how to override methods
+        print("Hola! Estoy corriendo, esperando eventos.")
+        return client.Application.run(self)
+
+
+def main():
+    app = EventListener(len(sys.argv), sys.argv)
+    return app()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

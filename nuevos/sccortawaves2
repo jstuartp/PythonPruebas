@@ -13,7 +13,7 @@ from concurrent.futures import ProcessPoolExecutor
 import sys
 import traceback
 import datetime
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 import os
 import pymysql
 import subprocess
@@ -251,8 +251,8 @@ class EventListener(client.Application):
                     # 5. Leer la traza
                     try:
                         st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
-                        stRaw = st
                         st.merge(method=1, fill_value='interpolate')
+                        stRaw = st
                         net = inventory.select(network=network, station=station)[0]
                         mysta = net.stations[0]
 
@@ -279,6 +279,7 @@ class EventListener(client.Application):
                             "fecha_calculo": datetime.now(),
                             "evento": evento,
                             "tipo": 1,
+                            "network": network,
                             "estacion": station,
                             "latitud": mysta.latitude,
                             "longitud": mysta.longitude,
@@ -305,8 +306,8 @@ class EventListener(client.Application):
 
         #print(resultados)
         # si existen al menos 5 estaciones que superan el umbral, se registra
-        print(maximos[4]["maximos"])
-        if maximos[4]["maximos"] >= 2:
+        #print(maximos[4]["maximos"])
+        if maximos[0]["maximos"] >= 2:
             self.cortaWaves(streams, evento, t0)
             result = subprocess.run(
                 ["python3", "/home/stuart/seiscomp/bin/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento])
@@ -412,7 +413,7 @@ class EventListener(client.Application):
         valores =[]
         try:
             valores = [datos['fecha_evento'], datos['fecha_calculo'],datos['evento'],datos['tipo'],datos['estacion'],datos['latitud'],
-                       datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),"AA"]
+                       datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),datos['evento']+"/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'].strftime('%Y%m%dT%H%M%S')]
         except Exception as err:
             Logging.error(
                 "--ERROR---------Fail in channels for station %s " % datos['estacion'])
@@ -451,7 +452,7 @@ class EventListener(client.Application):
         data_id = idPga[0]['id']
         try:
             valores = [datos['fecha_evento'], datos['fecha_calculo'],datos['evento'],datos['tipo'],datos['estacion'],datos['latitud'],
-                       datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),"AA",data_id]
+                       datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),datos['evento']+"/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'].strftime('%Y%m%dT%H%M%S'),data_id]
         except Exception as err:
             Logging.error(
                 "--ERROR---------Fail in channels for station %s " % datos['estacion'])

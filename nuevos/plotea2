@@ -19,12 +19,12 @@ from time import strftime
 
 # FDSN server used to obtain station metadata
 FDSN_HOST = "http://localhost:8080"
-# CONSTANTES FIJAS PARA PLTEAR
+# CONSTANTES FIJAS PARA PLOTEAR
 taperMaxPercent = 0.05
 taperType = "hann"
 filterType = "bandpass"
-filterFreqMin = 0.05
-filterFreqMax = 25
+filterFreqMin = 0.1
+filterFreqMax = 10
 filterCorners = 2
 
 
@@ -62,7 +62,7 @@ def Plotear(imagenpng,ruta):
                     endtime=tr.stats.endtime,
                     level="response",
                 )
-
+                #tr.remove_response(inv, output="ACC")
                 tr.detrend("demean")
                 tr.detrend("linear")
                 tr.taper(max_percentage=float(taperMaxPercent), type=taperType)
@@ -72,7 +72,7 @@ def Plotear(imagenpng,ruta):
                     freqmax=filterFreqMax,
                     corners=float(filterCorners),
                 )
-                tr.remove_response(inv, output="ACC")
+
                 # Convert from m/s^2 to cm/s^2
                 tr.data *= 100.0
             except Exception as e:
@@ -126,7 +126,7 @@ def Plotear(imagenpng,ruta):
             # Mostrar etiqueta en texto dentro del subplot
             ax.text(
                 0.01, 0.9,
-                f"{trace.id}   Fs={trace.stats.sampling_rate:.1f} Hz",
+                f" ",
                 transform=ax.transAxes,
                 fontsize=9,
                 verticalalignment='top',
@@ -134,7 +134,7 @@ def Plotear(imagenpng,ruta):
             )
 
         # 8) Etiqueta común del eje X
-        axes[-1].set_xlabel("Tiempo (s) desde inicio")
+        axes[-1].set_xlabel("Tiempo (s)")
         fig.suptitle(
             f"Estación {strNew[0].stats.station} — {inicio.isoformat()} a {fin.isoformat()} (UTC)",
             fontsize=14
