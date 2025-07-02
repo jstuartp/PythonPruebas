@@ -84,7 +84,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(True)
+        self.setLoggingToStdErr(False)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -307,7 +307,7 @@ class EventListener(client.Application):
         #print(resultados)
         # si existen al menos 5 estaciones que superan el umbral, se registra
         #print(maximos[4]["maximos"])
-        if maximos[0]["maximos"] >= 2:
+        if maximos[4]["maximos"] >= 2:
             self.cortaWaves(streams, evento, t0)
             result = subprocess.run(
                 ["python3", "/home/stuart/seiscomp/bin/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento])
