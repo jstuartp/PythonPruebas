@@ -48,10 +48,14 @@ my_password = 'jspz2383'
 my_db = 'seiscomp'
 
 #CONSTANTES BASES DE DATOS LOCAL
-local_host = 'localhost'
-local_user = 'root'
-local_password = 'jspz2383'
-local_db = 'sismos_lis'
+local_host = '163.178.170.245'
+local_user = 'informes'
+local_password = 'Lga5/vow4l.ZkLc0'
+local_db = 'informes'
+#local_host = 'localhost'
+#local_user = 'root'
+#local_password = 'jspz2383'
+#local_db = 'sismos_lis'
 
 
 # Parámetros configurables
@@ -97,7 +101,7 @@ class EventListener(client.Application):
 
         self.rutaRaiz ="/home/stuart/waves/corta/"
         self.rutaImagenes ="/home/stuart/waves/imagenes/"
-        self.direccionWebServer = "stuart@10.208.36.97:/var/www/html/seiscomp/public/assets/waves"
+        self.direccionWebServer = "lis@163.178.101.121:/var/www/informes.lis.ucr.ac.cr/seiscomp/public/assets/waves"
         Logging.info("Inicio de CortaWaves")
 
     def initConfiguration(self):
@@ -164,6 +168,9 @@ class EventListener(client.Application):
         tiempo2 = datetime.strptime(tiempo, "%Y-%m-%dT%H:%M:%S.%f")
         inv_path="/home/stuart/seiscomp/share/scripts/inventory_full_fdns.xml"
         self.proceso(tiempo,inv_path,evento.publicID())
+        parametroa = self.rutaImagenes + evento.publicID() + "/"
+        result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
+        Logging.info("IMAGENES COPIADAS")
 
     def load_inventory_sc3(self,inv_path):
         # Ejemplo: usar StationXML o SC3ML convertido a Inventory de ObsPy

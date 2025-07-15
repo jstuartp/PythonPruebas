@@ -7,7 +7,7 @@ import re
 import sys
 
 import pymysql
-
+from obspy import UTCDateTime
 
 from seiscomp import core, client, io, math, logging
 from seiscomp import client, datamodel
@@ -69,11 +69,19 @@ class EventListener(client.Application):
         # si no existe mandar a guardar en tabla de eventos nueva
         if not fechaEvento:
               # si no esta se inserta
+              Logging.info(
+                  "--Guardando nuevo evento %s---------\n" %evento.publicID())
               self.insertarEvento(datosEvento)
+
         else:
             #si llega un evento mas nuevo, lo actualiza
-            if fechaEvento < evento.creationInfo().creationTime():
+            print(fechaEvento['fecha'])
+            t0 = UTCDateTime(evento.creationInfo().creationTime().toString("%Y-%m-%dT%H:%M:%S"))
+            print(t0)
+            if fechaEvento['fecha'] < t0:
                 #actualizar evento
+                Logging.info(
+                    "--Actualizando evento existente %s---------\n" %evento.publicID())
                 self.actualizaEvento(datosEvento,evento.publicID())
         #si no hay evento mas nuevo, no se hace nada
 
@@ -131,17 +139,17 @@ class EventListener(client.Application):
                 # Create a new record
                 sql = (
                     "UPDATE sismos_lis.todos_sismos SET "
-                    "'fechaEvento' =%s,"
-                    "'latitudEvento'=%s,"
-                    "'longitudEvento'=%s,"
-                    "'magnitudEvento'=%s,"
+                    "`fechaEvento` = %s,"
+                    "`latitudEvento`= %s,"
+                    "`longitudEvento`= %s,"
+                    "`magnitudEvento`= %s"
                     "WHERE idEvento = %s")
                 # print(values)
                 cursor.execute(sql, valores)
             # Commit changes
             conn.commit()
             Logging.info(
-                "--EXITO---------New event saved  \n" )
+                "--EXITO---------Evento actualizado  \n" )
             #print("Nuevos sismo registrado")
         finally:
             conn.close()
@@ -193,6 +201,7 @@ class EventListener(client.Application):
                 cursor.execute(consulta_sql,evento)
                 # Obtener todos los resultados
                 resultados = cursor.fetchone()
+                #print(resultados['fecha'])
             # Commit changes
             conn.commit()
         finally:
