@@ -50,7 +50,7 @@ my_db = 'seiscomp'
 #CONSTANTES BASES DE DATOS LOCAL
 local_host = '163.178.170.245'
 local_user = 'informes'
-local_password = 'Lga5/vow4l.ZkLc0'
+local_password = 'B8EYvZRTpTUDquc3'
 local_db = 'informes'
 #local_host = 'localhost'
 #local_user = 'root'
@@ -88,7 +88,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(False)
+        self.setLoggingToStdErr(True)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -169,6 +169,8 @@ class EventListener(client.Application):
         inv_path="/home/stuart/seiscomp/share/scripts/inventory_full_fdns.xml"
         self.proceso(tiempo,inv_path,evento.publicID())
         parametroa = self.rutaImagenes + evento.publicID() + "/"
+        print(parametroa)
+        print(self.direccionWebServer)
         result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
         Logging.info("IMAGENES COPIADAS")
 
@@ -395,7 +397,7 @@ class EventListener(client.Application):
             with (conn.cursor() as cursor):
                 # Create a new record
                 sql = (
-                    "INSERT INTO sismos_lis.historico_sismos ("
+                    "INSERT INTO historico_sismos ("
                     "idEvento,"
                     "fechaEvento,"
                     "latitudEvento,"

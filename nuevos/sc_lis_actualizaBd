@@ -25,11 +25,14 @@ my_password = 'jspz2383'
 my_db = 'seiscomp'
 
 #CONSTANTES BASES DE DATOS LOCAL
-local_host = 'localhost'
-local_user = 'root'
-local_password = 'jspz2383'
-local_db = 'sismos_lis'
-
+local_host = '163.178.170.245'
+local_user = 'informes'
+local_password = 'B8EYvZRTpTUDquc3'
+local_db = 'informes'
+#local_host = 'localhost'
+#local_user = 'root'
+#local_password = 'jspz2383'
+#local_db = 'sismos_lis'
 
 class EventListener(client.Application):
 
@@ -39,7 +42,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(True)
+        self.setLoggingToStdErr(False)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -98,13 +101,17 @@ class EventListener(client.Application):
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
+        Logging.info(
+            "--Conexion creada %s---------\n" % conn)
         #arreglo para insertar valores junto con los datos por parametro
         valores = [datos["publicID"],datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"]]
+        Logging.info(
+            "--Datos capturados %s---------\n" % valores)
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
                 sql = (
-                    "INSERT INTO sismos_lis.todos_sismos ("
+                    "INSERT INTO todos_sismos ("
                     "idEvento,"
                     "fechaEvento,"
                     "latitudEvento,"
@@ -118,6 +125,9 @@ class EventListener(client.Application):
             Logging.info(
                 "--EXITO---------New event saved  \n" )
             #print("Nuevos sismo registrado")
+        except  Exception as e:
+            Logging.error(
+                "--ERROR---------Se registro el siguiente error %s  \n" %e)
         finally:
             conn.close()
 
@@ -138,7 +148,7 @@ class EventListener(client.Application):
             with (conn.cursor() as cursor):
                 # Create a new record
                 sql = (
-                    "UPDATE sismos_lis.todos_sismos SET "
+                    "UPDATE todos_sismos SET "
                     "`fechaEvento` = %s,"
                     "`latitudEvento`= %s,"
                     "`longitudEvento`= %s,"
@@ -151,6 +161,9 @@ class EventListener(client.Application):
             Logging.info(
                 "--EXITO---------Evento actualizado  \n" )
             #print("Nuevos sismo registrado")
+        except  Exception as e:
+            Logging.error(
+                "--ERROR---------Se registro el siguiente error %s  \n" %e)
         finally:
             conn.close()
 
@@ -177,6 +190,10 @@ class EventListener(client.Application):
                 #print(consulta)
                 cursor.execute(consulta, eventoId)
                 resultado = cursor.fetchone()
+        except  Exception as e:
+            Logging.error(
+                "--ERROR---------Se registro el siguiente error %s  \n" %e)
+
         finally:
                 conn.close()
         return resultado
