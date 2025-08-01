@@ -18,21 +18,27 @@ from seiscomp import datamodel, client, logging
 
 
 
-#CONSTANTES BASES DE DATOS SEISCOMP
+#CONSTANTES BASES DE DATOS SEISCOMP 110
+#my_host = 'localhost'
+#my_user = 'root'
+#my_password = 'lisucr01'
+#my_db = 'seiscomp'
+
+#CONSTANTES BASES DE DATOS SEISCOMP STUART
 my_host = 'localhost'
 my_user = 'root'
 my_password = 'jspz2383'
 my_db = 'seiscomp'
 
 #CONSTANTES BASES DE DATOS LOCAL
-local_host = '163.178.170.245'
-local_user = 'informes'
-local_password = 'B8EYvZRTpTUDquc3'
-local_db = 'informes'
-#local_host = 'localhost'
-#local_user = 'root'
-#local_password = 'jspz2383'
-#local_db = 'sismos_lis'
+#local_host = '163.178.170.245'
+#local_user = 'informes'
+#local_password = 'B8EYvZRTpTUDquc3'
+#local_db = 'informes'
+local_host = 'localhost'
+local_user = 'root'
+local_password = 'jspz2383'
+local_db = 'sismos_lis'
 
 class EventListener(client.Application):
 
@@ -42,7 +48,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(False)
+        self.setLoggingToStdErr(True)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -93,6 +99,8 @@ class EventListener(client.Application):
     #inserta el evento en la nueva tabla
     def insertarEvento(self, datos):
 
+        Logging.info(
+            "Insertando nuevo evento %s " % datos["publicID"])
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=local_host,
             user= local_user,
@@ -104,7 +112,7 @@ class EventListener(client.Application):
         Logging.info(
             "--Conexion creada %s---------\n" % conn)
         #arreglo para insertar valores junto con los datos por parametro
-        valores = [datos["publicID"],datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"]]
+        valores = [datos["publicID"],datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],datos["profundidad"]]
         Logging.info(
             "--Datos capturados %s---------\n" % valores)
         try:
@@ -116,8 +124,9 @@ class EventListener(client.Application):
                     "fechaEvento,"
                     "latitudEvento,"
                     "longitudEvento,"
-                    "magnitudEvento"
-                    ") VALUES (%s, %s, %s, %s, %s);")
+                    "magnitudEvento,"
+                    "profundidadEvento"
+                    ") VALUES (%s, %s, %s, %s, %s, %s);")
                 # print(values)
                 cursor.execute(sql, valores)
             # Commit changes
@@ -127,13 +136,15 @@ class EventListener(client.Application):
             #print("Nuevos sismo registrado")
         except  Exception as e:
             Logging.error(
-                "--ERROR---------Se registro el siguiente error %s  \n" %e)
+                "--ERROR---------Se registro el siguiente error ingresando el evento %s  \n" %e)
         finally:
             conn.close()
 
     #actualiza en caso de que llegue un evento igual, pero con fecha actualizada
     def actualizaEvento(self, datos,idEvento):
 
+        Logging.info(
+            "Actualizando evento %s " % idEvento)
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=local_host,
             user= local_user,
@@ -143,7 +154,7 @@ class EventListener(client.Application):
             cursorclass=pymysql.cursors.DictCursor
         )
         #arreglo para insertar valores junto con los datos por parametro
-        valores = [datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],idEvento]
+        valores = [datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],datos["profundidad"],idEvento]
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
@@ -152,7 +163,8 @@ class EventListener(client.Application):
                     "`fechaEvento` = %s,"
                     "`latitudEvento`= %s,"
                     "`longitudEvento`= %s,"
-                    "`magnitudEvento`= %s"
+                    "`magnitudEvento`= %s,"
+                    "`profundidadEvento`= %s"
                     "WHERE idEvento = %s")
                 # print(values)
                 cursor.execute(sql, valores)
@@ -163,7 +175,7 @@ class EventListener(client.Application):
             #print("Nuevos sismo registrado")
         except  Exception as e:
             Logging.error(
-                "--ERROR---------Se registro el siguiente error %s  \n" %e)
+                "--ERROR---------Se registro el siguiente error actualizando datos %s  \n" %e)
         finally:
             conn.close()
 
@@ -180,9 +192,10 @@ class EventListener(client.Application):
         )
         try:
             with (conn.cursor() as cursor):
-                consulta = ("select distinct PEvent.publicID, Origin.time_value as hora,  ROUND(Origin.latitude_value,3) as latitud,"
-                            "ROUND(Origin.longitude_value,3) as longitud,"
-                            "ROUND(M.magnitude_value,1) as magnitud "
+                consulta = ("select distinct PEvent.publicID, Origin.time_value as hora,  Origin.latitude_value as latitud,"
+                            "Origin.longitude_value as longitud,"
+                            "M.magnitude_value as magnitud, "
+                            "Origin.depth_value as profundidad "
                             "from Origin,PublicObject as POrigin,Event,PublicObject as PEvent, Magnitude as M "
                             "where POrigin.publicID=Event.preferredOriginID and  M._parent_oid = Origin._oid "
                             "and Origin._oid=POrigin._oid and Event._oid=PEvent._oid "
@@ -190,9 +203,10 @@ class EventListener(client.Application):
                 #print(consulta)
                 cursor.execute(consulta, eventoId)
                 resultado = cursor.fetchone()
+                #print(resultado)
         except  Exception as e:
             Logging.error(
-                "--ERROR---------Se registro el siguiente error %s  \n" %e)
+                "--ERROR---------Se registro el siguiente error al obtener los datos del seiscomp original %s  \n" %e)
 
         finally:
                 conn.close()
@@ -202,6 +216,8 @@ class EventListener(client.Application):
     #chequea la fecha del evento a insertar, si ya existe
     def chequeaEvento(self,evento):
 
+        Logging.info(
+            "Chequeando evento %s " %evento)
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=local_host,
             user=local_user,
@@ -221,6 +237,9 @@ class EventListener(client.Application):
                 #print(resultados['fecha'])
             # Commit changes
             conn.commit()
+        except  Exception as e:
+            Logging.error(
+                "--ERROR---------Se registro el siguiente error %s  \n" %e)
         finally:
             conn.close()
         return resultados
