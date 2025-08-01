@@ -41,32 +41,26 @@ import numpy as np
 from dotenv import load_dotenv
 from pathlib import Path
 
-#CONSTANTES BASES DE DATOS SEISCOMP STUART
+#CONSTANTES BASES DE DATOS SEISCOMP
 my_host = 'localhost'
 my_user = 'root'
-my_password = 'jspz2383'
+my_password = 'lisucr01'
 my_db = 'seiscomp'
 
-#CONSTANTES BASES DE DATOS SEISCOMP 110
-#my_host = 'localhost'
-#my_user = 'root'
-#my_password = 'lisucr01'
-#my_db = 'seiscomp'
-
 #CONSTANTES BASES DE DATOS LOCAL
-#local_host = '163.178.170.245'
-#local_user = 'informes'
-#local_password = 'B8EYvZRTpTUDquc3'
-#local_db = 'informes'
-local_host = 'localhost'
-local_user = 'root'
-local_password = 'jspz2383'
-local_db = 'sismos_lis'
+local_host = '163.178.170.245'
+local_user = 'informes'
+local_password = 'B8EYvZRTpTUDquc3'
+local_db = 'informes'
+#local_host = 'localhost'
+#local_user = 'root'
+#local_password = 'jspz2383'
+#local_db = 'sismos_lis'
 
 
 # Parámetros configurables
-SDS_ROOT = "/home/stuart/seiscomp/var/lib/archive/"                # Ruta al SDS de seiscomp
-OUTPUT_DIR = "/home/stuart/waves/sds/"         # Carpeta de salida para los MiniSEED
+SDS_ROOT = "/home/lis/seiscomp/var/lib/archive/"                # Ruta al SDS de seiscomp
+OUTPUT_DIR = "/home/lis/waves/sds/"         # Carpeta de salida para los MiniSEED
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"  # Formato ISO para tiempo inicial
 # Dirección del servicio FDSN de su SeisComP (ajuste el host y puerto según su instalación)
 FDSN_URL = "http://localhost:8080"  # Cambie localhost:8080 si corresponde
@@ -80,7 +74,7 @@ TOP_N = 30                             # Cantidad de registros a guardar
 
 
 # Ruta absoluta o relativa al archivo .env
-ruta_env = Path("/home/stuart/.env")
+ruta_env = Path("/home/lis/.env")
 
 # Cargar el archivo .env desde esa ubicación
 load_dotenv(dotenv_path=ruta_env)
@@ -94,7 +88,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(True)
+        self.setLoggingToStdErr(False)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -105,8 +99,8 @@ class EventListener(client.Application):
         self.filterFreqMax=25
         self.filterCorners=2
 
-        self.rutaRaiz ="/home/stuart/waves/corta/"
-        self.rutaImagenes ="/home/stuart/waves/imagenes/"
+        self.rutaRaiz ="/home/lis/waves/corta/"
+        self.rutaImagenes ="/home/lis/waves/imagenes/"
         self.direccionWebServer = "lis@163.178.101.121:/var/www/informes.lis.ucr.ac.cr/seiscomp/public/assets/waves"
         Logging.info("Inicio de CortaWaves")
 
@@ -172,7 +166,7 @@ class EventListener(client.Application):
         evento = datamodel.Event.Cast(obj)
         tiempo = evento.creationInfo().creationTime().toString("%Y-%m-%dT%H:%M:%S.%f")
         tiempo2 = datetime.strptime(tiempo, "%Y-%m-%dT%H:%M:%S.%f")
-        inv_path="/home/stuart/seiscomp/share/scripts/inventory_full_fdns.xml"
+        inv_path="/home/lis/seiscomp/share/scripts/inventory_full_fdns.xml"
         self.proceso(tiempo,inv_path,evento.publicID())
         parametroa = self.rutaImagenes + evento.publicID() + "/"
         print(parametroa)
@@ -323,10 +317,10 @@ class EventListener(client.Application):
         # si existen al menos 5 estaciones que superan el umbral, se registra
         #print(maximos[4]["maximos"])
         if maximos[4]["maximos"] >= 2:
-            #self.cortaWaves(streams, evento, t0)
-            #result = subprocess.run(
-            #    ["python3", "/home/stuart/seiscomp/bin/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento])
-            #Logging.info("Resultado del ploteo %s" % result)
+            self.cortaWaves(streams, evento, t0)
+            result = subprocess.run(
+                ["python3", "/home/lis/seiscomp/bin/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento])
+            Logging.info("Resultado del ploteo %s" % result)
             # consultar el evento.id, traer los datos
             datosEvento = self.obtener_datos_por_id(evento)
             # chequear si el evento no existe en la tabla nueva
@@ -514,14 +508,15 @@ class EventListener(client.Application):
         )
         try:
             with (conn.cursor() as cursor):
-                consulta = ("select distinct PEvent.publicID, Origin.time_value as hora,  Origin.latitude_value as latitud,"
-                            "Origin.longitude_value as longitud,"
-                            "M.magnitude_value as magnitud, "
-                             "Origin.depth_value as profundidad "
-                            "from Origin,PublicObject as POrigin,Event,PublicObject as PEvent, Magnitude as M "
-                            "where POrigin.publicID=Event.preferredOriginID and  M._parent_oid = Origin._oid "
-                            "and Origin._oid=POrigin._oid and Event._oid=PEvent._oid "
-                            "and PEvent.publicID = %s Order by Origin.time_value DESC;")
+                consulta = (
+                    "select distinct PEvent.publicID, Origin.time_value as hora,  Origin.latitude_value as latitud,"
+                    "Origin.longitude_value as longitud,"
+                    "M.magnitude_value as magnitud, "
+                    "Origin.depth_value as profundidad "
+                    "from Origin,PublicObject as POrigin,Event,PublicObject as PEvent, Magnitude as M "
+                    "where POrigin.publicID=Event.preferredOriginID and  M._parent_oid = Origin._oid "
+                    "and Origin._oid=POrigin._oid and Event._oid=PEvent._oid "
+                    "and PEvent.publicID = %s Order by Origin.time_value DESC;")
                 #print(consulta)
                 cursor.execute(consulta, eventoId)
                 resultado = cursor.fetchone()
@@ -598,7 +593,7 @@ class EventListener(client.Application):
         retraso_seg = 3.2 * 60  # 3 minutos en segundos
         if event:
             print("Evento actualizado {}".format(event.publicID()))
-            #time.sleep(retraso_seg)
+            time.sleep(retraso_seg)
             self.doSomethingWithEvent(event)
 
             #self.doSomethingWithEvent(event)
