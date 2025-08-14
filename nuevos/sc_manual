@@ -44,19 +44,24 @@ from pathlib import Path
 #CONSTANTES BASES DE DATOS SEISCOMP
 my_host = 'localhost'
 my_user = 'root'
-my_password = 'jspz2383'
+my_password = 'lisucr01'
 my_db = 'seiscomp'
 
 #CONSTANTES BASES DE DATOS LOCAL
-local_host = 'localhost'
-local_user = 'root'
-local_password = 'jspz2383'
-local_db = 'sismos_lis'
+local_host = '163.178.170.245'
+local_user = 'informes'
+local_password = 'B8EYvZRTpTUDquc3'
+local_db = 'informes'
+#local_host = 'localhost'
+#local_user = 'root'
+#local_password = 'jspz2383'
+#local_db = 'sismos_lis'
 
-
+#---------SCRIPT PARA PROCESAR UNA CARPETA DE ARCHIVOS MSEED MANUAL-----
+#---------Y ACTUALIZAR LOS DATOS EN LA BD EXISTENTE--------
 # Parámetros configurables
-SDS_ROOT = "/home/stuart/seiscomp/var/lib/archive/"                # Ruta al SDS de seiscomp
-OUTPUT_DIR = "/home/stuart/waves/sds/"         # Carpeta de salida para los MiniSEED
+SDS_ROOT = "/home/lis/seiscomp/var/lib/archive/"                # Ruta al SDS de seiscomp
+OUTPUT_DIR = "/home/lis/waves/sds/"         # Carpeta de salida para los MiniSEED
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"  # Formato ISO para tiempo inicial
 # Dirección del servicio FDSN de su SeisComP (ajuste el host y puerto según su instalación)
 FDSN_URL = "http://localhost:8080"  # Cambie localhost:8080 si corresponde
@@ -70,7 +75,7 @@ TOP_N = 30                             # Cantidad de registros a guardar
 
 
 # Ruta absoluta o relativa al archivo .env
-ruta_env = Path("/home/stuart/.env")
+ruta_env = Path("/home/lis/.env")
 
 # Cargar el archivo .env desde esa ubicación
 load_dotenv(dotenv_path=ruta_env)
@@ -84,7 +89,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(False)
+        self.setLoggingToStdErr(True)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -95,9 +100,9 @@ class EventListener(client.Application):
         self.filterFreqMax=25
         self.filterCorners=2
 
-        self.rutaRaiz ="/home/stuart/waves/corta/"
-        self.rutaImagenes ="/home/stuart/waves/imagenes/"
-        self.direccionWebServer = "stuart@10.208.36.97:/var/www/html/seiscomp/public/assets/waves"
+        self.rutaRaiz ="/home/lis/waves/corta/"
+        self.rutaImagenes ="/home/lis/waves/imagenes/"
+        self.direccionWebServer = "lis@163.178.101.121:/var/www/informes.lis.ucr.ac.cr/seiscomp/public/assets/waves"
         Logging.info("Inicio de CortaWaves")
 
     def initConfiguration(self):
@@ -162,8 +167,13 @@ class EventListener(client.Application):
         evento = datamodel.Event.Cast(obj)
         tiempo = evento.creationInfo().creationTime().toString("%Y-%m-%dT%H:%M:%S.%f")
         tiempo2 = datetime.strptime(tiempo, "%Y-%m-%dT%H:%M:%S.%f")
-        inv_path="/home/stuart/seiscomp/share/scripts/inventory_full_fdns.xml"
-        self.proceso(tiempo,inv_path,evento.publicID())
+        inv_path="/home/lis/seiscomp/share/scripts/inventory_full_fdns.xml"
+        self.proceso(tiempo,inv_path,evento)
+        parametroa = self.rutaImagenes + evento.publicID() + "/"
+        print(parametroa)
+        print(self.direccionWebServer)
+        result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
+        Logging.info("IMAGENES COPIADAS")
 
     def load_inventory_sc3(self,inv_path):
         # Ejemplo: usar StationXML o SC3ML convertido a Inventory de ObsPy
@@ -229,76 +239,69 @@ class EventListener(client.Application):
         # 2. Cargar inventario completo (ObsPy Inventory)
         inventory = self.load_inventory_sc3(inv_path)
         #print(inventory)
-        # 3. Crear cliente SDS
-        sds_client = SDSClient(SDS_ROOT)
+        # Ruta del directorio con archivos .mseed
+        DATA_DIR = "/home/stuart/pruebasEquipos/" #PONER DIRECTORIO COMO PARAMETRO
 
         resultados = []
         streams = []
         pgas = []
         maximos = []
+        informe = 0
+        location = "**"
+        channel = "HN*"
+
 
         # 4. Recorre todos los canales de aceleración del inventario
-        for net in inventory:
-            for sta in net:
-                if sta.end_date is None:
-                    network = net.code
-                    station = sta.code
-                    print(station)
-                    location = "**"
-                    channel = "HN*"
-                    pgasChannel = []
+        for filename in os.listdir(DATA_DIR):
+            if filename.endswith(".mseed"):
+                filepath = os.path.join(DATA_DIR, filename)
+                pgasChannel = []
+                station = ""
 
-                    # 5. Leer la traza
-                    try:
-                        st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
-                        st.merge(method=1, fill_value='interpolate')
-                        stRaw = st
-                        net = inventory.select(network=network, station=station)[0]
-                        mysta = net.stations[0]
-
-                        if not st or len(st) == 0:
-                            continue
-                        #tr = st[0]
-                        # 6. Aplicar respuesta y calcular PGA
-                        m = 0.0
-                        for tr in st:
-                            pga = self.calculate_pga(tr, inventory, network, station, location, channel)
-                            if pga > m:
-                                m = pga
-                          #  pgas.append({
-                          #      "pga": pga
-                           # })
-                            pgasChannel.append({str(tr.stats.channel).lower() :pga})
-                        maximos.append({
-                            "station" : station,
-                            "maximos" : m
-                        })
-                        #print(pgasChannel)
-                        resultados.append({
-                            "fecha_evento": t0,
-                            "fecha_calculo": datetime.now(),
-                            "evento": evento,
-                            "tipo": 1,
-                            "network": network,
-                            "estacion": station,
-                            "latitud": mysta.latitude,
-                            "longitud": mysta.longitude,
-                        })
-                        ultimo = resultados[-1]
-                        for i in pgasChannel:
-                            ultimo.update(i)
-                        streams.append({
-                            "evento": evento,
-                            "network": network,
-                            "station": station,
-                            "st": stRaw.copy(),
-                            "t1": t1,
-                            "t2": t2,
-                        })
-
-                    except Exception as e:
-                        logging.warning(f"Error en {network}.{station}: {e}")
+                try:
+                    # Leer waveform
+                    st = read(filepath)
+                    st.merge(method=1, fill_value='interpolate')
+                    network = st.stats.network
+                    stRaw = st
+                    if not st or len(st) == 0:
                         continue
+                    #tr = st[0]
+                    # 6. Aplicar respuesta y calcular PGA
+                    m = 0.0
+                    for tr in st:
+                        pga = self.calculate_pga(tr, inventory, network, tr.stats.station, location, channel)
+                        if pga > m:
+                            m = pga
+                        pgasChannel.append({str(tr.stats.channel).lower() :pga})
+                        station = tr.stats.station
+                    maximos.append({
+                        "station" : station,
+                        "maximos" : m
+                    })
+                    #print(pgasChannel)
+                    resultados.append({
+                        "fecha_evento": t0,
+                        "fecha_calculo": datetime.now(),
+                        "evento": evento.publicID(),
+                        "tipo": 1,
+                        "network": network,
+                        "estacion": station,
+                    })
+                    ultimo = resultados[-1]
+                    for i in pgasChannel:
+                        ultimo.update(i)
+                    streams.append({
+                        "evento": evento.publicID(),
+                        "network": network,
+                        "station": station,
+                        "st": stRaw.copy(),
+                        "t1": t1,
+                        "t2": t2,
+                    })
+                except Exception as e:
+                    logging.warning(f"Error en leyendo archivo {filename} tipo error: {e}")
+                    continue
 
         # 7. Ordenar y seleccionar los 20 registros con mayor PGA
         maximos = sorted(maximos, key=lambda x: -x["maximos"])
@@ -308,19 +311,10 @@ class EventListener(client.Application):
         # si existen al menos 5 estaciones que superan el umbral, se registra
         #print(maximos[4]["maximos"])
         if maximos[4]["maximos"] >= 2:
-            self.cortaWaves(streams, evento, t0)
+            informe = 1
             result = subprocess.run(
-                ["python3", "/home/stuart/seiscomp/bin/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento])
+                ["python3", "/home/lis/seiscomp/bin/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
             Logging.info("Resultado del ploteo %s" % result)
-            # consultar el evento.id, traer los datos
-            datosEvento = self.obtener_datos_por_id(evento)
-            # chequear si el evento no existe en la tabla nueva
-            idEvento = self.chequeaEvento(evento)
-            # si no existe mandar a guardar en tabla de eventos nueva
-            if not idEvento:
-                # si no esta se inserta
-                self.insertarEvento(datosEvento,maximos[0]["maximos"],maximos[0]["station"])
-
                 #plotear aqui
 
             # si ya existe, no guardar el evento
@@ -344,35 +338,75 @@ class EventListener(client.Application):
         else:
             Logging.info("El evento %s No cumple con el umbral de aceleracion" %evento)
 
+        # consultar el evento.id, traer los datos
+        datosEvento = self.obtener_datos_por_id(evento.publicID())
+        # chequear si el evento no existe en la tabla nueva
+        fechaEvento = self.chequeaEvento(evento.publicID())
+        # si no existe mandar a guardar en tabla de eventos nueva
+        if not fechaEvento:
+            # si no esta se inserta
+            Logging.info(
+                "--Guardando nuevo evento %s---------\n" % evento.publicID())
+            self.insertarEvento(datosEvento,maximos[0]["maximos"],maximos[0]["station"],informe)
+
+        else:
+            # si llega un evento mas nuevo, lo actualiza
+            print(fechaEvento['fecha'])
+            t0 = UTCDateTime(evento.creationInfo().creationTime().toString("%Y-%m-%dT%H:%M:%S"))
+            print(t0)
+            if fechaEvento['fecha'] < t0:
+                # actualizar evento
+                Logging.info(
+                    "--Actualizando evento existente %s---------\n" % evento.publicID())
+                self.actualizaEvento(datosEvento, evento.publicID(),informe)
+                # si no hay evento mas nuevo, no se hace nada
 
 
 
-    def cortaWaves(self,streams,evento,t0):
 
-        ruta = OUTPUT_DIR+evento
+    #actualiza en caso de que llegue un evento igual, pero con fecha actualizada
+    def actualizaEvento(self, datos,idEvento,informe):
+
+        Logging.info(
+            "Actualizando evento %s " % idEvento)
+        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+            host=local_host,
+            user= local_user,
+            password= local_password,
+            db= local_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        #arreglo para insertar valores junto con los datos por parametro
+        valores = [datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],datos["profundidad"],informe,idEvento]
         try:
-            os.stat(ruta)
-        except:
-            os.mkdir(ruta)
+            with (conn.cursor() as cursor):
+                # Create a new record
+                sql = (
+                    "UPDATE historico_sismos SET "
+                    "`fechaEvento` = %s,"
+                    "`latitudEvento`= %s,"
+                    "`longitudEvento`= %s,"
+                    "`magnitudEvento`= %s,"
+                    "`profundidadEvento`= %s,"
+                    "`informe`= %s "
+                    "WHERE idEvento = %s")
+                print(valores)
+                cursor.execute(sql, valores)
+            # Commit changes
+            conn.commit()
+            Logging.info(
+                "--EXITO---------Evento actualizado  \n" )
+            #print("Nuevos sismo registrado")
+        except  Exception as e:
+            Logging.error(
+                "--ERROR---------Se registro el siguiente error actualizando datos %s  \n" %e)
+        finally:
+            conn.close()
 
-        for idx, res in enumerate(streams, 1):
-            # Recortar la traza en la ventana deseada (si es necesario)
-            tr = res["st"]
-            tr.trim(starttime=res["t1"], endtime=res["t2"])
-
-            # Generar nombre de archivo//HACER DIRECTORIO POR CADA EVENTO
-            fname = f"{ruta}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
-            try:
-                tr.write(fname, format="mseed")
-            except Exception as err:
-                Logging.error(
-                    "--FALLO EN ESCRITURA-- No data written for station %s \n" % res['station'])
-                Logging.error(
-                "--FALLO EN ESCRITURA-- ErrorMessange %s \n" % err)
 
 
-
-    def insertarEvento(self, datos,maxpga,stationpga):
+    def insertarEvento(self, datos,maxpga,stationpga,informe):
 
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=local_host,
@@ -383,20 +417,22 @@ class EventListener(client.Application):
             cursorclass=pymysql.cursors.DictCursor
         )
         #arreglo para insertar valores junto con los datos por parametro
-        valores = [datos["publicID"],datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],maxpga,stationpga]
+        valores = [datos["publicID"],datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],maxpga,stationpga,datos["profundidad"],informe]
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
                 sql = (
-                    "INSERT INTO sismos_lis.historico_sismos ("
+                    "INSERT INTO historico_sismos ("
                     "idEvento,"
                     "fechaEvento,"
                     "latitudEvento,"
                     "longitudEvento,"
                     "magnitudEvento,"
                     "aceleracionEvento,"
-                    "lugarAceleracion"
-                    ") VALUES (%s, %s, %s, %s, %s, %s, %s);")
+                    "lugarAceleracion,"
+                    "profundidadEvento,"
+                    "informe"
+                    ") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);")
                 # print(values)
                 cursor.execute(sql, valores)
             # Commit changes
@@ -451,8 +487,10 @@ class EventListener(client.Application):
         valores = []
         data_id = idPga[0]['id']
         try:
-            valores = [datos['fecha_evento'], datos['fecha_calculo'],datos['evento'],datos['tipo'],datos['estacion'],datos['latitud'],
-                       datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),datos['evento']+"/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'].strftime('%Y%m%dT%H%M%S'),data_id]
+            valores = [datos['fecha_evento'], datos['fecha_calculo'],datos['evento'],datos['tipo'],
+                       datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),
+                       datos['evento']+"/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'].strftime('%Y%m%dT%H%M%S'),
+                       data_id,datos['estacion']]
         except Exception as err:
             Logging.error(
                 "--ERROR---------Fail in channels for station %s " % datos['estacion'])
@@ -473,9 +511,9 @@ class EventListener(client.Application):
                 with (conn.cursor() as cursor):
                     # Create a new record
                     sql = (
-                        "UPDATE Pga SET `fecha_evento`=%s,`fecha_calculo`=%s,`nombre_evento`=%s,`tipo_estacion`=%s,`estacion`=%s, `latitud`=%s,"
+                        "UPDATE Pga SET `fecha_evento`=%s,`fecha_calculo`=%s,`nombre_evento`=%s,`tipo_estacion`=%s, `latitud`=%s,"
                         " `longitud`=%s, `hne_pga`=%s, `hnn_pga`=%s, `hnz_pga`=%s,`maximo`=%s ,`rutaWaveform`=%s"
-                        "WHERE idpga = %s")
+                        "WHERE idpga = %s and `estacion`=%s")
                     cursor.execute(sql, valores)
                 # Commit changes
                 conn.commit()
@@ -498,13 +536,15 @@ class EventListener(client.Application):
         )
         try:
             with (conn.cursor() as cursor):
-                consulta = ("select distinct PEvent.publicID, Origin.time_value as hora,  ROUND(Origin.latitude_value,3) as latitud,"
-                            "ROUND(Origin.longitude_value,3) as longitud,"
-                            "ROUND(M.magnitude_value,1) as magnitud "
-                            "from Origin,PublicObject as POrigin,Event,PublicObject as PEvent, Magnitude as M "
-                            "where POrigin.publicID=Event.preferredOriginID and  M._parent_oid = Origin._oid "
-                            "and Origin._oid=POrigin._oid and Event._oid=PEvent._oid "
-                            "and PEvent.publicID = %s Order by Origin.time_value DESC;")
+                consulta = (
+                    "select distinct PEvent.publicID, Origin.time_value as hora,  Origin.latitude_value as latitud,"
+                    "Origin.longitude_value as longitud,"
+                    "M.magnitude_value as magnitud, "
+                    "Origin.depth_value as profundidad "
+                    "from Origin,PublicObject as POrigin,Event,PublicObject as PEvent, Magnitude as M "
+                    "where POrigin.publicID=Event.preferredOriginID and  M._parent_oid = Origin._oid "
+                    "and Origin._oid=POrigin._oid and Event._oid=PEvent._oid "
+                    "and PEvent.publicID = %s Order by Origin.time_value DESC;")
                 #print(consulta)
                 cursor.execute(consulta, eventoId)
                 resultado = cursor.fetchone()
@@ -545,8 +585,11 @@ class EventListener(client.Application):
             conn.close()
         return resultados
 
+    #chequea la fecha del evento a insertar, si ya existe
     def chequeaEvento(self,evento):
 
+        Logging.info(
+            "Chequeando evento %s " %evento)
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=local_host,
             user=local_user,
@@ -558,21 +601,20 @@ class EventListener(client.Application):
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
-
-                consulta_sql = "select  id as id From historico_sismos WHERE idEvento = %s "
-
+                consulta_sql = "select  fechaEvento as fecha From todos_sismos WHERE idEvento = %s "
                 # Ejecutar la consulta pasando los parámetros
                 cursor.execute(consulta_sql,evento)
-
                 # Obtener todos los resultados
                 resultados = cursor.fetchone()
-
+                #print(resultados['fecha'])
             # Commit changes
             conn.commit()
+        except  Exception as e:
+            Logging.error(
+                "--ERROR---------Se registro el siguiente error %s  \n" %e)
         finally:
             conn.close()
         return resultados
-
 
 
     def updateObject(self, parentID, scobject):
@@ -581,7 +623,7 @@ class EventListener(client.Application):
         retraso_seg = 3.2 * 60  # 3 minutos en segundos
         if event:
             print("Evento actualizado {}".format(event.publicID()))
-            #time.sleep(retraso_seg)
+            time.sleep(retraso_seg)
             self.doSomethingWithEvent(event)
 
             #self.doSomethingWithEvent(event)
