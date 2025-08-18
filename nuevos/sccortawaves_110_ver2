@@ -634,7 +634,7 @@ class EventListener(client.Application):
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
-                consulta_sql = "select  fechaEvento as fecha From todos_sismos WHERE idEvento = %s "
+                consulta_sql = "select  fechaEvento as fecha From historico_sismos WHERE idEvento = %s "
                 # Ejecutar la consulta pasando los parámetros
                 cursor.execute(consulta_sql,evento)
                 # Obtener todos los resultados
