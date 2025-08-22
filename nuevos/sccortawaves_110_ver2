@@ -368,14 +368,14 @@ class EventListener(client.Application):
                 # actualizar evento
                 Logging.info(
                     "--Actualizando evento existente %s---------\n" % evento.publicID())
-                self.actualizaEvento(datosEvento, evento.publicID(),informe)
+                self.actualizaEvento(datosEvento, evento.publicID(),maximos[0]["maximos"],maximos[0]["station"],informe)
                 # si no hay evento mas nuevo, no se hace nada
 
 
 
 
     #actualiza en caso de que llegue un evento igual, pero con fecha actualizada
-    def actualizaEvento(self, datos,idEvento,informe):
+    def actualizaEvento(self, datos,idEvento,maxAcelera,lugarAcelera,informe):
 
         Logging.info(
             "Actualizando evento %s " % idEvento)
@@ -388,7 +388,7 @@ class EventListener(client.Application):
             cursorclass=pymysql.cursors.DictCursor
         )
         #arreglo para insertar valores junto con los datos por parametro
-        valores = [datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],datos["profundidad"],informe,idEvento]
+        valores = [datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],maxAcelera,lugarAcelera,datos["profundidad"],informe,idEvento]
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
@@ -398,6 +398,8 @@ class EventListener(client.Application):
                     "`latitudEvento`= %s,"
                     "`longitudEvento`= %s,"
                     "`magnitudEvento`= %s,"
+                    "`aceleracionEvento`= %s,"
+                    "`lugarAceleracion`= %s,"
                     "`profundidadEvento`= %s,"
                     "`informe`= %s "
                     "WHERE idEvento = %s")
