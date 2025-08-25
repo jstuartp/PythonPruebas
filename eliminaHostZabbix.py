@@ -2,7 +2,7 @@
 import sys
 
 # Configuración del servidor Zabbix
-ZABBIX_URL = "http://10.208.36.97/zabbix"
+ZABBIX_URL = "http://163.178.101.124/zabbix"
 ZABBIX_USER = "Admin"
 ZABBIX_PASSWORD = "zabbix"
 
