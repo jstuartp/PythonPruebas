@@ -23,7 +23,8 @@ def fortran_like(value: float) -> str:
     y omitiendo el '0' tras el signo en valores negativos ( -.xxx... ).
     Longitud final: 14 caracteres.
     """
-    if value == 0 or np.isclose(value, 0.0):
+    #if value == 0 or np.isclose(value, 0.0):
+    if value == 0:
         return "0.00000000E+00"
     sign = "-" if value < 0 else ""
     v = abs(float(value))
@@ -164,7 +165,7 @@ def main():
     ap.add_argument("--pga-n00e", type=float, default=None)
     ap.add_argument("--pga-updo", type=float, default=None)
     ap.add_argument("--pga-n90e", type=float, default=None)
-    ap.add_argument("--column-names", nargs=3, default=["HNE", "HNZ", "HNN"], metavar=("C1", "C2", "C3"))
+    ap.add_argument("--column-names", nargs=3, default=["N00E", "UPDO", "N90E"], metavar=("C1", "C2", "C3"))
     ap.add_argument("--units", default="mps2", help="Unidades de los datos del .mseed: mps2|m/s^2|gal")
     args = ap.parse_args()
 
@@ -173,7 +174,7 @@ def main():
     # Orden requerido y extracción
     order = ["HNE", "HNZ", "HNN"]
     data = stream_to_ordered_arrays(st, order=order)
-    data = maybe_convert_units(data, args.units)
+    #data = maybe_convert_units(data, args.units)
 
     # Delta t y npts (pueden sobrescribirse por CLI si se desea)
     delta_t, npts = compute_delta_t_and_npts(st)
@@ -229,7 +230,7 @@ def main():
             f.write(f"Station name {station_name_text:<30}\n")
         else:
             f.write("Station name \n")
-        f.write(HEADER_TOP[2] + "\n")  # línea de ======
+        f.write(HEADER_TOP[1] + "\n")  # línea de ======
 
         # Campos con alineación
         for label, key in HEADER_FIELDS:
@@ -253,6 +254,7 @@ def main():
                           fortran_like(float(row[1])),
                           fortran_like(float(row[2])))
             f.write(f"{c1}  {c2}  {c3}\n")  # 2 espacios entre columnas
+            #f.write(f"{row[0]}  {row[1]}  {row[2]}\n")  # 2 espacios entre columnas
 
     print(f"Archivo escrito en: {args.out}")
 
