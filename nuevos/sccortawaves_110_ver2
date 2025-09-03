@@ -320,13 +320,15 @@ class EventListener(client.Application):
         if maximos[4]["maximos"] >= 2:
             informe = 1
             self.cortaWaves(streams, evento.publicID(), t0)
-            result = subprocess.run(
-                ["python3", "/home/lis/seiscomp/bin/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
-            Logging.info("Resultado del ploteo %s" % result)
+           # result = subprocess.run(
+           #     ["python3", "/home/lis/seiscomp/bin/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
+           # Logging.info("Resultado del ploteo %s" % result)
 
-
+            # mandar a hacer archivos .LIS aqui
+            num_trabajos = -1  # Utiliza todos los núcleos disponibles
+            crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
+                delayed(self.archivoLis)(resultados[s], evento) for s in range(len(resultados)))
                 #plotear aqui
-
             # si ya existe, no guardar el evento
 
             # mandar a guardar los pga, iterando el arreglo y preguntando por cada estacion
@@ -361,9 +363,9 @@ class EventListener(client.Application):
 
         else:
             # si llega un evento mas nuevo, lo actualiza
-            print(fechaEvento['fecha'])
+            #print(fechaEvento['fecha'])
             t0 = UTCDateTime(evento.creationInfo().creationTime().toString("%Y-%m-%dT%H:%M:%S"))
-            print(t0)
+            #print(t0)
             if fechaEvento['fecha'] < t0:
                 # actualizar evento
                 Logging.info(
@@ -373,6 +375,32 @@ class EventListener(client.Application):
 
 
 
+    #funcion para hacer archivos LIS
+    def archivoLis(self,resultados,evento):
+
+        #verifica si la estacion supera 2 cm/s**2
+        if max(resultados['hnn'],resultados['hne'],resultados['hnz']) >= 2:
+            carpeta = os.path.join(OUTPUT_DIR, evento.publicID())
+            # Buscar archivos que contengan la estación en el nombre
+            patron = os.path.join(carpeta, f"*_{resultados['estacion']}_*.mseed")
+            archivos = glob.glob(patron)
+            try:
+                os.stat("/home/lis/waves/LIS/" + evento.publicID())
+            except:
+                os.mkdir("/home/lis/waves/LIS/" + evento.publicID())
+
+            datos = self.obtener_datos_por_id(evento.publicID())
+
+            #manda a llamar al escribe_lis
+            result = subprocess.run(
+                ["python3", "/home/lis/seiscomp/bin/escribe_lis.py", "--mseed", archivos[0], "--out",
+                 f"/home/lis/waves/LIS/{evento.publicID()}/{evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S.%f')}_{resultados['estacion']}.LIS",
+                 "--station-name", resultados['estacion'],"--event-date",evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S.%f'),
+                 "--event-lat",str(datos['latitud']),"--event-lon", str(datos["longitud"]),"--event-depth",str(datos["profundidad"]),"--event-mw",str(datos["magnitud"]),
+                 "--station-code",resultados['estacion'],"--station-lat",str(resultados['latitud']),"--station-lon",str(resultados['longitud']),
+                 "--pga-n00e",str(resultados['hnn'])
+                 ])
+            Logging.info("Resultado de los archivos LIS %s" % result)
 
     #actualiza en caso de que llegue un evento igual, pero con fecha actualizada
     def actualizaEvento(self, datos,idEvento,maxAcelera,lugarAcelera,informe):
@@ -485,8 +513,12 @@ class EventListener(client.Application):
         #print(datos)
         valores =[]
         try:
-            valores = [datos['fecha_evento'], datos['fecha_calculo'],datos['evento'],datos['tipo'],datos['estacion'],datos['latitud'],
-                       datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),datos['evento']+"/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'].strftime('%Y%m%dT%H%M%S')]
+            valores = [datos['fecha_evento'], datos['fecha_calculo'], datos['evento'], datos['tipo'], datos['estacion'],
+                       datos['latitud'],
+                       datos['longitud'], datos['hne'], datos['hnn'], datos['hnz'],
+                       max(datos['hne'], datos['hnn'], datos['hnz']),
+                       datos['evento'] + "/" + datos['network'] + "_" + datos['estacion'] + "_" + datos[
+                           'fecha_evento'].strftime('%Y%m%dT%H%M%S'), self.filterFreqMin, self.filterFreqMax]
         except Exception as err:
             Logging.error(
                 "--ERROR---------Fail in channels for station %s " % datos['estacion'])
@@ -506,8 +538,9 @@ class EventListener(client.Application):
                 with (conn.cursor() as cursor):
                     # Create a new record
                     sql = (
-                        "INSERT INTO `Pga` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`tipo_estacion`,`estacion`, `latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`)"
-                        " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s ,%s)")
+                        "INSERT INTO `Pga` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`tipo_estacion`,`estacion`, "
+                        "`latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`,`min_filter`,`max_filter`)"
+                        " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s ,%s,%s,%s)")
                     # print(values)
                     cursor.execute(sql, valores)
                 # Commit changes
@@ -525,7 +558,8 @@ class EventListener(client.Application):
         data_id = idPga[0]['id']
         try:
             valores = [datos['fecha_evento'], datos['fecha_calculo'],datos['evento'],datos['tipo'],datos['estacion'],datos['latitud'],
-                       datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),datos['evento']+"/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'].strftime('%Y%m%dT%H%M%S'),data_id]
+                       datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),
+                       datos['evento']+"/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'].strftime('%Y%m%dT%H%M%S'),self.filterFreqMin,self.filterFreqMax,data_id]
         except Exception as err:
             Logging.error(
                 "--ERROR---------Fail in channels for station %s " % datos['estacion'])
@@ -547,7 +581,7 @@ class EventListener(client.Application):
                     # Create a new record
                     sql = (
                         "UPDATE Pga SET `fecha_evento`=%s,`fecha_calculo`=%s,`nombre_evento`=%s,`tipo_estacion`=%s,`estacion`=%s, `latitud`=%s,"
-                        " `longitud`=%s, `hne_pga`=%s, `hnn_pga`=%s, `hnz_pga`=%s,`maximo`=%s ,`rutaWaveform`=%s"
+                        " `longitud`=%s, `hne_pga`=%s, `hnn_pga`=%s, `hnz_pga`=%s,`maximo`=%s ,`rutaWaveform`=%s,`min_filter`=%s,`max_filter`=%s"
                         "WHERE idpga = %s")
                     cursor.execute(sql, valores)
                 # Commit changes
@@ -658,7 +692,7 @@ class EventListener(client.Application):
         retraso_seg = 3.2 * 60  # 3 minutos en segundos
         if event:
             print("Evento actualizado {}".format(event.publicID()))
-            time.sleep(retraso_seg)
+            #time.sleep(retraso_seg)
             self.doSomethingWithEvent(event)
 
             #self.doSomethingWithEvent(event)
