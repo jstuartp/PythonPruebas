@@ -83,7 +83,7 @@ def format_header_line(label: str, value: str) -> str:
     VALUE_COL = 40
     left = f"{label}"
     spaces = max(1, VALUE_COL - len(left))
-    return f"{left}{' ' * spaces}{value}"
+    return f"{left}{' ' * spaces}{value:<40}"
 
 
 def normalize_metadata(md: Dict) -> Dict:
@@ -160,8 +160,8 @@ def main():
     ap.add_argument("--epicentral-km", type=float, default=None)
     ap.add_argument("--hypocentral-km", type=float, default=None)
     ap.add_argument("--azimuth", type=float, default=None)
-    ap.add_argument("--min-freq", type=float, default=None)
-    ap.add_argument("--max-freq", type=float, default=None)
+    ap.add_argument("--min-freq", type=float, default="0.05")
+    ap.add_argument("--max-freq", type=float, default="25")
     ap.add_argument("--pga-n00e", type=float, default=None)
     ap.add_argument("--pga-updo", type=float, default=None)
     ap.add_argument("--pga-n90e", type=float, default=None)

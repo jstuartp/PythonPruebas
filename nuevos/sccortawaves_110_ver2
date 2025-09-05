@@ -15,12 +15,14 @@ import traceback
 import datetime
 from datetime import datetime, timedelta
 import os
+import math
 import pymysql
 import subprocess
+import pandas as pd
 import matplotlib.pyplot as plt
 from soupsieve.css_types import pickle_register
 
-from seiscomp import core, client, io, math, logging
+from seiscomp import core, client, io,  logging
 from seiscomp import client, datamodel
 from seiscomp.client import Protocol
 from seiscomp import logging as Logging
@@ -31,6 +33,8 @@ from seiscomp import datamodel, client, logging
 from obspy import UTCDateTime, read, Stream
 from obspy.core.inventory import Inventory
 from obspy import read_inventory
+from obspy.geodetics.base import gps2dist_azimuth
+from geopy.distance import geodesic
 from obspy import io
 #from obspy.signal.peak import pk_tr
 from obspy.signal.filter import envelope
@@ -59,7 +63,7 @@ local_db = 'informes'
 
 
 # Parámetros configurables
-SDS_ROOT = "/home/lis/seiscomp/var/lib/archive/"                # Ruta al SDS de seiscomp
+#SDS_ROOT = "/home/lis/seiscomp/var/lib/archive/"                # Ruta al SDS de seiscomp
 OUTPUT_DIR = "/home/lis/waves/sds/"         # Carpeta de salida para los MiniSEED
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"  # Formato ISO para tiempo inicial
 # Dirección del servicio FDSN de su SeisComP (ajuste el host y puerto según su instalación)
@@ -102,6 +106,8 @@ class EventListener(client.Application):
         self.rutaRaiz ="/home/lis/waves/corta/"
         self.rutaImagenes ="/home/lis/waves/imagenes/"
         self.direccionWebServer = "lis@163.178.101.121:/var/www/informes.lis.ucr.ac.cr/seiscomp/public/assets/waves"
+        self.seiscomp_path = os.environ.get("SEISCOMP_ROOT") # ruta del seiscomp base
+        self.SDS_ROOT = self.seiscomp_path+"/var/lib/archive/"  # Ruta al SDS de seiscomp
         Logging.info("Inicio de CortaWaves")
 
     def initConfiguration(self):
@@ -166,7 +172,7 @@ class EventListener(client.Application):
         evento = datamodel.Event.Cast(obj)
         tiempo = evento.creationInfo().creationTime().toString("%Y-%m-%dT%H:%M:%S.%f")
         tiempo2 = datetime.strptime(tiempo, "%Y-%m-%dT%H:%M:%S.%f")
-        inv_path="/home/lis/seiscomp/share/scripts/inventory_full_fdns.xml"
+        inv_path = self.seiscomp_path+"/share/scripts/inventory_full_fdns.xml"
         self.proceso(tiempo,inv_path,evento)
         parametroa = self.rutaImagenes + evento.publicID() + "/"
         print(parametroa)
@@ -239,7 +245,7 @@ class EventListener(client.Application):
         inventory = self.load_inventory_sc3(inv_path)
         #print(inventory)
         # 3. Crear cliente SDS
-        sds_client = SDSClient(SDS_ROOT)
+        sds_client = SDSClient(self.SDS_ROOT)
 
         resultados = []
         streams = []
@@ -253,7 +259,21 @@ class EventListener(client.Application):
                 if sta.end_date is None:
                     network = net.code
                     station = sta.code
-                    print(station)
+                    site_name = sta.site.name
+                    channel = sta[0]
+                    soil = "" # obtener tipo de suelo
+                    try:
+                        manufacturer = channel.sensor.manufacturer
+                        serial = channel.sensor.serial_number
+                    except Exception as e:
+                        manufacturer ="unknown"
+                        serial = "unknown"
+                        print(f"error {e}")
+                    elevation = channel.elevation
+                    print(f"Procesando estacion...{station}")
+
+                    #print(elevation)
+                    #print(manufacturer)
                     location = "**"
                     channel = "HN*"
                     pgasChannel = []
@@ -293,6 +313,10 @@ class EventListener(client.Application):
                             "estacion": station,
                             "latitud": mysta.latitude,
                             "longitud": mysta.longitude,
+                            "site_name": site_name,
+                            "altitud": elevation,
+                            "site_manufacturer": manufacturer,
+                            "site_serial": serial
                         })
                         ultimo = resultados[-1]
                         for i in pgasChannel:
@@ -321,7 +345,7 @@ class EventListener(client.Application):
             informe = 1
             self.cortaWaves(streams, evento.publicID(), t0)
            # result = subprocess.run(
-           #     ["python3", "/home/lis/seiscomp/bin/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
+           #     ["python3", self.seiscomp_path+"/share/scripts/lis/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
            # Logging.info("Resultado del ploteo %s" % result)
 
             # mandar a hacer archivos .LIS aqui
@@ -373,6 +397,18 @@ class EventListener(client.Application):
                 self.actualizaEvento(datosEvento, evento.publicID(),maximos[0]["maximos"],maximos[0]["station"],informe)
                 # si no hay evento mas nuevo, no se hace nada
 
+    def epicentral_and_hypocentral_obspy(self,lat_epi, lon_epi, lat_sta, lon_sta, depth_km):
+        # Distancia sobre el elipsoide WGS84 (metros) y azimuts (grados)
+        dist_m, az, baz = gps2dist_azimuth(lat_epi, lon_epi, lat_sta, lon_sta)
+        delta_km = dist_m / 1000.0
+        Rh = math.sqrt(delta_km ** 2 + depth_km ** 2)
+        return {
+            "dist_epicentral_km": delta_km,
+            "dist_hipocentral_km": Rh,
+            "azimuth_deg": az,  # desde el epicentro hacia la estación
+            "back_azimuth_deg": baz  # desde la estación hacia el epicentro
+        }
+
 
 
     #funcion para hacer archivos LIS
@@ -392,15 +428,35 @@ class EventListener(client.Application):
             datos = self.obtener_datos_por_id(evento.publicID())
 
             #manda a llamar al escribe_lis
+            punto_epi=(datos['latitud'],datos["longitud"])
+            punto_sta =(resultados['latitud'],resultados["longitud"])
+            distancias = self.epicentral_and_hypocentral_obspy(datos['latitud'],datos["longitud"],resultados['latitud'],resultados["longitud"],datos["profundidad"])
+            epicentral_dist = geodesic(punto_epi,punto_sta).kilometers
+            soil=self.obtener_suelo(resultados['estacion'])
+
             result = subprocess.run(
-                ["python3", "/home/lis/seiscomp/bin/escribe_lis.py", "--mseed", archivos[0], "--out",
-                 f"/home/lis/waves/LIS/{evento.publicID()}/{evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S.%f')}_{resultados['estacion']}.LIS",
-                 "--station-name", resultados['estacion'],"--event-date",evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S.%f'),
+                ["python3", self.seiscomp_path+"/share/scripts/lis/escribe_lis.py", "--mseed", archivos[0], "--out",
+                 f"/home/lis/waves/LIS/{evento.publicID()}/{evento.creationInfo().creationTime().toString('%Y%m%d%H%M')}_{resultados['estacion']}.LIS",
+                 "--station-name", resultados['site_name'],"--event-date",evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S'),
                  "--event-lat",str(datos['latitud']),"--event-lon", str(datos["longitud"]),"--event-depth",str(datos["profundidad"]),"--event-mw",str(datos["magnitud"]),
                  "--station-code",resultados['estacion'],"--station-lat",str(resultados['latitud']),"--station-lon",str(resultados['longitud']),
-                 "--pga-n00e",str(resultados['hnn'])
+                 "--pga-n00e",str(resultados['hne']),"--pga-updo",str(resultados['hnz']),"--pga-n90e",str(resultados['hnn']),"--station-elev", str(resultados['altitud']),
+                 "--instrument-type", str(resultados['site_manufacturer']), "--serial", str(resultados['site_serial']),"--epicentral-km",str(epicentral_dist),
+                 "--hypocentral-km", str(distancias['dist_hipocentral_km']),"--azimuth",str(distancias['azimuth_deg']),"--site-condition","FFD","--soil-type",str(soil)
                  ])
             Logging.info("Resultado de los archivos LIS %s" % result)
+
+    def obtener_suelo(self, estacion_buscar):
+        # Leer el CSV en un DataFrame
+        #path = os.environ.get("SEISCOMP_ROOT")
+        dir = self.seiscomp_path + "/share/scripts/lis/suelo.csv"
+        df = pd.read_csv(dir)
+
+        # Convertir a diccionario: clave=estacion, valor=suelo
+        dicc = dict(zip(df['estacion'], df['suelo']))
+
+        # Retornar el valor de suelo si existe la estación
+        return dicc.get(estacion_buscar, None)
 
     #actualiza en caso de que llegue un evento igual, pero con fecha actualizada
     def actualizaEvento(self, datos,idEvento,maxAcelera,lugarAcelera,informe):
