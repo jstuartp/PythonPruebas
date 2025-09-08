@@ -9,6 +9,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from obspy.clients.fdsn import Client
 from obspy import read, UTCDateTime
+from joblib import Parallel, delayed
 import sys
 import argparse
 import traceback
@@ -39,19 +40,22 @@ def Plotear(imagenpng,ruta):
     directorio = Path(ruta)
     archivos_mseed = list(directorio.glob("*.mseed"))
 
-
+    num_trabajos = 10
+    creaplot = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
+        delayed(ploteaMulti)(archivo, imagenpng) for archivo in archivos_mseed)
+"""
     for archivo in archivos_mseed:
         nuevo_directorio =str(archivo).split("/")[-2]
         nombre_imagen =archivo.name.split(".")[0]
         nombrearchivo =imagenpng+nuevo_directorio+"/"+nombre_imagen+".png"
-        print(nombrearchivo)
+        #print(nombrearchivo)
         logfile = "/home/lis/waves/imagenes/" +nuevo_directorio+"/plotlog.log"
         try:
             os.stat(imagenpng+nuevo_directorio)
         except:
             os.mkdir(imagenpng+nuevo_directorio)
         strNew = read(archivo, format="mseed")
-        print("padre %s" %archivo.parent)
+        #print("padre %s" %archivo.parent)
 
         archivo = open(logfile, "a")
         archivo.write(str(UTCDateTime.now()))
@@ -160,8 +164,135 @@ def Plotear(imagenpng,ruta):
         archivo.write(str(UTCDateTime.now()))
         archivo.write("--Termine la imagen de %s--\n" % nombreEstacion)
         archivo.close()
+"""
 
 
+def ploteaMulti(archivo,imagenpng):
+
+    nuevo_directorio =str(archivo).split("/")[-2]
+    nombre_imagen =archivo.name.split(".")[0]
+    nombrearchivo =imagenpng+nuevo_directorio+"/"+nombre_imagen+".png"
+    #print(nombrearchivo)
+    logfile = "/home/lis/waves/imagenes/" +nuevo_directorio+"/plotlog.log"
+    try:
+        os.stat(imagenpng+nuevo_directorio)
+    except:
+        os.mkdir(imagenpng+nuevo_directorio)
+    strNew = read(archivo, format="mseed")
+    #print("padre %s" %archivo.parent)
+
+    try:
+        archivo = open(logfile, "a")
+        archivo.write(str(UTCDateTime.now()))
+        archivo.write("--Voy a procesar imagen de %s--\n" % nombre_imagen)
+        archivo.close()
+        # Preprocess each trace independently and remove instrument response
+        strNew.merge(method=1, fill_value='interpolate')
+        for tr in strNew:
+            try:
+                #tr.remove_response(inv, output="ACC")
+                tr.detrend("demean")
+                tr.detrend("linear")
+                tr.taper(max_percentage=float(taperMaxPercent), type=taperType)
+                tr.filter(
+                    filterType,
+                    freqmin=filterFreqMin,
+                    freqmax=filterFreqMax,
+                    corners=float(filterCorners),
+                )
+                # Convert from m/s^2 to cm/s^2
+                tr.data *= 100.0
+                archivo = open(logfile, "a")
+                archivo.write(str(UTCDateTime.now()))
+                archivo.write(f"--valor max de la traza {tr.stats.channel} en cm/s**2 {max(tr.data)}--\n")
+                archivo.close()
+            except Exception as e:
+                #print(f"Error processing {tr.id}: {e}")
+                archivo = open(logfile, "a")
+                archivo.write(str(UTCDateTime.now()))
+                archivo.write("--ERROR Fallo el try de lectura para %s--\n" % e)
+                archivo.write(f"Error processing {tr.id}: {e}")
+                archivo.close()
+
+        matplotlib.use("agg")
+        fig, axes = plt.subplots(len(strNew), 1, figsize=(12, 8), sharex=True)
+        max_amp_global = max(abs(tr.data).max() for tr in strNew)
+        archivo = open(logfile, "a")
+        archivo.write(str(UTCDateTime.now()))
+        archivo.write(f"------Amplitud global para grafico {strNew[0].stats.station} es {max_amp_global}--\n")
+        archivo.close()
+
+
+        nombreEstacion = strNew[0].stats.station
+
+
+        n_trazas = len(strNew)
+        fig, axes = plt.subplots(
+            n_trazas,
+            1,
+            figsize=(10, 7),
+            sharex=True,
+            gridspec_kw={'height_ratios': [1] * n_trazas}
+        )
+        if n_trazas == 1:
+            axes = [axes]  # Asegurar que axes sea lista si hay una sola traza
+
+        # 5) Colores asignados por canal
+        colores = {'HNZ': 'tab:red', 'HNN': 'tab:green', 'HNE': 'tab:blue'}
+
+        # 6) Registrar el instante inicial y final (UTC)
+        inicio = strNew[0].stats.starttime
+        fin = strNew[0].stats.endtime
+
+        # 7) Graficar cada traza con tiempos reales en segundos
+        for idx, trace in enumerate(strNew):
+            ax = axes[idx]
+            chan = trace.stats.channel
+            # Segundos relativos desde el inicio de la traza
+            times = trace.times()
+            ax.plot(
+                times,
+                trace.data,
+                color=colores.get(chan, 'k'),
+                linewidth=0.8,
+                alpha=0.9,
+                label=f"{trace.stats.network}.{trace.stats.station}.{trace.stats.location or '--'}.{chan}"
+            )
+            ax.set_ylabel("Amplitud (cm/s\xb2)")
+            ax.set_ylim(-max_amp_global * 1.05, max_amp_global * 1.05)
+            ax.grid(True, which='major', linestyle='--', linewidth=0.5, alpha=0.7)
+            # Mostrar etiqueta en texto dentro del subplot
+            ax.text(
+                0.01, 0.9,
+                f" ",
+                transform=ax.transAxes,
+                fontsize=9,
+                verticalalignment='top',
+                bbox=dict(boxstyle="round", facecolor="white", alpha=0.6, edgecolor="none")
+            )
+
+        # 8) Etiqueta común del eje X
+        axes[-1].set_xlabel("Tiempo (s)")
+        fig.suptitle(
+            f"Estación {strNew[0].stats.station} — {inicio.isoformat()} a {fin.isoformat()} (UTC)",
+            fontsize=14
+        )
+
+        # 9) Ajustar espacio y colocar leyenda compacta en cada subplot
+        for ax in axes:
+            ax.legend(loc="upper right", fontsize="x-small", frameon=False)
+
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+        plt.savefig(nombrearchivo, dpi=300)
+        plt.close(fig)
+        matplotlib.pyplot.close()
+        archivo = open(logfile, "a")
+        archivo.write(str(UTCDateTime.now()))
+        archivo.write("--Termine la imagen de %s--\n" % nombreEstacion)
+        archivo.close()
+        print(f"Escribi la imagen: {nombrearchivo}")
+    except Exception as err:
+        print(f"Error en el ploteo multiple {err}")
 
 
 def main():

@@ -80,10 +80,11 @@ def format_header_line(label: str, value: str) -> str:
     similar al archivo de ejemplo. Se usa una columna destino estándar.
     """
     # Columna donde inicia el valor (1-indexed aproximado al ejemplo)
-    VALUE_COL = 40
-    left = f"{label}"
-    spaces = max(1, VALUE_COL - len(left))
-    return f"{left}{' ' * spaces}{value:<40}"
+    VALUE_COL = 45
+    spaces = VALUE_COL -len(label) - len(value)
+    #left = f"{label}"
+    #spaces = max(1, VALUE_COL - len(left))
+    return f"{label}{' ' * spaces}{value:<40}"
 
 
 def normalize_metadata(md: Dict) -> Dict:
@@ -166,15 +167,15 @@ def main():
     ap.add_argument("--pga-updo", type=float, default=None)
     ap.add_argument("--pga-n90e", type=float, default=None)
     ap.add_argument("--column-names", nargs=3, default=["N00E", "UPDO", "N90E"], metavar=("C1", "C2", "C3"))
-    ap.add_argument("--units", default="mps2", help="Unidades de los datos del .mseed: mps2|m/s^2|gal")
+    ap.add_argument("--units", default="m/s^2", help="Unidades de los datos del .mseed: mps2|m/s^2|gal")
     args = ap.parse_args()
 
     # Leer stream
     st: Stream = read(args.mseed)
     # Orden requerido y extracción
-    order = ["HNE", "HNZ", "HNN"]
+    order = ["HNN", "HNZ", "HNE"]
     data = stream_to_ordered_arrays(st, order=order)
-    #data = maybe_convert_units(data, args.units)
+    data = maybe_convert_units(data, args.units)
 
     # Delta t y npts (pueden sobrescribirse por CLI si se desea)
     delta_t, npts = compute_delta_t_and_npts(st)
@@ -223,13 +224,13 @@ def main():
         f.write(HEADER_TOP[0] + "\n")
         f.write(f"Processed on {dt.datetime.now().strftime('%a %b %d %H:%M:%S %Y')}\n")
         if epicenter_text:
-            f.write(f"Epicenter {epicenter_text}\n")
+            f.write(f"Epicenter: {epicenter_text}\n")
         else:
-            f.write("Epicenter \n")
+            f.write("Epicenter: \n")
         if station_name_text:
-            f.write(f"Station name {station_name_text:<30}\n")
+            f.write(f"Station name: {station_name_text:<30}\n")
         else:
-            f.write("Station name \n")
+            f.write("Station name: \n")
         f.write(HEADER_TOP[1] + "\n")  # línea de ======
 
         # Campos con alineación

@@ -92,7 +92,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(True)
+        self.setLoggingToStdErr(False)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -344,14 +344,15 @@ class EventListener(client.Application):
         if maximos[4]["maximos"] >= 2:
             informe = 1
             self.cortaWaves(streams, evento.publicID(), t0)
-           # result = subprocess.run(
-           #     ["python3", self.seiscomp_path+"/share/scripts/lis/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
-           # Logging.info("Resultado del ploteo %s" % result)
+            result = subprocess.run(
+                ["python3", self.seiscomp_path+"/share/scripts/lis/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
+            Logging.info("Resultado del ploteo %s" % result)
 
             # mandar a hacer archivos .LIS aqui
             num_trabajos = -1  # Utiliza todos los núcleos disponibles
             crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
                 delayed(self.archivoLis)(resultados[s], evento) for s in range(len(resultados)))
+            Logging.info("Resultado del archivoLIS %s" % crealis)
                 #plotear aqui
             # si ya existe, no guardar el evento
 
@@ -415,36 +416,159 @@ class EventListener(client.Application):
     def archivoLis(self,resultados,evento):
 
         #verifica si la estacion supera 2 cm/s**2
-        if max(resultados['hnn'],resultados['hne'],resultados['hnz']) >= 2:
-            carpeta = os.path.join(OUTPUT_DIR, evento.publicID())
-            # Buscar archivos que contengan la estación en el nombre
-            patron = os.path.join(carpeta, f"*_{resultados['estacion']}_*.mseed")
-            archivos = glob.glob(patron)
-            try:
-                os.stat("/home/lis/waves/LIS/" + evento.publicID())
-            except:
-                os.mkdir("/home/lis/waves/LIS/" + evento.publicID())
+        try:
+            if max(resultados['hnn'],resultados['hne'],resultados['hnz']) >= 2:
+                carpeta = os.path.join(OUTPUT_DIR, evento.publicID())
+                # Buscar archivos que contengan la estación en el nombre
+                patron = os.path.join(carpeta, f"*_{resultados['estacion']}_*.mseed")
+                archivos = glob.glob(patron)
+                try:
+                    os.stat("/home/lis/waves/LIS/" + evento.publicID())
+                except:
+                    os.mkdir("/home/lis/waves/LIS/" + evento.publicID())
 
-            datos = self.obtener_datos_por_id(evento.publicID())
+                datos = self.obtener_datos_por_id(evento.publicID())
 
-            #manda a llamar al escribe_lis
-            punto_epi=(datos['latitud'],datos["longitud"])
-            punto_sta =(resultados['latitud'],resultados["longitud"])
-            distancias = self.epicentral_and_hypocentral_obspy(datos['latitud'],datos["longitud"],resultados['latitud'],resultados["longitud"],datos["profundidad"])
-            epicentral_dist = geodesic(punto_epi,punto_sta).kilometers
-            soil=self.obtener_suelo(resultados['estacion'])
+                #manda a llamar al escribe_lis
+                punto_epi=(datos['latitud'],datos["longitud"])
+                punto_sta =(resultados['latitud'],resultados["longitud"])
+                distancias = self.epicentral_and_hypocentral_obspy(datos['latitud'],datos["longitud"],resultados['latitud'],resultados["longitud"],datos["profundidad"])
+                epicentral_dist = geodesic(punto_epi,punto_sta).kilometers
+                soil=self.obtener_suelo(resultados['estacion'])
+                epicenter_str = self.ciudad_mas_cercana_descripcion(datos['latitud'],datos['longitud'])
 
-            result = subprocess.run(
-                ["python3", self.seiscomp_path+"/share/scripts/lis/escribe_lis.py", "--mseed", archivos[0], "--out",
-                 f"/home/lis/waves/LIS/{evento.publicID()}/{evento.creationInfo().creationTime().toString('%Y%m%d%H%M')}_{resultados['estacion']}.LIS",
-                 "--station-name", resultados['site_name'],"--event-date",evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S'),
-                 "--event-lat",str(datos['latitud']),"--event-lon", str(datos["longitud"]),"--event-depth",str(datos["profundidad"]),"--event-mw",str(datos["magnitud"]),
-                 "--station-code",resultados['estacion'],"--station-lat",str(resultados['latitud']),"--station-lon",str(resultados['longitud']),
-                 "--pga-n00e",str(resultados['hne']),"--pga-updo",str(resultados['hnz']),"--pga-n90e",str(resultados['hnn']),"--station-elev", str(resultados['altitud']),
-                 "--instrument-type", str(resultados['site_manufacturer']), "--serial", str(resultados['site_serial']),"--epicentral-km",str(epicentral_dist),
-                 "--hypocentral-km", str(distancias['dist_hipocentral_km']),"--azimuth",str(distancias['azimuth_deg']),"--site-condition","FFD","--soil-type",str(soil)
-                 ])
-            Logging.info("Resultado de los archivos LIS %s" % result)
+                result = subprocess.run(
+                    ["python3", self.seiscomp_path+"/share/scripts/lis/escribe_lis.py", "--mseed", archivos[0], "--out",
+                     f"/home/lis/waves/LIS/{evento.publicID()}/{evento.creationInfo().creationTime().toString('%Y%m%d%H%M')}_{resultados['estacion']}.LIS",
+                     "--station-name", resultados['site_name'],"--event-date",evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S'),
+                     "--event-lat",str(datos['latitud']),"--event-lon", str(datos["longitud"]),"--event-depth",str(datos["profundidad"]),"--event-mw",str(datos["magnitud"]),
+                     "--station-code",resultados['estacion'],"--station-lat",str(resultados['latitud']),"--station-lon",str(resultados['longitud']),
+                     "--pga-n00e",str(resultados['hnn']),"--pga-updo",str(resultados['hnz']),"--pga-n90e",str(resultados['hne']),"--station-elev", str(resultados['altitud']),
+                     "--instrument-type", str(resultados['site_manufacturer']), "--serial", str(resultados['site_serial']),"--epicentral-km",str(epicentral_dist),
+                     "--hypocentral-km", str(distancias['dist_hipocentral_km']),"--azimuth",str(distancias['azimuth_deg']),"--site-condition","FFD","--soil-type",str(soil),
+                     "--epicenter", epicenter_str
+                     ])
+                Logging.info("Resultado de los archivos LIS %s" % result)
+        except Exception as e:
+            Logging.error(
+                "--El archivo no tiene las tres componentes %s---------\n" % resultados['estacion'])
+            print(f"El archivo no tiene las tres componentes {resultados['estacion']}")
+
+
+    def ciudad_mas_cercana_descripcion(self,
+                                       lat_punto: float,
+                                       lon_punto: float,
+                                       lat_col: str = "latitud",
+                                       lon_col: str = "longitud",
+                                       name_col: str = "distrito") -> str:
+        """
+        Lee el CSV fijo en self.seiscomp_path + "/share/scripts/lis/ciudades.csv",
+        identifica la ciudad más cercana al punto (lat_punto, lon_punto), calcula la
+        distancia geodésica (Haversine) y el rumbo desde la ciudad hacia el punto,
+        lo clasifica en octantes cardinales en español y retorna una descripción con
+        el formato:
+            "<dist> kilómetros al "<OCTANTE>" de "<NombreCiudad>"".
+
+        Parámetros:
+            lat_punto (float): Latitud del punto objetivo en grados.
+            lon_punto (float): Longitud del punto objetivo en grados.
+            lat_col (str): Nombre de la columna de latitud en el CSV (default: "latitud").
+            lon_col (str): Nombre de la columna de longitud en el CSV (default: "longitud").
+            name_col (str): Nombre de la columna con el nombre de ciudad (default: "ciudad").
+
+        Retorna:
+            str: Descripción como '<dist> kilómetros al "<OCTANTE>" de "<NombreCiudad>"'.
+
+        Excepciones:
+            FileNotFoundError: Si el CSV no existe.
+            ValueError: Si faltan columnas requeridas o no hay registros válidos.
+        """
+
+        # --- Ruta fija del CSV ---
+        csv_path = os.path.join(self.seiscomp_path, "share", "scripts", "lis", "ciudades.csv")
+
+        # --- Carga y validaciones ---
+        try:
+            df = pd.read_csv(csv_path)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"No se encontró el archivo CSV: {csv_path!r}")
+
+        for col in (lat_col, lon_col, name_col):
+            if col not in df.columns:
+                raise ValueError(f"El CSV debe contener la columna {col!r}. Columnas encontradas: {list(df.columns)}")
+
+        df = df.dropna(subset=[lat_col, lon_col, name_col])
+        if df.empty:
+            raise ValueError("El CSV no contiene filas válidas (está vacío o con valores nulos).")
+
+        # --- Constantes y conversiones del punto ---
+        R = 6371.0088  # Radio medio terrestre (km)
+        phi_p = math.radians(lat_punto)
+        lam_p = math.radians(lon_punto)
+
+        # --- Búsqueda de la ciudad más cercana (Haversine) ---
+        min_dist = float("inf")
+        ciudad_min = None
+        phi_c_min = None
+        lam_c_min = None
+
+        for row in df.itertuples(index=False):
+            lat_c = float(getattr(row, lat_col))
+            lon_c = float(getattr(row, lon_col))
+            nombre_c = str(getattr(row, name_col))
+
+            phi_c = math.radians(lat_c)
+            lam_c = math.radians(lon_c)
+
+            dphi = phi_p - phi_c
+            dlam = lam_p - lam_c
+
+            a = math.sin(dphi / 2) ** 2 + math.cos(phi_c) * math.cos(phi_p) * math.sin(dlam / 2) ** 2
+            c = 2 * math.asin(min(1.0, math.sqrt(a)))
+            dist_km = R * c
+
+            if dist_km < min_dist:
+                min_dist = dist_km
+                ciudad_min = nombre_c
+                phi_c_min = phi_c
+                lam_c_min = lam_c
+
+        if ciudad_min is None:
+            raise ValueError("No fue posible determinar la ciudad más cercana.")
+
+        # --- Rumbo (bearing) desde la ciudad más cercana hacia el punto ---
+        dlam_min = lam_p - lam_c_min
+        y = math.sin(dlam_min) * math.cos(phi_p)
+        x = (math.cos(phi_c_min) * math.sin(phi_p) -
+             math.sin(phi_c_min) * math.cos(phi_p) * math.cos(dlam_min))
+        theta = math.atan2(y, x)  # radianes
+        brng_deg = (math.degrees(theta) + 360.0) % 360.0  # [0, 360)
+
+        # --- Mapeo a octantes cardinales (N, N.E., E, S.E., S, S.O., O, N.O.) ---
+        def octante(ang: float) -> str:
+            if ang >= 337.5 or ang < 22.5:
+                return "N."
+            elif ang < 67.5:
+                return "N.E."
+            elif ang < 112.5:
+                return "E."
+            elif ang < 157.5:
+                return "S.E."
+            elif ang < 202.5:
+                return "S."
+            elif ang < 247.5:
+                return "S.O."
+            elif ang < 292.5:
+                return "O."
+            else:
+                return "N.O."
+
+        dir_cardinal = octante(brng_deg)
+
+        # --- Redondeo y salida ---
+        dist_str = f"{min_dist:.1f}"
+        return f'{dist_str} kilómetros al {dir_cardinal} de {ciudad_min}'
+
 
     def obtener_suelo(self, estacion_buscar):
         # Leer el CSV en un DataFrame
@@ -748,7 +872,7 @@ class EventListener(client.Application):
         retraso_seg = 3.2 * 60  # 3 minutos en segundos
         if event:
             print("Evento actualizado {}".format(event.publicID()))
-            #time.sleep(retraso_seg)
+            time.sleep(retraso_seg)
             self.doSomethingWithEvent(event)
 
             #self.doSomethingWithEvent(event)
