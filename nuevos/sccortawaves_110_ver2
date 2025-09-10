@@ -342,19 +342,23 @@ class EventListener(client.Application):
         # si existen al menos 5 estaciones que superan el umbral, se registra
         #print(maximos[4]["maximos"])
         if maximos[4]["maximos"] >= 2:
+            #se activa para guardar el informe
             informe = 1
+            #se escriben los archivos mseed con la duracion determinada
             self.cortaWaves(streams, evento.publicID(), t0)
+            #se hacen las imagenes de todos los archivos mseed escritos
             result = subprocess.run(
                 ["python3", self.seiscomp_path+"/share/scripts/lis/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
-            Logging.info("Resultado del ploteo %s" % result)
+            #Logging.info("Resultado del ploteo %s" % result)
 
-            # mandar a hacer archivos .LIS aqui
+            # se escriben los archivos .LIS
             num_trabajos = -1  # Utiliza todos los núcleos disponibles
             crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
                 delayed(self.archivoLis)(resultados[s], evento) for s in range(len(resultados)))
-            Logging.info("Resultado del archivoLIS %s" % crealis)
-                #plotear aqui
-            # si ya existe, no guardar el evento
+            #Logging.info("Resultado del archivoLIS %s" % crealis)
+
+
+
 
             # mandar a guardar los pga, iterando el arreglo y preguntando por cada estacion
             #print(resultados)
@@ -371,6 +375,7 @@ class EventListener(client.Application):
                     self.updateBd(res,idPga)
 
 
+
             # mandar a plotear todo enviando la carpeta donde estan los mseed
         else:
             Logging.info("El evento %s No cumple con el umbral de aceleracion" %evento)
@@ -385,6 +390,11 @@ class EventListener(client.Application):
             Logging.info(
                 "--Guardando nuevo evento %s---------\n" % evento.publicID())
             self.insertarEvento(datosEvento,maximos[0]["maximos"],maximos[0]["station"],informe)
+            # se llama el jma para insertar valores del nuevo evento
+            resultJMA = subprocess.run(
+                ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
+                 evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "1"])
+            #Logging.info("Resultado del JMA insertar %s" % resultJMA)
 
         else:
             # si llega un evento mas nuevo, lo actualiza
@@ -396,8 +406,16 @@ class EventListener(client.Application):
                 Logging.info(
                     "--Actualizando evento existente %s---------\n" % evento.publicID())
                 self.actualizaEvento(datosEvento, evento.publicID(),maximos[0]["maximos"],maximos[0]["station"],informe)
+                # se llama el jma para actualizar valores del evento
+                resultJMA = subprocess.run(
+                    ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
+                     evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "2"])
+                #Logging.info("Resultado del JMA actualizar %s" % resultJMA)
+
                 # si no hay evento mas nuevo, no se hace nada
 
+
+    #funcion para calcular la distancia de epicentro e hipocentro
     def epicentral_and_hypocentral_obspy(self,lat_epi, lon_epi, lat_sta, lon_sta, depth_km):
         # Distancia sobre el elipsoide WGS84 (metros) y azimuts (grados)
         dist_m, az, baz = gps2dist_azimuth(lat_epi, lon_epi, lat_sta, lon_sta)
@@ -415,8 +433,9 @@ class EventListener(client.Application):
     #funcion para hacer archivos LIS
     def archivoLis(self,resultados,evento):
 
-        #verifica si la estacion supera 2 cm/s**2
+        #el try elimina las estaciones que no tienen las 3 componentes
         try:
+            # verifica si la estacion supera 2 cm/s**2
             if max(resultados['hnn'],resultados['hne'],resultados['hnz']) >= 2:
                 carpeta = os.path.join(OUTPUT_DIR, evento.publicID())
                 # Buscar archivos que contengan la estación en el nombre
@@ -437,6 +456,7 @@ class EventListener(client.Application):
                 soil=self.obtener_suelo(resultados['estacion'])
                 epicenter_str = self.ciudad_mas_cercana_descripcion(datos['latitud'],datos['longitud'])
 
+                # se llama al escribe lis que es un proceso externo, se envian todos los parametros necesarios
                 result = subprocess.run(
                     ["python3", self.seiscomp_path+"/share/scripts/lis/escribe_lis.py", "--mseed", archivos[0], "--out",
                      f"/home/lis/waves/LIS/{evento.publicID()}/{evento.creationInfo().creationTime().toString('%Y%m%d%H%M')}_{resultados['estacion']}.LIS",
@@ -448,13 +468,15 @@ class EventListener(client.Application):
                      "--hypocentral-km", str(distancias['dist_hipocentral_km']),"--azimuth",str(distancias['azimuth_deg']),"--site-condition","FFD","--soil-type",str(soil),
                      "--epicenter", epicenter_str
                      ])
-                Logging.info("Resultado de los archivos LIS %s" % result)
+                #Logging.info("Resultado de los archivos LIS %s" % result)
         except Exception as e:
             Logging.error(
                 "--El archivo no tiene las tres componentes %s---------\n" % resultados['estacion'])
             print(f"El archivo no tiene las tres componentes {resultados['estacion']}")
 
 
+    #funcion para calcular la cuidad mas cercana al epicentro
+    #necesita un archivo de cuidades
     def ciudad_mas_cercana_descripcion(self,
                                        lat_punto: float,
                                        lon_punto: float,
@@ -570,6 +592,8 @@ class EventListener(client.Application):
         return f'{dist_str} kilómetros al {dir_cardinal} de {ciudad_min}'
 
 
+    #funcion que devuelve el tipo de suelo de una estacion particular
+    #necesita un archivo con los tipos de suelo
     def obtener_suelo(self, estacion_buscar):
         # Leer el CSV en un DataFrame
         #path = os.environ.get("SEISCOMP_ROOT")
@@ -624,6 +648,8 @@ class EventListener(client.Application):
         finally:
             conn.close()
 
+    #funcion para cortar los streams y guardarlos en .mseed
+    #guarda 3 minutos antes y 3 mins despues del evento
     def cortaWaves(self,streams,evento,t0):
 
         ruta = OUTPUT_DIR+evento

@@ -39,10 +39,16 @@ def Plotear(imagenpng,ruta):
     # Read the mseed file
     directorio = Path(ruta)
     archivos_mseed = list(directorio.glob("*.mseed"))
+    nuevo_directorio = str(directorio).split("/")[-1]
+    logfile = "/home/lis/waves/imagenes/" + nuevo_directorio + "/plotlog.log"
+    try:
+        os.stat(imagenpng + nuevo_directorio)
+    except:
+        os.mkdir(imagenpng + nuevo_directorio)
 
     num_trabajos = 10
     creaplot = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
-        delayed(ploteaMulti)(archivo, imagenpng) for archivo in archivos_mseed)
+        delayed(ploteaMulti)(archivo, imagenpng,nuevo_directorio) for archivo in archivos_mseed)
 """
     for archivo in archivos_mseed:
         nuevo_directorio =str(archivo).split("/")[-2]
@@ -167,17 +173,12 @@ def Plotear(imagenpng,ruta):
 """
 
 
-def ploteaMulti(archivo,imagenpng):
+def ploteaMulti(archivo,imagenpng,directorio):
 
-    nuevo_directorio =str(archivo).split("/")[-2]
     nombre_imagen =archivo.name.split(".")[0]
-    nombrearchivo =imagenpng+nuevo_directorio+"/"+nombre_imagen+".png"
+    nombrearchivo =imagenpng+directorio+"/"+nombre_imagen+".png"
     #print(nombrearchivo)
-    logfile = "/home/lis/waves/imagenes/" +nuevo_directorio+"/plotlog.log"
-    try:
-        os.stat(imagenpng+nuevo_directorio)
-    except:
-        os.mkdir(imagenpng+nuevo_directorio)
+    logfile = "/home/lis/waves/imagenes/" +directorio+"/plotlog.log"
     strNew = read(archivo, format="mseed")
     #print("padre %s" %archivo.parent)
 
