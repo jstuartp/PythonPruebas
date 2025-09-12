@@ -2,7 +2,7 @@ import numpy as np
 import sys
 from joblib import Parallel, delayed
 from pathlib import Path
-from obspy import read
+from obspy import read, read_inventory
 from scipy.fft import fft, ifft, fftfreq
 import argparse
 import pymysql
@@ -17,6 +17,9 @@ local_db = 'informes'
 #local_user = 'root'
 #local_password = 'jspz2383'
 #local_db = 'sismos_lis'
+
+inv_path = "/home/lis/seiscomp/share/scripts/inventory_full_fdns.xml"
+inventory = read_inventory(inv_path, format="STATIONXML")
 
 
 def jma_filters(frequencies):
@@ -106,6 +109,10 @@ def compute_jma_intensity(acc_ns, acc_ew, acc_up, fs=200.0):
 def load_components_from_miniseed(file_path,evento,tipo):
     st = read(file_path)
     station =""
+    network = ""
+    sta_lat =0
+    sta_long = 0
+
     try:
         val = len(st) < 3
         # Try to match components by channel code endings
@@ -113,12 +120,18 @@ def load_components_from_miniseed(file_path,evento,tipo):
         for tr in st:
             channel = tr.stats.channel.upper()
             station = tr.stats.station
+            network = tr.stats.network
             if channel.endswith("N") or channel.endswith("1"):
                 components['N'] = tr
             elif channel.endswith("E") or channel.endswith("2"):
                 components['E'] = tr
             elif channel.endswith("Z"):
                 components['Z'] = tr
+
+
+        sta = inventory.select(network=network, station=station)[0]
+        my_sta=sta[0]
+
 
         if not all(components.values()):
             raise ValueError("Could not find all 3 components (N, E, Z) in MiniSEED file.")
@@ -138,10 +151,10 @@ def load_components_from_miniseed(file_path,evento,tipo):
         # guardar en base de datos "data" con el id de evento
         print(station)
         if(tipo == 1):
-            insertaBd(data, evento, station)
+            insertaBd(data, evento, station,my_sta.latitude,my_sta.longitude)
             print(f"termine insertar {station}")
         if(tipo == 2):
-            actualizaBd(data, evento, station)
+            actualizaBd(data, evento, station,my_sta.latitude,my_sta.longitude)
             print(f"termine actualizar {station}")
     except Exception as e:
         print(f"No existen las 3 componentes en el archivo {station}")
@@ -149,12 +162,12 @@ def load_components_from_miniseed(file_path,evento,tipo):
 
 
 
-def insertaBd(datos,evento,station):
+def insertaBd(datos,evento,station,lat,lon):
         #print(datos)
         valores =[]
         try:
-            valores = [evento,station,datos['a0_gal'], datos['I_continuous'], datos['I_truncated'], datos['JMA_intensity']
-                       ]
+            valores = [evento,station,datos['a0_gal'], datos['I_continuous'], datos['I_truncated'], datos['JMA_intensity'],
+                       lat,lon]
         except Exception as err:
             print(
                 "--ERROR---------Fail in channels ")
@@ -175,8 +188,8 @@ def insertaBd(datos,evento,station):
                     # Create a new record
                     sql = (
                         "INSERT INTO `jma` (`idEvento`,`estacion`,`threshold_a0`,`continuos`,`truncated`, "
-                        "`jma`)"
-                        " VALUES (%s ,%s ,%s ,%s ,%s ,%s )")
+                        "`jma`,`lat`,`lon`)"
+                        " VALUES (%s ,%s ,%s ,%s ,%s ,%s,%s,%s )")
                     # print(values)
                     cursor.execute(sql, valores)
                 # Commit changes
@@ -188,12 +201,12 @@ def insertaBd(datos,evento,station):
                 conn.close()
 
 
-def actualizaBd(datos, evento, station):
+def actualizaBd(datos, evento, station,lat,lon):
     # print(datos)
     valores = []
     try:
         valores = [ datos['a0_gal'], datos['I_continuous'], datos['I_truncated'], datos['JMA_intensity'],
-                   evento, station]
+                   lat,lon,evento, station]
     except Exception as err:
         print(
             "--ERROR---------Fail in channels ")
@@ -214,7 +227,7 @@ def actualizaBd(datos, evento, station):
                 # Create a new record
                 sql = (
                     "Update `jma` SET `threshold_a0`=%s,`continuos`=%s,`truncated`=%s, "
-                    "`jma`=%s"
+                    "`jma`=%s, `lat`=%s, `lon`=%s"
                     " Where idEvento =%s and estacion = %s ")
                 # print(values)
                 cursor.execute(sql, valores)
