@@ -356,6 +356,17 @@ class EventListener(client.Application):
             crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
                 delayed(self.archivoLis)(resultados[s], evento) for s in range(len(resultados)))
             #Logging.info("Resultado del archivoLIS %s" % crealis)
+            #envia archivos lis a servidor central
+            res1 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
+                                   "lis@163.178.101.86:/home/lis/formato_lis/registros_revisados"], capture_output=True, text=True)
+            res2 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
+                                   "lis@163.178.109.104:/home/lis/formato_lis/registros_revisados"], capture_output=True,
+                                  text=True)
+            res3 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
+                                   "lis@163.178.174.210:/home/lis/formato_lis/registros_revisados"], capture_output=True,
+                                  text=True)
+            #envia archivos lis a repositorio stuart
+            #result = subprocess.run(['scp', '-r', f"/home/lis/waves/LIS/{evento.publicID()}", self.direccionWebServer], capture_output=True, text=True)
 
 
 
@@ -459,7 +470,7 @@ class EventListener(client.Application):
                 # se llama al escribe lis que es un proceso externo, se envian todos los parametros necesarios
                 result = subprocess.run(
                     ["python3", self.seiscomp_path+"/share/scripts/lis/escribe_lis.py", "--mseed", archivos[0], "--out",
-                     f"/home/lis/waves/LIS/{evento.publicID()}/{evento.creationInfo().creationTime().toString('%Y%m%d%H%M')}_{resultados['estacion']}.LIS",
+                     f"/home/lis/waves/LIS/{evento.publicID()}/{evento.creationInfo().creationTime().toString('%Y%m%d%H%M')}_{resultados['estacion']}.lis",
                      "--station-name", resultados['site_name'],"--event-date",evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S'),
                      "--event-lat",str(datos['latitud']),"--event-lon", str(datos["longitud"]),"--event-depth",str(datos["profundidad"]),"--event-mw",str(datos["magnitud"]),
                      "--station-code",resultados['estacion'],"--station-lat",str(resultados['latitud']),"--station-lon",str(resultados['longitud']),
