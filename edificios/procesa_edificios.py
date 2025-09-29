@@ -237,6 +237,41 @@ class EventListener(client.Application):
             logging.warning(f"Error en {network}.{station}.{tr.stats.channel}: {e}")
         return pga * 100.0  # Convertir a cm/s^2
 
+    def get_streams_for_event_from_directory(self, base_dir: str, event: str) -> dict[tuple[str, str], Stream]:
+        """Lee todos los .mseed en base_dir/event, agrupa por (network, station) y fusiona trazas.
+        Devuelve un diccionario {(net, sta): Stream}.
+        """
+
+        ruta_evento = os.path.join(base_dir, event)
+        if not os.path.isdir(ruta_evento):
+            raise FileNotFoundError(f"No existe el directorio del evento: {ruta_evento}")
+
+        paths = sorted(glob.glob(os.path.join(ruta_evento, "*.mseed")))
+        if not paths:
+            logging.warning("No se encontraron archivos .mseed en %s", ruta_evento)
+
+        agrupados: dict[tuple[str, str], Stream] = {}
+        for p in paths:
+            try:
+                st = read(p)
+            except Exception as e:
+                logging.warning("No se pudo leer %s: %s", p, e)
+            continue
+        for tr in st:
+            key = (tr.stats.network, tr.stats.station)
+        if key not in agrupados:
+            agrupados[key] = Stream()
+        agrupados[key] += tr
+
+        # Merge por estación
+        for key, st in list(agrupados.items()):
+            try:
+                st.merge(method=1, fill_value="interpolate")
+                agrupados[key] = st
+            except Exception as e:
+                logging.warning("No se pudo fusionar stream %s: %s", key, e)
+        return agrupados
+
     def proceso(self,time_inicial_str, inv_path,evento):
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         # 1. Tiempo inicial y ventanas de búsqueda
@@ -255,87 +290,61 @@ class EventListener(client.Application):
         pgas = []
         maximos = []
         informe = 0
+        agrupados = self.get_streams_for_event_from_directory(base_dir, event)
 
         # 4. Recorre todos los canales de aceleración del inventario
-        for net in inventory:
-            for sta in net:
-                if sta.end_date is None:
-                    network = net.code
-                    station = sta.code
-                    site_name = sta.site.name
-                    channel = sta[0]
-                    soil = "" # obtener tipo de suelo
-                    try:
-                        manufacturer = channel.sensor.manufacturer
-                        serial = channel.sensor.serial_number
-                    except Exception as e:
-                        manufacturer ="unknown"
-                        serial = "unknown"
-                        print(f"error {e}")
-                    elevation = channel.elevation
-                    print(f"Procesando estacion...{station}")
+        for (net, sta), st in agrupados.items():
+            # Metadatos del inventario (si existen)
+            lat = lon = elev = None
+            site_name = manufacturer = serial = None
+            try:
+                inv_subset = inventory.select(network=net, station=sta)
+                n0 = inv_subset[0]
+                s0 = n0.stations[0]
+                lat, lon, elev = s0.latitude, s0.longitude, s0.elevation
+                if s0 and s0.channels:
+                    ch0 = s0.channels[0]
+                if ch0.sensor:
+                    manufacturer = getattr(ch0.sensor, "manufacturer", None)
+                serial = getattr(ch0.sensor, "serial_number", None)
+                site_name = s0.site.name
+            except Exception:
+                pass
 
-                    #print(elevation)
-                    #print(manufacturer)
-                    location = "**"
-                    channel = "HN*"
-                    pgasChannel = []
+            reg = {
+                "evento": event,
+                "network": net,
+                "estacion": sta,
+                "latitud": lat,
+                "longitud": lon,
+                "site_name": site_name,
+                "altitud": elev,
+                "site_manufacturer": manufacturer or "unknown",
+                "site_serial": serial or "unknown",
+                "HNN": 0.0,
+                "HNE": 0.0,
+                "HNZ": 0.0,
+                "maximos": pgas.get("maximos", 0.0),
+            }
+            for ch, val in pgas.items():
+                if ch in ("HNN", "HNE", "HNZ"):
+                    reg[ch] = val
 
-                    # 5. Leer la traza
-                    try:
-                        st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
-                        st.merge(method=1, fill_value='interpolate')
-                        stRaw = st
-                        net = inventory.select(network=network, station=station)[0]
-                        mysta = net.stations[0]
 
-                        if not st or len(st) == 0:
-                            continue
-                        #tr = st[0]
-                        # 6. Aplicar respuesta y calcular PGA
-                        m = 0.0
-                        for tr in st:
-                            pga = self.calculate_pga(tr, inventory, network, station, location, channel)
-                            if pga > m:
-                                m = pga
-                          #  pgas.append({
-                          #      "pga": pga
-                           # })
-                            pgasChannel.append({str(tr.stats.channel).lower() :pga})
-                        maximos.append({
-                            "station" : station,
-                            "maximos" : m
-                        })
-                        #print(pgasChannel)
-                        resultados.append({
-                            "fecha_evento": t0,
-                            "fecha_calculo": datetime.now(),
-                            "evento": evento.publicID(),
-                            "tipo": 1,
-                            "network": network,
-                            "estacion": station,
-                            "latitud": mysta.latitude,
-                            "longitud": mysta.longitude,
-                            "site_name": site_name,
-                            "altitud": elevation,
-                            "site_manufacturer": manufacturer,
-                            "site_serial": serial
-                        })
-                        ultimo = resultados[-1]
-                        for i in pgasChannel:
-                            ultimo.update(i)
-                        streams.append({
-                            "evento": evento.publicID(),
-                            "network": network,
-                            "station": station,
-                            "st": stRaw.copy(),
-                            "t1": t1,
-                            "t2": t2,
-                        })
+                    idp = self.chequeaBdPga(reg["estacion"], reg["evento"])  # puede ser None
 
-                    except Exception as e:
-                        logging.warning(f"Error en {network}.{station}: {e}")
-                        continue
+
+                    self.insertaBd(reg)
+
+            resultados.append(reg)
+
+
+            except Exception as e:
+            logging.warning("Error al procesar %s.%s: %s", net, sta, e)
+            continue
+
+            resultados.sort(key=lambda r: -float(r.get("maximos", 0.0)))
+            return resultados
 
         # 7. Ordenar y seleccionar los 20 registros con mayor PGA
         maximos = sorted(maximos, key=lambda x: -x["maximos"])

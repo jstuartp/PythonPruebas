@@ -49,7 +49,7 @@ def leer_y_convertir_a_acc_cmss(client: SDSClient, inv, net: str, sta: str, loc:
     Lee HNE/HNN/HNZ del SDS y remueve respuesta para obtener aceleración en cm/s^2.
     """
     loc_sel = loc if loc else "*"
-    st = client.get_waveforms(net, sta, loc_sel, "HN?", t0, t1, merge=0)
+    st = client.get_waveforms(net, sta, loc_sel, "HN?", t0, t1, merge=1)
     if len(st) == 0:
         return Stream()
 
