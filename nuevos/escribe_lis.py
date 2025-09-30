@@ -149,7 +149,7 @@ def main():
     ap.add_argument("--event-lon", type=float, default=None)
     ap.add_argument("--event-depth", type=float, default=None)
     ap.add_argument("--event-mw", type=float, default=None)
-    ap.add_argument("--source-type", default="INDEF")
+    ap.add_argument("--source-type", default="UNDEF")
     ap.add_argument("--station-code", default="")
     ap.add_argument("--instrument-type", default="")
     ap.add_argument("--serial", default="")
@@ -186,8 +186,8 @@ def main():
         "event_date": args.event_date,
         "event_lat": f"{args.event_lat:.4f}" if args.event_lat is not None else "",
         "event_lon": f"{args.event_lon:.4f}" if args.event_lon is not None else "",
-        "event_depth": f"{args.event_depth:.4f}" if args.event_depth is not None else "",
-        "event_mw": f"{args.event_mw:.4f}" if args.event_mw is not None else "",
+        "event_depth": f"{args.event_depth:.1f}" if args.event_depth is not None else "",
+        "event_mw": f"{args.event_mw:.1f}" if args.event_mw is not None else "",
         "source_type": args.source_type,
         "station_code": args.station_code,
         "instrument_type": args.instrument_type,

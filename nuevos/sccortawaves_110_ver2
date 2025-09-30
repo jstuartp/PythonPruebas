@@ -411,7 +411,9 @@ class EventListener(client.Application):
             resultJMA = subprocess.run(
                 ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
                  evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "1"])
-            #Logging.info("Resultado del JMA insertar %s" % resultJMA)
+            if(resultJMA):
+                Logging.info("Exito guardando JMA")
+            Logging.info("Resultado del JMA insertar %s" % resultJMA)
 
         else:
             # si llega un evento mas nuevo, lo actualiza
@@ -427,7 +429,7 @@ class EventListener(client.Application):
                 resultJMA = subprocess.run(
                     ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
                      evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "2"])
-                #Logging.info("Resultado del JMA actualizar %s" % resultJMA)
+                Logging.info("Resultado del JMA actualizar %s" % resultJMA)
 
                 # si no hay evento mas nuevo, no se hace nada
 
