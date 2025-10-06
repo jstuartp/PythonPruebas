@@ -1,48 +1,120 @@
-﻿from pyzabbix import ZabbixAPI
+﻿#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Elimina una lista de hosts en Zabbix usando API Token (Bearer).
+Evita enviar la cabecera Authorization en métodos públicos como apiinfo.version.
+"""
+
+import requests
+import json
 import sys
+from typing import List
 
-# Configuración del servidor Zabbix
-ZABBIX_URL = "http://163.178.101.124/zabbix"
-ZABBIX_USER = "Admin"
-ZABBIX_PASSWORD = "zabbix"
-
-# Archivo de entrada con los hosts
+# === CONFIGURACIÓN ===
+ZABBIX_API_URL = "https://zabbix.lis.ucr.ac.cr/api_jsonrpc.php"
+ZABBIX_API_TOKEN = "ed931eb1157f82fcdbc63f9f208794bbfbb5a92b308c1d2d7aa2616df9923faf"  # <- reemplazar por tu token
 HOSTS_FILE = "listado_host_borrar.txt"
 
-# Conectar a Zabbix
-try:
-    zapi = ZabbixAPI(ZABBIX_URL)
-    zapi.login(ZABBIX_USER, ZABBIX_PASSWORD)
-    print("Conexión exitosa a Zabbix")
-except Exception as e:
-    print(f"Error al conectar con Zabbix: {e}")
-    sys.exit(1)
+# Si el certificado es autofirmado y no quieres validación SSL (no recomendado):
+VERIFY_SSL = True
 
-# Función para obtener el ID de un host por nombre
-def get_host_id(hostname):
-    result = zapi.host.get(filter={"host": hostname})
-    if result:
-        return result[0]["hostid"]
-    else:
-        return None
+BASE_HEADERS = {
+    "Content-Type": "application/json-rpc",
+    "User-Agent": "ZabbixHostDelete/2.1",
+}
 
-# Leer el archivo de hosts y eliminar los hosts del servidor Zabbix
-try:
-    with open(HOSTS_FILE, "r") as file:
-        for line in file:
-            hostname = line.strip()
-            if hostname:
-                host_id = get_host_id(hostname)
-                if host_id:
-                    try:
-                        zapi.host.delete(host_id)
-                        print(f"Host '{hostname}' eliminado correctamente.")
-                    except Exception as e:
-                        print(f"Error al eliminar el host '{hostname}': {e}")
-                else:
-                    print(f"Host '{hostname}' no encontrado en Zabbix.")
-except FileNotFoundError:
-    print(f"Error: El archivo '{HOSTS_FILE}' no se encuentra.")
-    sys.exit(1)
+def zbx_call(method: str, params=None, with_auth=True) -> dict:
+    """
+    Llama a la API JSON-RPC de Zabbix.
+    - Si with_auth=False, no incluye la cabecera Authorization.
+    """
+    headers = BASE_HEADERS.copy()
+    if with_auth:
+        headers["Authorization"] = f"Bearer {ZABBIX_API_TOKEN}"
 
-print("Proceso de eliminación finalizado.")
+    payload = {
+        "jsonrpc": "2.0",
+        "method": method,
+        "params": params if params is not None else {},
+        "id": 1,
+    }
+
+    response = requests.post(
+        ZABBIX_API_URL,
+        headers=headers,
+        data=json.dumps(payload),
+        verify=VERIFY_SSL,
+    )
+
+    try:
+        result = response.json()
+    except Exception:
+        raise RuntimeError(f"Respuesta no válida del servidor: {response.text[:400]}")
+
+    if "error" in result:
+        err = result["error"]
+        raise RuntimeError(f"Error {err['code']} - {err['message']}: {err['data']}")
+
+    return result["result"]
+
+def leer_hosts(path: str) -> List[str]:
+    with open(path, "r", encoding="utf-8") as f:
+        return [line.strip() for line in f if line.strip()]
+
+def main():
+    try:
+        # 1️⃣ Llamada pública sin autenticación
+        version = zbx_call("apiinfo.version", {}, with_auth=False)
+        print(f"[*] Conectado a Zabbix API (versión {version})")
+
+        # 2️⃣ Cargar lista de hosts
+        try:
+            hostnames = leer_hosts(HOSTS_FILE)
+        except FileNotFoundError:
+            print(f"[x] No se encontró el archivo {HOSTS_FILE}")
+            sys.exit(1)
+
+        if not hostnames:
+            print("[x] El archivo está vacío.")
+            sys.exit(1)
+
+        print(f"[*] {len(hostnames)} host(s) leídos desde {HOSTS_FILE}.")
+
+        eliminados, no_encontrados = [], []
+
+        # 3️⃣ Buscar y eliminar hosts
+        for hn in hostnames:
+            print(f"\n[*] Buscando host: {hn}")
+            result = zbx_call(
+                "host.get",
+                {"output": ["hostid", "host"], "filter": {"host": [hn]}},
+                with_auth=True,
+            )
+
+            if not result:
+                print(f"[-] No se encontró el host '{hn}'.")
+                no_encontrados.append(hn)
+                continue
+
+            host_ids = [h["hostid"] for h in result]
+            print(f"[+] Encontrado: {host_ids}, eliminando...")
+
+            zbx_call("host.delete", host_ids, with_auth=True)
+            print(f"[✔] Host '{hn}' eliminado.")
+            eliminados.append(hn)
+
+        # 4️⃣ Resumen
+        print("\n===== RESUMEN =====")
+        print(f"Eliminados: {len(eliminados)}")
+        if eliminados:
+            print(" - " + "\n - ".join(eliminados))
+        print(f"No encontrados: {len(no_encontrados)}")
+        if no_encontrados:
+            print(" - " + "\n - ".join(no_encontrados))
+
+    except Exception as e:
+        print(f"[ERROR] {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
