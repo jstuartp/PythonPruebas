@@ -79,7 +79,7 @@ def escribir_mseed_por_estacion(st: Stream, out_dir: Path, event_name: str, net:
         return
     out_dir.mkdir(parents=True, exist_ok=True)
     loc_str = loc if loc else "--"
-    fname = f"{date}_{net}.{sta}.mseed"
+    fname = f"{net}_{sta}_{date}.mseed"
     path = out_dir / fname
 
     ordered = Stream()

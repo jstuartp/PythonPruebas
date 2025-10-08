@@ -1,7 +1,7 @@
 #!/usr/bin/env seiscomp-python
 # -*- coding: utf-8 -*-
 import glob
-import re
+import argparse
 
 import matplotlib
 from future.backports.datetime import timedelta
@@ -12,6 +12,7 @@ import time
 from concurrent.futures import ProcessPoolExecutor
 import sys
 import traceback
+import logging
 import datetime
 from datetime import datetime, timedelta
 import os
@@ -22,14 +23,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from soupsieve.css_types import pickle_register
 
-from seiscomp import core, client, io,  logging
-from seiscomp import client, datamodel
-from seiscomp.client import Protocol
-from seiscomp import logging as Logging
+
 from time import strftime
 from joblib import Parallel, delayed
 import os
-from seiscomp import datamodel, client, logging
+
 from obspy import UTCDateTime, read, Stream
 from obspy.core.inventory import Inventory
 from obspy import read_inventory
@@ -46,9 +44,9 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 #CONSTANTES BASES DE DATOS SEISCOMP
-my_host = 'localhost'
-my_user = 'root'
-my_password = 'lisucr01'
+my_host = '163.178.101.110'
+my_user = 'lis'
+my_password = 'Ucr_lis_seiscomp_110'
 my_db = 'seiscomp'
 
 #CONSTANTES BASES DE DATOS LOCAL
@@ -64,647 +62,563 @@ local_db = 'informes'
 
 # Parámetros configurables
 #SDS_ROOT = "/home/lis/seiscomp/var/lib/archive/"                # Ruta al SDS de seiscomp
-OUTPUT_DIR = "/home/lis/waves/sds/"         # Carpeta de salida para los MiniSEED
+OUTPUT_DIR = "/home/lis/waves/eventos/"         # Carpeta de salida para los MiniSEED
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"  # Formato ISO para tiempo inicial
 # Dirección del servicio FDSN de su SeisComP (ajuste el host y puerto según su instalación)
 FDSN_URL = "http://localhost:8080"  # Cambie localhost:8080 si corresponde
 ESTRUCTURAS_SCRIPT ="/home/lis/waves/corta_edificios.py" #ubicacion del script para activar procesos en el servidor edificios
 
-# Cree el cliente ObsPy apuntando a su servidor FDSN local
-clientfdsn = Client(base_url=FDSN_URL)
 
 # Parámetros de PGA
 MIN_PGA_CM_S2 = 2.0                    # Mínimo PGA en cm/s^2
 TOP_N = 30                             # Cantidad de registros a guardar
 
+#seccion para manejar info de configuracion y loggin
+taperMaxPercent=0.05
+taperType= "hann"
+filterType="bandpass"
+filterFreqMin=0.05
+filterFreqMax=25
+filterCorners=2
 
-# Ruta absoluta o relativa al archivo .env
-ruta_env = Path("/home/lis/.env")
-
-# Cargar el archivo .env desde esa ubicación
-load_dotenv(dotenv_path=ruta_env)
-
-
-class EventListener(client.Application):
-
-    def __init__(self, argc, argv):
-        client.Application.__init__(self, argc, argv)
-        self.setMessagingEnabled(True)
-        self.setDatabaseEnabled(False, False)
-        self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
-        self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(False)
-        
-        #seccion para manejar info de configuracion y loggin
-        self.addMessagingSubscription("CONFIG")
-        self.taperMaxPercent=0.05
-        self.taperType= "hann"
-        self.filterType="bandpass"
-        self.filterFreqMin=0.05
-        self.filterFreqMax=25
-        self.filterCorners=2
-
-        self.rutaRaiz ="/home/lis/waves/corta/"
-        self.rutaImagenes ="/home/lis/waves/imagenes/"
-        self.direccionWebServer = "lis@163.178.101.121:/var/www/informes.lis.ucr.ac.cr/seiscomp/public/assets/waves"
-        self.seiscomp_path = os.environ.get("SEISCOMP_ROOT") # ruta del seiscomp base
-        self.SDS_ROOT = self.seiscomp_path+"/var/lib/archive/"  # Ruta al SDS de seiscomp
-        Logging.info("Inicio de CortaWaves")
-
-    def initConfiguration(self):
-
-        if not client.Application.initConfiguration(self):
-            return (False)
-        try:
-            self.taperMaxPercent = self.configGetString("taperMaxPercent")
-            Logging.info(self.taperMaxPercent)
-        except Exception as e:
-            Logging.error("Error while getting MAX PERCENT for TAPER: %s" % str(e))
-        try:
-            self.taperType = self.configGetString("taperType")
-            Logging.info(self.taperType)
-        except Exception as e:
-            Logging.error("Error while getting TYPE for TAPER: %s" % str(e))
-        try:
-            self.filterType = self.configGetString("filterType")
-            Logging.info(self.filterType)
-        except Exception as e:
-            Logging.error("Error while getting TYPE for FILTER: %s" % str(e))
-
-        try:
-            self.filterCorners = self.configGetString("filterCorners")
-            Logging.info(self.filterCorners)
-        except Exception as e:
-            Logging.error("Error while getting CORNERS for FILTER: %s" % str(e))
-        try:
-            self.filterFreqMax = self.configGetString("filterFreqMax")
-            Logging.info(self.filterFreqMax)
-        except Exception as e:
-            Logging.error("Error while getting Max Frecuency for FILTER: %s" % str(e))
-        try:
-            self.filterFreqMin = self.configGetString("filterFreqMin")
-            Logging.info(self.filterFreqMin)
-        except Exception as e:
-            Logging.error("Error while getting Min Frecuency for FILTER: %s" % str(e))
-
-        try:
-            self.rutaRaiz = self.configGetString("rutaRaiz")
-            Logging.info(self.rutaRaiz)
-        except Exception as e:
-            Logging.error("Error while getting route for FILES: %s" % str(e))
-        try:
-            self.rutaImagenes = self.configGetString("rutaImagenes")
-            Logging.info(self.rutaImagenes)
-        except Exception as e:
-            Logging.error("Error while getting route for PNG Files: %s" % str(e))
-        try:
-            self.direccionWebServer = self.configGetString("direccionWebServer")
-            Logging.info(self.direccionWebServer)
-        except Exception as e:
-            Logging.error("Error while getting route for Web Server: %s" % str(e))
-
-        return True
-    
-    
-    
-    
-    def doSomethingWithEvent(self, obj):
-
-        evento = datamodel.Event.Cast(obj)
-        tiempo = evento.creationInfo().creationTime().toString("%Y-%m-%dT%H:%M:%S.%f")
-        tiempo2 = datetime.strptime(tiempo, "%Y-%m-%dT%H:%M:%S.%f")
-        inv_path = self.seiscomp_path+"/share/scripts/inventory_full_fdns.xml"
-        self.proceso(tiempo,inv_path,evento)
-        parametroa = self.rutaImagenes + evento.publicID() + "/"
-        print(parametroa)
-        print(self.direccionWebServer)
-        #proceso para copiar imagenes de ondas
-        result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
-        Logging.info("IMAGENES COPIADAS")
+rutaScrips="/home/lis/waves/scripts/"
+rutaRaiz ="/home/lis/waves/eventos/"
+rutaImagenes ="/home/lis/waves/imagenes/"
+direccionWebServer = "lis@163.178.101.121:/var/www/informes.lis.ucr.ac.cr/seiscomp/public/assets/waves"
 
 
-    def load_inventory_sc3(self,inv_path):
-        # Ejemplo: usar StationXML o SC3ML convertido a Inventory de ObsPy
-        #inventory = clientfdsn.get_stations(
-        #    network="*",  # todas las redes
-        #    station="*",  # todas las estaciones
-        #    location="*",  # todos los códigos de localización
-        #    channel="*",  # todos los canales
-        #    level="response"  # nivel de detalle: incluye respuesta instrumental
-        #)
-        #return inventory
-        return read_inventory(inv_path, format="STATIONXML")
-
-    def calculate_pga(self,tr, inventory, network, station, location, channel):
-        # Se asume que 'tr' es ya un Trace de aceleración en m/s^2
-        # Aplicar la respuesta instrumental (de ser necesario)
-        # Si la respuesta ya está aplicada, omitir el siguiente bloque
-        net = inventory.select(network=network, station=station)
-        if net:
-            tr.remove_response(inventory=net, output="ACC")
-            #print("PUDE REMOVER PARA %s" % tr.stats.station)
 
 
-        # Calcular PGA (valor máximo absoluto)
-        try:
-            tr.detrend("demean")
-            tr.detrend("linear")
-            tr.taper(max_percentage=float(self.taperMaxPercent), type=self.taperType)
-            tr.filter(self.filterType, freqmin=float(self.filterFreqMin),
-                       freqmax=float(self.filterFreqMax),
-                       corners=float(self.filterCorners))
-            pga = np.max(np.abs(tr.data))
-            #print("PGA NORMAL PARA %s" % tr.stats.station)
+
+
+def doSomethingWithEvent(inicio,evento):
+
+    logging.basicConfig(
+        filename=rutaRaiz+evento+'/log_evento.log',
+        level=logging.INFO,  # Nivel mínimo que se registrará
+        format='%(asctime)s [%(levelname)s] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+
+    #tiempo = inicio
+    inv_path = "/home/lis/waves/inventory_Estructuras.xml"
+    base = "/home/lis/waves/eventos/"
+    agrupados = get_streams_for_event_from_directory(base,evento)
+    proceso(agrupados,inv_path,evento,inicio)
+    parametroa = rutaImagenes + evento + "/"
+    logging.info("Proceso terminado")
+
+    #proceso para copiar imagenes de ondas
+    #result = subprocess.run(['scp', '-r', parametroa, direccionWebServer], capture_output=True, text=True)
+    #Logging.info("IMAGENES COPIADAS")
+
+
+def load_inventory_sc3(inv_path):
+    # Ejemplo: usar StationXML o SC3ML convertido a Inventory de ObsPy
+    #inventory = clientfdsn.get_stations(
+    #    network="*",  # todas las redes
+    #    station="*",  # todas las estaciones
+    #    location="*",  # todos los códigos de localización
+    #    channel="*",  # todos los canales
+    #    level="response"  # nivel de detalle: incluye respuesta instrumental
+    #)
+    #return inventory
+    return read_inventory(inv_path, format="STATIONXML")
+
+def calculate_pga(tr, inventory, network, station, location, channel):
+    # Se asume que 'tr' es ya un Trace de aceleración en m/s^2
+    # Aplicar la respuesta instrumental (de ser necesario)
+    # Si la respuesta ya está aplicada, omitir el siguiente bloque
+    #net = inventory.select(network=network, station=station)
+    #print(inventory)
+    #if inventory is None:
+        #tr.remove_response(inventory=catalogo_net, output="ACC")
+        #print("PUDE REMOVER PARA %s" % tr.stats.station)
+
+
+    # Calcular PGA (valor máximo absoluto)
+    logging.info("Calculando PGA")
+    try:
+        tr.detrend("demean")
+        tr.detrend("linear")
+        tr.taper(max_percentage=float(taperMaxPercent), type=taperType)
+        tr.filter(filterType, freqmin=float(filterFreqMin),
+                   freqmax=float(filterFreqMax),
+                   corners=float(filterCorners))
+        pga = np.max(np.abs(tr.data))
+        #print("PGA NORMAL PARA %s" % tr.stats.station)
+        #print("Canal %s" % tr.stats.channel)
+        #print("VALOR %s" % pga)
+    except  Exception as e:
+        st_umask = tr.split()
+        a = []
+        for tr1 in st_umask:
+            print("UMASK %s" % station)
+            #tr1 = tr1.remove_response(inventory, output="ACC")
+            tr1.detrend("demean")
+            tr1.detrend("linear")
+            tr1.taper(max_percentage=float(taperMaxPercent), type=taperType)
+            tr1.filter(filterType, freqmin=float(filterFreqMin),
+                       freqmax=float(filterFreqMax),
+                       corners=float(filterCorners))
+            a.append(np.max(np.abs(tr1.data)))
+            pga = max(a)
+            #print("PGA SPLIT PARA %s" % tr.stats.station)
             #print("Canal %s" % tr.stats.channel)
             #print("VALOR %s" % pga)
-        except  Exception as e:
-            st_umask = tr.split()
-            a = []
-            for tr1 in st_umask:
-                print("UMASK %s" % station)
-                #tr1 = tr1.remove_response(inventory, output="ACC")
-                tr1.detrend("demean")
-                tr1.detrend("linear")
-                tr1.taper(max_percentage=float(self.taperMaxPercent), type=self.taperType)
-                tr1.filter(self.filterType, freqmin=float(self.filterFreqMin),
-                           freqmax=float(self.filterFreqMax),
-                           corners=float(self.filterCorners))
-                a.append(np.max(np.abs(tr1.data)))
-                pga = max(a)
-                #print("PGA SPLIT PARA %s" % tr.stats.station)
-                #print("Canal %s" % tr.stats.channel)
-                #print("VALOR %s" % pga)
-            logging.warning(f"Error en {network}.{station}.{tr.stats.channel}: {e}")
-        return pga * 100.0  # Convertir a cm/s^2
+        logging.error(f"Error en cacululoPGA {network}.{station}.{tr.stats.channel}: {e}")
+    return pga * 100.0  # Convertir a cm/s^2
 
-    def get_streams_for_event_from_directory(self, base_dir: str, event: str) -> dict[tuple[str, str], Stream]:
-        """Lee todos los .mseed en base_dir/event, agrupa por (network, station) y fusiona trazas.
-        Devuelve un diccionario {(net, sta): Stream}.
-        """
+def get_streams_for_event_from_directory(base_dir: str, event: str) -> dict[tuple[str, str], Stream]:
+    """Lee todos los .mseed en base_dir/event, agrupa por (network, station) y fusiona trazas.
+    Devuelve un diccionario {(net, sta): Stream}.
+    """
 
-        ruta_evento = os.path.join(base_dir, event)
-        if not os.path.isdir(ruta_evento):
-            raise FileNotFoundError(f"No existe el directorio del evento: {ruta_evento}")
+    ruta_evento = os.path.join(base_dir, event)
+    if not os.path.isdir(ruta_evento):
+        raise FileNotFoundError(f"No existe el directorio del evento: {ruta_evento}")
 
-        paths = sorted(glob.glob(os.path.join(ruta_evento, "*.mseed")))
-        if not paths:
-            logging.warning("No se encontraron archivos .mseed en %s", ruta_evento)
+    paths = sorted(glob.glob(os.path.join(ruta_evento, "*.mseed")))
+    if not paths:
+        logging.error("No se encontraron archivos .mseed en %s", ruta_evento)
 
-        agrupados: dict[tuple[str, str], Stream] = {}
-        for p in paths:
-            try:
-                st = read(p)
-            except Exception as e:
-                logging.warning("No se pudo leer %s: %s", p, e)
-            continue
+    agrupados: dict[tuple[str, str], Stream] = {}
+    for p in paths:
+        try:
+            st = read(p)
+        except Exception as e:
+            logging.error("No se pudo leer %s: %s", p, e)
+        #continue
         for tr in st:
             key = (tr.stats.network, tr.stats.station)
-        if key not in agrupados:
-            agrupados[key] = Stream()
-        agrupados[key] += tr
+            if key not in agrupados:
+                agrupados[key] = Stream()
+            agrupados[key] += tr
+            # Merge por estación
+            for key, st in list(agrupados.items()):
+                try:
+                    st.merge(method=1, fill_value="interpolate")
+                    agrupados[key] = st
+                except Exception as e:
+                    logging.error("No se pudo fusionar stream %s: %s", key, e)
 
-        # Merge por estación
-        for key, st in list(agrupados.items()):
-            try:
-                st.merge(method=1, fill_value="interpolate")
-                agrupados[key] = st
-            except Exception as e:
-                logging.warning("No se pudo fusionar stream %s: %s", key, e)
-        return agrupados
+    return agrupados
 
-    def proceso(self,time_inicial_str, inv_path,evento):
-        os.makedirs(OUTPUT_DIR, exist_ok=True)
-        # 1. Tiempo inicial y ventanas de búsqueda
-        t0 = UTCDateTime(time_inicial_str)
-        t1 = t0 - 180  # 3 minutos antes
-        t2 = t0 + 180  # 3 minutos después
+def proceso(agrupados, inv_path,evento,inicio):
+    #os.makedirs(OUTPUT_DIR, exist_ok=True)
+    # 1. Tiempo inicial y ventanas de búsqueda
 
-        # 2. Cargar inventario completo (ObsPy Inventory)
-        inventory = self.load_inventory_sc3(inv_path)
-        #print(inventory)
-        # 3. Crear cliente SDS
-        sds_client = SDSClient(self.SDS_ROOT)
+    # 2. Cargar inventario completo (ObsPy Inventory)
+    inventory = load_inventory_sc3(inv_path)
+    #print(inventory)
 
-        resultados = []
-        streams = []
-        pgas = []
-        maximos = []
-        informe = 0
-        agrupados = self.get_streams_for_event_from_directory(base_dir, event)
+    resultados = []
+    streams = []
+    pgas = []
+    maximos = []
+    informe = 0
+    #agrupados = self.get_streams_for_event_from_directory(base_dir, event)
 
-        # 4. Recorre todos los canales de aceleración del inventario
-        for (net, sta), st in agrupados.items():
-            # Metadatos del inventario (si existen)
-            lat = lon = elev = None
-            site_name = manufacturer = serial = None
-            try:
-                inv_subset = inventory.select(network=net, station=sta)
-                n0 = inv_subset[0]
-                s0 = n0.stations[0]
-                lat, lon, elev = s0.latitude, s0.longitude, s0.elevation
-                if s0 and s0.channels:
-                    ch0 = s0.channels[0]
-                if ch0.sensor:
-                    manufacturer = getattr(ch0.sensor, "manufacturer", None)
-                serial = getattr(ch0.sensor, "serial_number", None)
-                site_name = s0.site.name
-            except Exception:
-                pass
+    # 4. Recorre todos los canales de aceleración del inventario
+    logging.info("Voy a recorrer streams")
 
-            reg = {
-                "evento": event,
-                "network": net,
-                "estacion": sta,
-                "latitud": lat,
-                "longitud": lon,
+    for (net, sta), st in agrupados.items():
+
+        catalogo_net =  inventory.select(network=net, station=sta)
+        #print(f"{net} -> {sta}")
+        #print(f"Network? {catalogo_net.networks[0].code}")
+        network = catalogo_net.networks[0].code
+        mysta = catalogo_net.networks[0].stations[0]
+        #print(f"Estacion? {mysta.code}")
+        station = mysta.code
+        site_name = mysta.site.name
+        #print(f"Nombre? {site_name}")
+        channel = mysta[0]
+        soil = ""  # obtener tipo de suelo
+        try:
+            manufacturer = channel.sensor.manufacturer
+            serial = channel.sensor.serial_number
+        except Exception as e:
+            manufacturer = "unknown"
+            serial = "unknown"
+            logging.error(f"error {e}")
+        elevation = channel.elevation
+        logging.info(f"Procesando estacion...{sta}")
+        location = "**"
+        channel = "HN*"
+        pgasChannel = []
+
+        # 5. Leer la traza
+        try:
+            #print(st)
+            #st.merge(method=1, fill_value='interpolate')
+            stRaw = st
+            if not st or len(st) == 0:
+                continue
+            # tr = st[0]
+            # 6. Aplicar respuesta y calcular PGA
+            m = 0.0
+            for tr in st:
+                logging.info(f"Voy a calcular pga para {tr.stats.channel}")
+                pga = calculate_pga(tr, catalogo_net, network, station, location, channel)
+                if pga > m:
+                    m = pga
+                #  pgas.append({
+                #      "pga": pga
+                # })
+                pgasChannel.append({str(tr.stats.channel).lower(): pga})
+            maximos.append({
+                "station": station,
+                "maximos": m
+            })
+            # print(pgasChannel)
+            resultados.append({
+                "fecha_evento": inicio,
+                "fecha_calculo": datetime.now(),
+                "evento": evento,
+                "tipo": 2,
+                "network": network,
+                "estacion": station,
+                "latitud": mysta.latitude,
+                "longitud": mysta.longitude,
                 "site_name": site_name,
-                "altitud": elev,
-                "site_manufacturer": manufacturer or "unknown",
-                "site_serial": serial or "unknown",
-                "HNN": 0.0,
-                "HNE": 0.0,
-                "HNZ": 0.0,
-                "maximos": pgas.get("maximos", 0.0),
-            }
-            for ch, val in pgas.items():
-                if ch in ("HNN", "HNE", "HNZ"):
-                    reg[ch] = val
+                "altitud": elevation,
+                "site_manufacturer": manufacturer,
+                "site_serial": serial
+            })
+            ultimo = resultados[-1]
+            for i in pgasChannel:
+                ultimo.update(i)
+            streams.append({
+                "evento": evento,
+                "network": network,
+                "station": station,
+                "st": stRaw.copy(),
+            })
 
-
-                    idp = self.chequeaBdPga(reg["estacion"], reg["evento"])  # puede ser None
-
-
-                    self.insertaBd(reg)
-
-            resultados.append(reg)
-
-
-            except Exception as e:
-            logging.warning("Error al procesar %s.%s: %s", net, sta, e)
+        except Exception as e:
+            logging.error(f"Error en {net}.{sta}: {e}")
             continue
 
-            resultados.sort(key=lambda r: -float(r.get("maximos", 0.0)))
-            return resultados
-
         # 7. Ordenar y seleccionar los 20 registros con mayor PGA
-        maximos = sorted(maximos, key=lambda x: -x["maximos"])
+    #maximos = sorted(maximos, key=lambda x: -x["maximos"])
 
+    #se hacen las imagenes de todos los archivos mseed escritos
+    result = subprocess.Popen(
+        ["python3", rutaScrips+"plotea.py", "--imagenpng", rutaImagenes,"--ruta", OUTPUT_DIR+evento])
+    logging.info("Resultado del ploteo %s" % result)
 
-        #print(resultados)
-        # si existen al menos 5 estaciones que superan el umbral, se registra
-        #print(maximos[4]["maximos"])
-        if maximos[4]["maximos"] >= 2:
-            #se activa para guardar el informe
-            informe = 1
-            #se escriben los archivos mseed con la duracion determinada
-            self.cortaWaves(streams, evento.publicID(), t0)
-            #se hacen las imagenes de todos los archivos mseed escritos
-            result = subprocess.Popen(
-                ["python3", self.seiscomp_path+"/share/scripts/lis/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
-            #Logging.info("Resultado del ploteo %s" % result)
-
-            # se escriben los archivos .LIS
-            num_trabajos = -1  # Utiliza todos los núcleos disponibles
-            crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
-                delayed(self.archivoLis)(resultados[s], evento) for s in range(len(resultados)))
-            #Logging.info("Resultado del archivoLIS %s" % crealis)
-            #envia archivos lis a servidor central
-            res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
-                                   "lis@163.178.101.86:/home/lis/formato_lis/registros_revisados"])
-            res2 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
-                                   "lis@163.178.109.104:/home/lis/formato_lis/registros_revisados"])
-            res3 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
-                                   "lis@163.178.174.210:/home/lis/formato_lis/registros_revisados"])
-            #envia archivos lis a repositorio stuart
-            #result = subprocess.run(['scp', '-r', f"/home/lis/waves/LIS/{evento.publicID()}", self.direccionWebServer], capture_output=True, text=True)
-            print("Voy a llamar a estucturas")
-            # proceso para activar evento en servidor estructuras
-            estructuras = subprocess.Popen(
-                ["ssh", "lis@163.178.171.47" , f" nohup python3 {ESTRUCTURAS_SCRIPT} --start {evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S')}"
-                                               f" --event {str(evento.publicID())}"])
+    # se escriben los archivos .LIS
+    num_trabajos = -1  # Utiliza todos los núcleos disponibles
+    crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
+        delayed(archivoLis)(resultados[s], evento,inicio) for s in range(len(resultados)))
+    logging.info("Resultado del archivoLIS %s" % crealis)
+    #envia archivos lis a servidor central
+    res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}/",
+                           "lis@163.178.101.86:/home/lis/formato_lis/registros_edificios/"])
+    res2 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}/",
+                           "lis@163.178.109.104:/home/lis/formato_lis/registros_edificios/"])
+    res3 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}/",
+                           "lis@163.178.174.210:/home/lis/formato_lis/registros_edificios/"])
+    #envia archivos lis a repositorio stuart
+    #result = subprocess.run(['scp', '-r', f"/home/lis/waves/archivosLis/{evento}", self.direccionWebServer], capture_output=True, text=True)
 
 
 
-
-            # mandar a guardar los pga, iterando el arreglo y preguntando por cada estacion
-            #print(resultados)
-            for  res in resultados:
-                # chequeo si el evento ya tiene pgas guardados para cada estacion
-                #print(res)
-                idPga = self.chequeaBdPga(res["estacion"],res["evento"])
-                if not idPga:
-                    #print("Entre al insertar")
-                    # si la estacion no esta en la tabla pga -- hacer insert
-                    self.insertaBd(res)
-                else:
-                    # si la estación ya esta en la tabla pga -- hacer update
-                    self.updateBd(res,idPga)
-
-
-
-            # mandar a plotear todo enviando la carpeta donde estan los mseed
+    # mandar a guardar los pga, iterando el arreglo y preguntando por cada estacion
+    #print(resultados)
+    for  res in resultados:
+        # chequeo si el evento ya tiene pgas guardados para cada estacion
+        #print(res)
+        idPga = chequeaBdPga(res["estacion"],res["evento"])
+        if not idPga:
+            # si la estacion no esta en la tabla pga -- hacer insert
+            insertaBd(res)
         else:
-            Logging.info("El evento %s No cumple con el umbral de aceleracion" %evento)
+            # si la estación ya esta en la tabla pga -- hacer update
+            updateBd(res,idPga)
 
-        # consultar el evento.id, traer los datos
-        datosEvento = self.obtener_datos_por_id(evento.publicID())
-        # chequear si el evento no existe en la tabla nueva
-        fechaEvento = self.chequeaEvento(evento.publicID())
-        # si no existe mandar a guardar en tabla de eventos nueva
-        if not fechaEvento:
-            # si no esta se inserta
-            Logging.info(
-                "--Guardando nuevo evento %s---------\n" % evento.publicID())
-            self.insertarEvento(datosEvento,maximos[0]["maximos"],maximos[0]["station"],informe)
-            # se llama el jma para insertar valores del nuevo evento
+
+    # consultar el evento.id, traer los datos
+    #datosEvento = obtener_datos_por_id(evento)
+    # chequear si el evento no existe en la tabla nueva
+    fechaEvento = chequeaEvento(evento)
+    # si no existe mandar a guardar en tabla de eventos nueva
+    if not fechaEvento:
+        # se llama el jma para insertar valores del nuevo evento
+        print("sacando JMA nuevo")
+        resultJMA = subprocess.run(
+            ["python3", rutaScrips+"jma_estructuras.py", "--evento",
+             evento, "--ruta", OUTPUT_DIR + evento, "--tipo", "1"])
+        logging.info("Resultado del JMA insertar %s" % resultJMA)
+
+    else:
+        # si llega un evento mas nuevo, lo actualiza
+        #print(fechaEvento['fecha'])
+        #t0 = inicio
+        #print(t0)
+        if fechaEvento['fecha'].strftime('%Y%m%dT%H%M%S') < inicio:
+            print("sacando JMA actualizando")
+            # se llama el jma para actualizar valores del evento
             resultJMA = subprocess.run(
-                ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
-                 evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "1"])
-            #Logging.info("Resultado del JMA insertar %s" % resultJMA)
+                ["python3", rutaScrips+"/jma_estructuras.py", "--evento",
+                 evento, "--ruta", OUTPUT_DIR + evento, "--tipo", "2"])
+            logging.info("Resultado del JMA actualizar %s" % resultJMA)
 
-        else:
-            # si llega un evento mas nuevo, lo actualiza
-            #print(fechaEvento['fecha'])
-            t0 = UTCDateTime(evento.creationInfo().creationTime().toString("%Y-%m-%dT%H:%M:%S"))
-            #print(t0)
-            if fechaEvento['fecha'] < t0:
-                # actualizar evento
-                Logging.info(
-                    "--Actualizando evento existente %s---------\n" % evento.publicID())
-                self.actualizaEvento(datosEvento, evento.publicID(),maximos[0]["maximos"],maximos[0]["station"],informe)
-                # se llama el jma para actualizar valores del evento
-                resultJMA = subprocess.run(
-                    ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
-                     evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "2"])
-                #Logging.info("Resultado del JMA actualizar %s" % resultJMA)
-
-                # si no hay evento mas nuevo, no se hace nada
+            # si no hay evento mas nuevo, no se hace nada
 
 
-    #funcion para calcular la distancia de epicentro e hipocentro
-    def epicentral_and_hypocentral_obspy(self,lat_epi, lon_epi, lat_sta, lon_sta, depth_km):
-        # Distancia sobre el elipsoide WGS84 (metros) y azimuts (grados)
-        dist_m, az, baz = gps2dist_azimuth(lat_epi, lon_epi, lat_sta, lon_sta)
-        delta_km = dist_m / 1000.0
-        Rh = math.sqrt(delta_km ** 2 + depth_km ** 2)
-        return {
-            "dist_epicentral_km": delta_km,
-            "dist_hipocentral_km": Rh,
-            "azimuth_deg": az,  # desde el epicentro hacia la estación
-            "back_azimuth_deg": baz  # desde la estación hacia el epicentro
-        }
+#funcion para calcular la distancia de epicentro e hipocentro
+def epicentral_and_hypocentral_obspy(lat_epi, lon_epi, lat_sta, lon_sta, depth_km):
+    # Distancia sobre el elipsoide WGS84 (metros) y azimuts (grados)
+    dist_m, az, baz = gps2dist_azimuth(lat_epi, lon_epi, lat_sta, lon_sta)
+    delta_km = dist_m / 1000.0
+    Rh = math.sqrt(delta_km ** 2 + depth_km ** 2)
+    return {
+        "dist_epicentral_km": delta_km,
+        "dist_hipocentral_km": Rh,
+        "azimuth_deg": az,  # desde el epicentro hacia la estación
+        "back_azimuth_deg": baz  # desde la estación hacia el epicentro
+    }
 
 
 
-    #funcion para hacer archivos LIS
-    def archivoLis(self,resultados,evento):
+#funcion para hacer archivos LIS
+def archivoLis(resultados,evento,fecha):
 
-        #el try elimina las estaciones que no tienen las 3 componentes
+    #el try elimina las estaciones que no tienen las 3 componentes
+    try:
+
+        carpeta = os.path.join(OUTPUT_DIR, evento)
+        # Buscar archivos que contengan la estación en el nombre
+        patron = os.path.join(carpeta, f"*_{resultados['estacion']}_*.mseed")
+        archivos = glob.glob(patron)
         try:
-            # verifica si la estacion supera 2 cm/s**2
-            if max(resultados['hnn'],resultados['hne'],resultados['hnz']) >= 2:
-                carpeta = os.path.join(OUTPUT_DIR, evento.publicID())
-                # Buscar archivos que contengan la estación en el nombre
-                patron = os.path.join(carpeta, f"*_{resultados['estacion']}_*.mseed")
-                archivos = glob.glob(patron)
-                try:
-                    os.stat("/home/lis/waves/LIS/" + evento.publicID())
-                except:
-                    os.mkdir("/home/lis/waves/LIS/" + evento.publicID())
-
-                datos = self.obtener_datos_por_id(evento.publicID())
-
-                #manda a llamar al escribe_lis
-                punto_epi=(datos['latitud'],datos["longitud"])
-                punto_sta =(resultados['latitud'],resultados["longitud"])
-                distancias = self.epicentral_and_hypocentral_obspy(datos['latitud'],datos["longitud"],resultados['latitud'],resultados["longitud"],datos["profundidad"])
-                epicentral_dist = geodesic(punto_epi,punto_sta).kilometers
-                soil=self.obtener_suelo(resultados['estacion'])
-                epicenter_str = self.ciudad_mas_cercana_descripcion(datos['latitud'],datos['longitud'])
-
-                # se llama al escribe lis que es un proceso externo, se envian todos los parametros necesarios
-                result = subprocess.run(
-                    ["python3", self.seiscomp_path+"/share/scripts/lis/escribe_lis.py", "--mseed", archivos[0], "--out",
-                     f"/home/lis/waves/LIS/{evento.publicID()}/{evento.creationInfo().creationTime().toString('%Y%m%d%H%M')}_{resultados['estacion']}.lis",
-                     "--station-name", resultados['site_name'],"--event-date",evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S'),
-                     "--event-lat",str(datos['latitud']),"--event-lon", str(datos["longitud"]),"--event-depth",str(datos["profundidad"]),"--event-mw",str(datos["magnitud"]),
-                     "--station-code",resultados['estacion'],"--station-lat",str(resultados['latitud']),"--station-lon",str(resultados['longitud']),
-                     "--pga-n00e",str(resultados['hnn']),"--pga-updo",str(resultados['hnz']),"--pga-n90e",str(resultados['hne']),"--station-elev", str(resultados['altitud']),
-                     "--instrument-type", str(resultados['site_manufacturer']), "--serial", str(resultados['site_serial']),"--epicentral-km",str(epicentral_dist),
-                     "--hypocentral-km", str(distancias['dist_hipocentral_km']),"--azimuth",str(distancias['azimuth_deg']),"--site-condition","FFD","--soil-type",str(soil),
-                     "--epicenter", epicenter_str
-                     ])
-                #Logging.info("Resultado de los archivos LIS %s" % result)
-        except Exception as e:
-            Logging.error(
-                "--El archivo no tiene las tres componentes %s---------\n" % resultados['estacion'])
-            print(f"El archivo no tiene las tres componentes {resultados['estacion']}")
-
-
-    #funcion para calcular la cuidad mas cercana al epicentro
-    #necesita un archivo de cuidades
-    def ciudad_mas_cercana_descripcion(self,
-                                       lat_punto: float,
-                                       lon_punto: float,
-                                       lat_col: str = "latitud",
-                                       lon_col: str = "longitud",
-                                       name_col: str = "distrito") -> str:
-        """
-        Lee el CSV fijo en self.seiscomp_path + "/share/scripts/lis/ciudades.csv",
-        identifica la ciudad más cercana al punto (lat_punto, lon_punto), calcula la
-        distancia geodésica (Haversine) y el rumbo desde la ciudad hacia el punto,
-        lo clasifica en octantes cardinales en español y retorna una descripción con
-        el formato:
-            "<dist> kilómetros al "<OCTANTE>" de "<NombreCiudad>"".
-
-        Parámetros:
-            lat_punto (float): Latitud del punto objetivo en grados.
-            lon_punto (float): Longitud del punto objetivo en grados.
-            lat_col (str): Nombre de la columna de latitud en el CSV (default: "latitud").
-            lon_col (str): Nombre de la columna de longitud en el CSV (default: "longitud").
-            name_col (str): Nombre de la columna con el nombre de ciudad (default: "ciudad").
-
-        Retorna:
-            str: Descripción como '<dist> kilómetros al "<OCTANTE>" de "<NombreCiudad>"'.
-
-        Excepciones:
-            FileNotFoundError: Si el CSV no existe.
-            ValueError: Si faltan columnas requeridas o no hay registros válidos.
-        """
-
-        # --- Ruta fija del CSV ---
-        csv_path = os.path.join(self.seiscomp_path, "share", "scripts", "lis", "ciudades.csv")
-
-        # --- Carga y validaciones ---
-        try:
-            df = pd.read_csv(csv_path)
-        except FileNotFoundError:
-            raise FileNotFoundError(f"No se encontró el archivo CSV: {csv_path!r}")
-
-        for col in (lat_col, lon_col, name_col):
-            if col not in df.columns:
-                raise ValueError(f"El CSV debe contener la columna {col!r}. Columnas encontradas: {list(df.columns)}")
-
-        df = df.dropna(subset=[lat_col, lon_col, name_col])
-        if df.empty:
-            raise ValueError("El CSV no contiene filas válidas (está vacío o con valores nulos).")
-
-        # --- Constantes y conversiones del punto ---
-        R = 6371.0088  # Radio medio terrestre (km)
-        phi_p = math.radians(lat_punto)
-        lam_p = math.radians(lon_punto)
-
-        # --- Búsqueda de la ciudad más cercana (Haversine) ---
-        min_dist = float("inf")
-        ciudad_min = None
-        phi_c_min = None
-        lam_c_min = None
-
-        for row in df.itertuples(index=False):
-            lat_c = float(getattr(row, lat_col))
-            lon_c = float(getattr(row, lon_col))
-            nombre_c = str(getattr(row, name_col))
-
-            phi_c = math.radians(lat_c)
-            lam_c = math.radians(lon_c)
-
-            dphi = phi_p - phi_c
-            dlam = lam_p - lam_c
-
-            a = math.sin(dphi / 2) ** 2 + math.cos(phi_c) * math.cos(phi_p) * math.sin(dlam / 2) ** 2
-            c = 2 * math.asin(min(1.0, math.sqrt(a)))
-            dist_km = R * c
-
-            if dist_km < min_dist:
-                min_dist = dist_km
-                ciudad_min = nombre_c
-                phi_c_min = phi_c
-                lam_c_min = lam_c
-
-        if ciudad_min is None:
-            raise ValueError("No fue posible determinar la ciudad más cercana.")
-
-        # --- Rumbo (bearing) desde la ciudad más cercana hacia el punto ---
-        dlam_min = lam_p - lam_c_min
-        y = math.sin(dlam_min) * math.cos(phi_p)
-        x = (math.cos(phi_c_min) * math.sin(phi_p) -
-             math.sin(phi_c_min) * math.cos(phi_p) * math.cos(dlam_min))
-        theta = math.atan2(y, x)  # radianes
-        brng_deg = (math.degrees(theta) + 360.0) % 360.0  # [0, 360)
-
-        # --- Mapeo a octantes cardinales (N, N.E., E, S.E., S, S.O., O, N.O.) ---
-        def octante(ang: float) -> str:
-            if ang >= 337.5 or ang < 22.5:
-                return "N."
-            elif ang < 67.5:
-                return "N.E."
-            elif ang < 112.5:
-                return "E."
-            elif ang < 157.5:
-                return "S.E."
-            elif ang < 202.5:
-                return "S."
-            elif ang < 247.5:
-                return "S.O."
-            elif ang < 292.5:
-                return "O."
-            else:
-                return "N.O."
-
-        dir_cardinal = octante(brng_deg)
-
-        # --- Redondeo y salida ---
-        dist_str = f"{min_dist:.1f}"
-        return f'{dist_str} kilómetros al {dir_cardinal} de {ciudad_min}'
-
-
-    #funcion que devuelve el tipo de suelo de una estacion particular
-    #necesita un archivo con los tipos de suelo
-    def obtener_suelo(self, estacion_buscar):
-        # Leer el CSV en un DataFrame
-        #path = os.environ.get("SEISCOMP_ROOT")
-        dir = self.seiscomp_path + "/share/scripts/lis/suelo.csv"
-        df = pd.read_csv(dir)
-
-        # Convertir a diccionario: clave=estacion, valor=suelo
-        dicc = dict(zip(df['estacion'], df['suelo']))
-
-        # Retornar el valor de suelo si existe la estación
-        return dicc.get(estacion_buscar, None)
-
-    #actualiza en caso de que llegue un evento igual, pero con fecha actualizada
-    def actualizaEvento(self, datos,idEvento,maxAcelera,lugarAcelera,informe):
-
-        Logging.info(
-            "Actualizando evento %s " % idEvento)
-        conn = pymysql.connect(  # conexión usa parametros puestos arriba
-            host=local_host,
-            user= local_user,
-            password= local_password,
-            db= local_db,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor
-        )
-        #arreglo para insertar valores junto con los datos por parametro
-        valores = [datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],maxAcelera,lugarAcelera,datos["profundidad"],informe,idEvento]
-        try:
-            with (conn.cursor() as cursor):
-                # Create a new record
-                sql = (
-                    "UPDATE historico_sismos SET "
-                    "`fechaEvento` = %s,"
-                    "`latitudEvento`= %s,"
-                    "`longitudEvento`= %s,"
-                    "`magnitudEvento`= %s,"
-                    "`aceleracionEvento`= %s,"
-                    "`lugarAceleracion`= %s,"
-                    "`profundidadEvento`= %s,"
-                    "`informe`= %s "
-                    "WHERE idEvento = %s")
-                print(valores)
-                cursor.execute(sql, valores)
-            # Commit changes
-            conn.commit()
-            Logging.info(
-                "--EXITO---------Evento actualizado  \n" )
-            #print("Nuevos sismo registrado")
-        except  Exception as e:
-            Logging.error(
-                "--ERROR---------Se registro el siguiente error actualizando datos %s  \n" %e)
-        finally:
-            conn.close()
-
-    #funcion para cortar los streams y guardarlos en .mseed
-    #guarda 3 minutos antes y 3 mins despues del evento
-    def cortaWaves(self,streams,evento,t0):
-
-        ruta = OUTPUT_DIR+evento
-        try:
-            os.stat(ruta)
+            os.stat("/home/lis/waves/archivosLis/" + evento)
         except:
-            os.mkdir(ruta)
+            os.mkdir("/home/lis/waves/archivosLis/" + evento)
 
-        for idx, res in enumerate(streams, 1):
-            # Recortar la traza en la ventana deseada (si es necesario)
-            tr = res["st"]
-            tr.trim(starttime=res["t1"], endtime=res["t2"])
+        datos = obtener_datos_por_id(evento)
 
-            # Generar nombre de archivo//HACER DIRECTORIO POR CADA EVENTO
-            fname = f"{ruta}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
+        #manda a llamar al escribe_lis
+        punto_epi=(datos['latitud'],datos["longitud"])
+        punto_sta =(resultados['latitud'],resultados["longitud"])
+        distancias = epicentral_and_hypocentral_obspy(datos['latitud'],datos["longitud"],resultados['latitud'],resultados["longitud"],datos["profundidad"])
+        epicentral_dist = geodesic(punto_epi,punto_sta).kilometers
+        soil=obtener_suelo(resultados['estacion'])
+        epicenter_str = ciudad_mas_cercana_descripcion(datos['latitud'],datos['longitud'])
 
-            try:
-                tr.write(fname, format="mseed")
+        # se llama al escribe lis que es un proceso externo, se envian todos los parametros necesarios
+        result = subprocess.run(
+            ["python3", rutaScrips+"escribe_lis.py", "--mseed", archivos[0], "--out",
+             f"/home/lis/waves/archivosLis/{evento}/{fecha}_{resultados['estacion']}.lis",
+             "--station-name", resultados['site_name'],"--event-date",evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S'),
+             "--event-lat",str(datos['latitud']),"--event-lon", str(datos["longitud"]),"--event-depth",str(datos["profundidad"]),"--event-mw",str(datos["magnitud"]),
+             "--station-code",resultados['estacion'],"--station-lat",str(resultados['latitud']),"--station-lon",str(resultados['longitud']),
+             "--pga-n00e",str(resultados['hnn']),"--pga-updo",str(resultados['hnz']),"--pga-n90e",str(resultados['hne']),"--station-elev", str(resultados['altitud']),
+             "--instrument-type", str(resultados['site_manufacturer']), "--serial", str(resultados['site_serial']),"--epicentral-km",str(epicentral_dist),
+             "--hypocentral-km", str(distancias['dist_hipocentral_km']),"--azimuth",str(distancias['azimuth_deg']),"--site-condition","FFD","--soil-type",str(soil),
+             "--epicenter", epicenter_str
+             ])
+        #Logging.info("Resultado de los archivos LIS %s" % result)
+    except Exception as e:
+        print(
+            "--El archivo no tiene las tres componentes %s---------\n" % resultados['estacion'])
+        logging.error(f"El archivo no tiene las tres componentes {resultados['estacion']}, error = {e}")
 
-            except Exception as err:
-                Logging.error(
-                    "--FALLO EN ESCRITURA-- No data written for station %s \n" % res['station'])
-                Logging.error(
-                "--FALLO EN ESCRITURA-- ErrorMessange %s \n" % err)
+
+#funcion para calcular la cuidad mas cercana al epicentro
+#necesita un archivo de cuidades
+def ciudad_mas_cercana_descripcion(
+                                   lat_punto: float,
+                                   lon_punto: float,
+                                   lat_col: str = "latitud",
+                                   lon_col: str = "longitud",
+                                   name_col: str = "distrito") -> str:
+    """
+    Lee el CSV fijo en self.seiscomp_path + "/share/scripts/lis/ciudades.csv",
+    identifica la ciudad más cercana al punto (lat_punto, lon_punto), calcula la
+    distancia geodésica (Haversine) y el rumbo desde la ciudad hacia el punto,
+    lo clasifica en octantes cardinales en español y retorna una descripción con
+    el formato:
+        "<dist> kilómetros al "<OCTANTE>" de "<NombreCiudad>"".
+
+    Parámetros:
+        lat_punto (float): Latitud del punto objetivo en grados.
+        lon_punto (float): Longitud del punto objetivo en grados.
+        lat_col (str): Nombre de la columna de latitud en el CSV (default: "latitud").
+        lon_col (str): Nombre de la columna de longitud en el CSV (default: "longitud").
+        name_col (str): Nombre de la columna con el nombre de ciudad (default: "ciudad").
+
+    Retorna:
+        str: Descripción como '<dist> kilómetros al "<OCTANTE>" de "<NombreCiudad>"'.
+
+    Excepciones:
+        FileNotFoundError: Si el CSV no existe.
+        ValueError: Si faltan columnas requeridas o no hay registros válidos.
+    """
+
+    # --- Ruta fija del CSV ---
+    csv_path = os.path.join(rutaScrips,"ciudades.csv")
+
+    # --- Carga y validaciones ---
+    try:
+        df = pd.read_csv(csv_path)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"No se encontró el archivo CSV: {csv_path!r}")
+
+    for col in (lat_col, lon_col, name_col):
+        if col not in df.columns:
+            raise ValueError(f"El CSV debe contener la columna {col!r}. Columnas encontradas: {list(df.columns)}")
+
+    df = df.dropna(subset=[lat_col, lon_col, name_col])
+    if df.empty:
+        raise ValueError("El CSV no contiene filas válidas (está vacío o con valores nulos).")
+
+    # --- Constantes y conversiones del punto ---
+    R = 6371.0088  # Radio medio terrestre (km)
+    phi_p = math.radians(lat_punto)
+    lam_p = math.radians(lon_punto)
+
+    # --- Búsqueda de la ciudad más cercana (Haversine) ---
+    min_dist = float("inf")
+    ciudad_min = None
+    phi_c_min = None
+    lam_c_min = None
+
+    for row in df.itertuples(index=False):
+        lat_c = float(getattr(row, lat_col))
+        lon_c = float(getattr(row, lon_col))
+        nombre_c = str(getattr(row, name_col))
+
+        phi_c = math.radians(lat_c)
+        lam_c = math.radians(lon_c)
+
+        dphi = phi_p - phi_c
+        dlam = lam_p - lam_c
+
+        a = math.sin(dphi / 2) ** 2 + math.cos(phi_c) * math.cos(phi_p) * math.sin(dlam / 2) ** 2
+        c = 2 * math.asin(min(1.0, math.sqrt(a)))
+        dist_km = R * c
+
+        if dist_km < min_dist:
+            min_dist = dist_km
+            ciudad_min = nombre_c
+            phi_c_min = phi_c
+            lam_c_min = lam_c
+
+    if ciudad_min is None:
+        raise ValueError("No fue posible determinar la ciudad más cercana.")
+
+    # --- Rumbo (bearing) desde la ciudad más cercana hacia el punto ---
+    dlam_min = lam_p - lam_c_min
+    y = math.sin(dlam_min) * math.cos(phi_p)
+    x = (math.cos(phi_c_min) * math.sin(phi_p) -
+         math.sin(phi_c_min) * math.cos(phi_p) * math.cos(dlam_min))
+    theta = math.atan2(y, x)  # radianes
+    brng_deg = (math.degrees(theta) + 360.0) % 360.0  # [0, 360)
+
+    # --- Mapeo a octantes cardinales (N, N.E., E, S.E., S, S.O., O, N.O.) ---
+    def octante(ang: float) -> str:
+        if ang >= 337.5 or ang < 22.5:
+            return "N."
+        elif ang < 67.5:
+            return "N.E."
+        elif ang < 112.5:
+            return "E."
+        elif ang < 157.5:
+            return "S.E."
+        elif ang < 202.5:
+            return "S."
+        elif ang < 247.5:
+            return "S.O."
+        elif ang < 292.5:
+            return "O."
+        else:
+            return "N.O."
+
+    dir_cardinal = octante(brng_deg)
+
+    # --- Redondeo y salida ---
+    dist_str = f"{min_dist:.1f}"
+    return f'{dist_str} kilómetros al {dir_cardinal} de {ciudad_min}'
 
 
+#funcion que devuelve el tipo de suelo de una estacion particular
+#necesita un archivo con los tipos de suelo
+def obtener_suelo(estacion_buscar):
+    # Leer el CSV en un DataFrame
+    #path = os.environ.get("SEISCOMP_ROOT")
+    dir = rutaScrips+"suelo.csv"
+    df = pd.read_csv(dir)
 
-    def insertarEvento(self, datos,maxpga,stationpga,informe):
+    # Convertir a diccionario: clave=estacion, valor=suelo
+    dicc = dict(zip(df['estacion'], df['suelo']))
 
+    # Retornar el valor de suelo si existe la estación
+    return dicc.get(estacion_buscar, None)
+
+#actualiza en caso de que llegue un evento igual, pero con fecha actualizada
+def actualizaEvento(datos,idEvento,maxAcelera,lugarAcelera,informe):
+
+    print(
+        "Actualizando evento %s " % idEvento)
+    conn = pymysql.connect(  # conexión usa parametros puestos arriba
+        host=local_host,
+        user= local_user,
+        password= local_password,
+        db= local_db,
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    #arreglo para insertar valores junto con los datos por parametro
+    valores = [datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],maxAcelera,lugarAcelera,datos["profundidad"],informe,idEvento]
+    try:
+        with (conn.cursor() as cursor):
+            # Create a new record
+            sql = (
+                "UPDATE historico_sismos SET "
+                "`fechaEvento` = %s,"
+                "`latitudEvento`= %s,"
+                "`longitudEvento`= %s,"
+                "`magnitudEvento`= %s,"
+                "`aceleracionEvento`= %s,"
+                "`lugarAceleracion`= %s,"
+                "`profundidadEvento`= %s,"
+                "`informe`= %s "
+                "WHERE idEvento = %s")
+            print(valores)
+            cursor.execute(sql, valores)
+        # Commit changes
+        conn.commit()
+        logging.info(
+            "--EXITO---------Evento actualizado  \n" )
+        #print("Nuevos sismo registrado")
+    except  Exception as e:
+        logging.error(
+            "--ERROR---------Se registro el siguiente error actualizando datos %s  \n" %e)
+    finally:
+        conn.close()
+
+
+def insertaBd(datos):
+
+    #print(datos)
+    valores =[]
+    try:
+        valores = [datos['fecha_evento'], datos['fecha_calculo'], datos['evento'], datos['tipo'], datos['estacion'],
+                   datos['latitud'],
+                   datos['longitud'], datos['hne'], datos['hnn'], datos['hnz'],
+                   max(datos['hne'], datos['hnn'], datos['hnz']),
+                   datos['evento'] + "/" + datos['network'] + "_" + datos['estacion'] + "_" + datos[
+                       'fecha_evento'], filterFreqMin, filterFreqMax]
+    except Exception as err:
+        logging.error(
+            "--ERROR---------Fail in channels for station %s " % datos['estacion'])
+        logging.error(
+            "--ERROR---------Error data %s " % err)
+    else:
+        #print(valores)
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=local_host,
             user= local_user,
@@ -713,184 +627,40 @@ class EventListener(client.Application):
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
         )
-        #arreglo para insertar valores junto con los datos por parametro
-        valores = [datos["publicID"],datos["hora"],datos["latitud"],datos["longitud"],datos["magnitud"],maxpga,stationpga,datos["profundidad"],informe]
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
                 sql = (
-                    "INSERT INTO historico_sismos ("
-                    "idEvento,"
-                    "fechaEvento,"
-                    "latitudEvento,"
-                    "longitudEvento,"
-                    "magnitudEvento,"
-                    "aceleracionEvento,"
-                    "lugarAceleracion,"
-                    "profundidadEvento,"
-                    "informe"
-                    ") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);")
+                    "INSERT INTO `Pga_estructuras` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`tipo_estacion`,`estacion`, "
+                    "`latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`,`min_filter`,`max_filter`)"
+                    " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s ,%s,%s,%s)")
                 # print(values)
                 cursor.execute(sql, valores)
             # Commit changes
             conn.commit()
-            Logging.info(
-                "--EXITO---------New event saved  \n" )
-            print("Nuevos sismo registrado")
+            logging.info(
+                "--EXITO---------Data save to Database  \n" )
+            #print("PGA guardado en la Base de Datos")
         finally:
             conn.close()
 
-    def insertaBd(self, datos):
+def updateBd(datos,idPga):
 
+    #print(datos)
+    valores = []
+    data_id = idPga[0]['id']
+    try:
+        valores = [datos['fecha_evento'], datos['fecha_calculo'],datos['evento'],datos['tipo'],datos['estacion'],datos['latitud'],
+                   datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),
+                   datos['evento']+"/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'],filterFreqMin,filterFreqMax,data_id]
+    except Exception as err:
+        logging.error(
+            "--ERROR---------Fail in channels for station %s " % datos['estacion'])
+        logging.error(
+            "--ERROR---------Error data %s " % err)
         #print(datos)
-        valores =[]
-        try:
-            valores = [datos['fecha_evento'], datos['fecha_calculo'], datos['evento'], datos['tipo'], datos['estacion'],
-                       datos['latitud'],
-                       datos['longitud'], datos['hne'], datos['hnn'], datos['hnz'],
-                       max(datos['hne'], datos['hnn'], datos['hnz']),
-                       datos['evento'] + "/" + datos['network'] + "_" + datos['estacion'] + "_" + datos[
-                           'fecha_evento'].strftime('%Y%m%dT%H%M%S'), self.filterFreqMin, self.filterFreqMax]
-        except Exception as err:
-            Logging.error(
-                "--ERROR---------Fail in channels for station %s " % datos['estacion'])
-            Logging.error(
-                "--ERROR---------Error data %s " % err)
-        else:
-            #print(valores)
-            conn = pymysql.connect(  # conexión usa parametros puestos arriba
-                host=local_host,
-                user= local_user,
-                password= local_password,
-                db= local_db,
-                charset='utf8mb4',
-                cursorclass=pymysql.cursors.DictCursor
-            )
-            try:
-                with (conn.cursor() as cursor):
-                    # Create a new record
-                    sql = (
-                        "INSERT INTO `Pga` (`fecha_evento`,`fecha_calculo`,`nombre_evento`,`tipo_estacion`,`estacion`, "
-                        "`latitud`, `longitud`, `hne_pga`, `hnn_pga`, `hnz_pga`,`maximo` ,`rutaWaveform`,`min_filter`,`max_filter`)"
-                        " VALUES (%s ,%s ,%s ,%s ,%s ,%s ,%s, %s ,%s ,%s ,%s ,%s,%s,%s)")
-                    # print(values)
-                    cursor.execute(sql, valores)
-                # Commit changes
-                conn.commit()
-                Logging.info(
-                    "--EXITO---------Data save to Database  \n" )
-                #print("PGA guardado en la Base de Datos")
-            finally:
-                conn.close()
-
-    def updateBd(self, datos,idPga):
-
-        #print(datos)
-        valores = []
-        data_id = idPga[0]['id']
-        try:
-            valores = [datos['fecha_evento'], datos['fecha_calculo'],datos['evento'],datos['tipo'],datos['estacion'],datos['latitud'],
-                       datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),
-                       datos['evento']+"/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'].strftime('%Y%m%dT%H%M%S'),self.filterFreqMin,self.filterFreqMax,data_id]
-        except Exception as err:
-            Logging.error(
-                "--ERROR---------Fail in channels for station %s " % datos['estacion'])
-            Logging.error(
-                "--ERROR---------Error data %s " % err)
-            #print(datos)
-        else:
-            #print(valores)
-            conn = pymysql.connect(  # conexión usa parametros puestos arriba
-                host=local_host,
-                user=local_user,
-                password=local_password,
-                db=local_db,
-                charset='utf8mb4',
-                cursorclass=pymysql.cursors.DictCursor
-            )
-            try:
-                with (conn.cursor() as cursor):
-                    # Create a new record
-                    sql = (
-                        "UPDATE Pga SET `fecha_evento`=%s,`fecha_calculo`=%s,`nombre_evento`=%s,`tipo_estacion`=%s,`estacion`=%s, `latitud`=%s,"
-                        " `longitud`=%s, `hne_pga`=%s, `hnn_pga`=%s, `hnz_pga`=%s,`maximo`=%s ,`rutaWaveform`=%s,`min_filter`=%s,`max_filter`=%s"
-                        "WHERE idpga = %s")
-                    cursor.execute(sql, valores)
-                # Commit changes
-                conn.commit()
-                Logging.info(
-                    "--EXITO---------Data updated to Database  \n" )
-                #print("PGA actualizado en la Base de Datos")
-            finally:
-                conn.close()
-
-
-    #Consulta a la base para extraer los datos del evento
-    def obtener_datos_por_id(self,eventoId):
-        conn = pymysql.connect(  # conexión usa parametros puestos arriba
-            host=my_host,
-            user=my_user,
-            password=my_password,
-            db=my_db,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor
-        )
-        try:
-            with (conn.cursor() as cursor):
-                consulta = (
-                    "select distinct PEvent.publicID, Origin.time_value as hora,  Origin.latitude_value as latitud,"
-                    "Origin.longitude_value as longitud,"
-                    "M.magnitude_value as magnitud, "
-                    "Origin.depth_value as profundidad "
-                    "from Origin,PublicObject as POrigin,Event,PublicObject as PEvent, Magnitude as M "
-                    "where POrigin.publicID=Event.preferredOriginID and  M._parent_oid = Origin._oid "
-                    "and Origin._oid=POrigin._oid and Event._oid=PEvent._oid "
-                    "and PEvent.publicID = %s Order by Origin.time_value DESC;")
-                #print(consulta)
-                cursor.execute(consulta, eventoId)
-                resultado = cursor.fetchone()
-        finally:
-                conn.close()
-        return resultado
-
-
-
-    def chequeaBdPga(self, estacion,evento):
-
-        conn = pymysql.connect(  # conexión usa parametros puestos arriba
-            host=local_host,
-            user=local_user,
-            password=local_password,
-            db=local_db,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor
-        )
-        #print(estacion)
-        #print(evento)
-        try:
-            with (conn.cursor() as cursor):
-                # Create a new record
-
-                consulta_sql = "select  Pga.idpga as id From Pga WHERE nombre_evento = %s AND estacion = %s"
-
-                # Ejecutar la consulta pasando los parámetros
-                cursor.execute(consulta_sql, (evento, estacion))
-                #print(consulta_sql)
-
-                # Obtener todos los resultados
-                resultados = cursor.fetchall()
-
-            # Commit changes
-            conn.commit()
-        finally:
-            conn.close()
-        return resultados
-
-    #chequea la fecha del evento a insertar, si ya existe
-    def chequeaEvento(self,evento):
-
-        Logging.info(
-            "Chequeando evento %s " %evento)
+    else:
+        #print(valores)
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=local_host,
             user=local_user,
@@ -902,50 +672,125 @@ class EventListener(client.Application):
         try:
             with (conn.cursor() as cursor):
                 # Create a new record
-                consulta_sql = "select  fechaEvento as fecha From historico_sismos WHERE idEvento = %s "
-                # Ejecutar la consulta pasando los parámetros
-                cursor.execute(consulta_sql,evento)
-                # Obtener todos los resultados
-                resultados = cursor.fetchone()
-                #print(resultados['fecha'])
+                sql = (
+                    "UPDATE informes.Pga_estructuras SET `fecha_evento`=%s,`fecha_calculo`=%s,`nombre_evento`=%s,`tipo_estacion`=%s,`estacion`=%s, `latitud`=%s,"
+                    " `longitud`=%s, `hne_pga`=%s, `hnn_pga`=%s, `hnz_pga`=%s,`maximo`=%s ,`rutaWaveform`=%s,`min_filter`=%s,`max_filter`=%s"
+                    " WHERE idpga = %s")
+                #print(cursor.mogrify(sql, valores))
+                cursor.execute(sql, valores)
             # Commit changes
             conn.commit()
-        except  Exception as e:
-            Logging.error(
-                "--ERROR---------Se registro el siguiente error %s  \n" %e)
+            logging.info(
+                "--EXITO---------Data updated to Database  \n" )
+            #print("PGA actualizado en la Base de Datos")
         finally:
             conn.close()
-        return resultados
 
 
-    def updateObject(self, parentID, scobject):
-        # called if an updated object is received
-        event = datamodel.Event.Cast(scobject)
-        retraso_seg = 3.2 * 60  # 3 minutos en segundos
-        if event:
-            print("Evento actualizado {}".format(event.publicID()))
-            time.sleep(retraso_seg)
-            self.doSomethingWithEvent(event)
+#Consulta a la base para extraer los datos del evento
+def obtener_datos_por_id(eventoId):
+    conn = pymysql.connect(  # conexión usa parametros puestos arriba
+        host=my_host,
+        user=my_user,
+        password=my_password,
+        db=my_db,
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    try:
+        with (conn.cursor() as cursor):
+            consulta = (
+                "select distinct PEvent.publicID, Origin.time_value as hora,  Origin.latitude_value as latitud,"
+                "Origin.longitude_value as longitud,"
+                "M.magnitude_value as magnitud, "
+                "Origin.depth_value as profundidad "
+                "from Origin,PublicObject as POrigin,Event,PublicObject as PEvent, Magnitude as M "
+                "where POrigin.publicID=Event.preferredOriginID and  M._parent_oid = Origin._oid "
+                "and Origin._oid=POrigin._oid and Event._oid=PEvent._oid "
+                "and PEvent.publicID = %s Order by Origin.time_value DESC;")
+            #print(consulta)
+            cursor.execute(consulta, eventoId)
+            resultado = cursor.fetchone()
+    finally:
+            conn.close()
+    return resultado
 
-            #self.doSomethingWithEvent(event)
 
-    def addObject(self, parentID, scobject):
-        # called if a new object is received
-        event = datamodel.Event.Cast(scobject)
-        if event:
-            print("Nuevo evento reportado {}".format(event.publicID())) #NO HACER NADA CON NUEVO SOLO SE PROCESA UPDATE
-            #self.doSomethingWithEvent(event)
 
-    def run(self):
-        # does not need to be reimplemented. it is just done to illustrate
-        # how to override methods
-        print("Hola! Estoy corriendo, esperando eventos.")
-        return client.Application.run(self)
+def chequeaBdPga(estacion,evento):
+    print(f"estacion {estacion}, evento {evento}")
+
+    conn = pymysql.connect(  # conexión usa parametros puestos arriba
+        host=local_host,
+        user=local_user,
+        password=local_password,
+        db=local_db,
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    #print(estacion)
+    #print(evento)
+    try:
+        with (conn.cursor() as cursor):
+            # Create a new record
+
+            consulta_sql = "select  idpga as id From Pga_estructuras WHERE nombre_evento = %s AND estacion = %s"
+
+            # Ejecutar la consulta pasando los parámetros
+            cursor.execute(consulta_sql, (evento, estacion))
+            #print(consulta_sql)
+
+            # Obtener todos los resultados
+            resultados = cursor.fetchall()
+
+        # Commit changes
+        conn.commit()
+    finally:
+        conn.close()
+
+    return resultados
+
+#chequea la fecha del evento a insertar, si ya existe
+def chequeaEvento(evento):
+
+    print(
+        "Chequeando evento %s " %evento)
+    conn = pymysql.connect(  # conexión usa parametros puestos arriba
+        host=local_host,
+        user=local_user,
+        password=local_password,
+        db=local_db,
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    try:
+        with (conn.cursor() as cursor):
+            # Create a new record
+            consulta_sql = "select  fechaEvento as fecha From historico_sismos WHERE idEvento = %s "
+            # Ejecutar la consulta pasando los parámetros
+            cursor.execute(consulta_sql,evento)
+            # Obtener todos los resultados
+            resultados = cursor.fetchone()
+            #print(resultados['fecha'])
+        # Commit changes
+        conn.commit()
+    except  Exception as e:
+        logging.error(
+            "--ERROR---------Se registro el siguiente error %s  \n" %e)
+    finally:
+        conn.close()
+    return resultados
 
 
 def main():
-    app = EventListener(len(sys.argv), sys.argv)
-    return app()
+    parser = argparse.ArgumentParser(
+        description="Calcula PGA y demas datos para las estructuras"
+    )
+    parser.add_argument("--start", required=True,
+                        help="Fecha/hora de inicio en UTC (p. ej., 2025-09-26T12:34:56).")
+    parser.add_argument("--event", required=True, help="Nombre/identificador del evento.")
+    args = parser.parse_args()
+    doSomethingWithEvent(args.start,args.event)
 
 
 if __name__ == "__main__":

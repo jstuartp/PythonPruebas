@@ -808,7 +808,7 @@ class EventListener(client.Application):
                     sql = (
                         "UPDATE Pga SET `fecha_evento`=%s,`fecha_calculo`=%s,`nombre_evento`=%s,`tipo_estacion`=%s,`estacion`=%s, `latitud`=%s,"
                         " `longitud`=%s, `hne_pga`=%s, `hnn_pga`=%s, `hnz_pga`=%s,`maximo`=%s ,`rutaWaveform`=%s,`min_filter`=%s,`max_filter`=%s"
-                        "WHERE idpga = %s")
+                        " WHERE idpga = %s")
                     cursor.execute(sql, valores)
                 # Commit changes
                 conn.commit()
