@@ -67,11 +67,11 @@ local_db = 'informes'
 OUTPUT_DIR = "/home/lis/waves/sds/"         # Carpeta de salida para los MiniSEED
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"  # Formato ISO para tiempo inicial
 # Dirección del servicio FDSN de su SeisComP (ajuste el host y puerto según su instalación)
-FDSN_URL = "http://localhost:8080"  # Cambie localhost:8080 si corresponde
-ESTRUCTURAS_SCRIPT ="/home/lis/waves/corta_edificios.py" #ubicacion del script para activar procesos en el servidor edificios
+#FDSN_URL = "http://localhost:8080"  # Cambie localhost:8080 si corresponde
+ESTRUCTURAS_SCRIPT ="/home/lis/waves/scripts/corta_edificios.py" #ubicacion del script para activar procesos en el servidor edificios
 
 # Cree el cliente ObsPy apuntando a su servidor FDSN local
-clientfdsn = Client(base_url=FDSN_URL)
+#clientfdsn = Client(base_url=FDSN_URL)
 
 # Parámetros de PGA
 MIN_PGA_CM_S2 = 2.0                    # Mínimo PGA en cm/s^2

@@ -11,6 +11,8 @@ USO:
 
 import argparse
 import os
+import subprocess
+import logging
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -117,6 +119,13 @@ def main():
     OUT_DIR = Path(f"/home/lis/waves/eventos/{args.event}/")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     os.makedirs(OUT_DIR, exist_ok=True)
+    logfile = OUT_DIR / f"{args.event}.log"
+    logging.basicConfig(
+        filename=logfile,
+        level=logging.INFO,  # Nivel mínimo que se registrará
+        format='%(asctime)s [%(levelname)s] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
     out_dir = OUT_DIR
     inv_path = Inventory
     inv = read_inventory(str(inv_path))
@@ -124,6 +133,7 @@ def main():
     client = SDSClient(str(sds_root))
     triples = estaciones_con_HN(inv)
     if not triples:
+        logging.error("No estaciones con HN/HNZ")
         raise RuntimeError("El inventario no contiene estaciones con los canales HNE/HNN/HNZ.")
 
     for net, sta, loc in triples:
@@ -131,7 +141,12 @@ def main():
         if len(st_acc):
             escribir_mseed_por_estacion(st_acc, out_dir, args.event, net, sta, loc,start.strftime("%Y%m%dT%H%M%S"))
 
-    print(f"Finalizado. Salida en: {out_dir}")
+    logging.info(f"Finalizado. Salida en: {out_dir}")
+    logging.info("Iniciando procesamiento...")
+    result = subprocess.Popen(
+        ["python3","/home/lis/waves/scripts/procesa_edificio.py", "--start", args.start, "--event",
+         args.event])
+    logging.info(f"Resultado de proceso... {result}")
 
 if __name__ == "__main__":
     main()
