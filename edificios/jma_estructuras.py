@@ -137,9 +137,9 @@ def load_components_from_miniseed(file_path,evento,tipo):
             raise ValueError("Could not find all 3 components (N, E, Z) in MiniSEED file.")
 
         # Extract data and ensure same length
-        acc_ns = components['N'].data.astype(np.float64) * 100
-        acc_ew = components['E'].data.astype(np.float64) * 100
-        acc_up = components['Z'].data.astype(np.float64) * 100
+        acc_ns = components['N'].data.astype(np.float64) #* 100
+        acc_ew = components['E'].data.astype(np.float64) #* 100
+        acc_up = components['Z'].data.astype(np.float64) #* 100
         fs = components['N'].stats.sampling_rate
 
         min_len = min(len(acc_ns), len(acc_ew), len(acc_up))
@@ -157,7 +157,7 @@ def load_components_from_miniseed(file_path,evento,tipo):
             actualizaBd(data, evento, station,my_sta.latitude,my_sta.longitude)
             print(f"termine actualizar {station}")
     except Exception as e:
-        print(f"No existen las 3 componentes en el archivo {station}")
+        print(f"No existen las 3 componentes en el archivo {station} error: {e}")
 
 
 
@@ -187,7 +187,7 @@ def insertaBd(datos,evento,station,lat,lon):
                 with (conn.cursor() as cursor):
                     # Create a new record
                     sql = (
-                        "INSERT INTO `jma_estucturas` (`idEvento`,`estacion`,`threshold_a0`,`continuos`,`truncated`, "
+                        "INSERT INTO `jma_estructuras` (`idEvento`,`estacion`,`threshold_a0`,`continuos`,`truncated`, "
                         "`jma`,`lat`,`lon`)"
                         " VALUES (%s ,%s ,%s ,%s ,%s ,%s,%s,%s )")
                     # print(values)

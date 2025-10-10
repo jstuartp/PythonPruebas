@@ -167,7 +167,7 @@ def calculate_pga(tr, inventory, network, station, location, channel):
             #print("Canal %s" % tr.stats.channel)
             #print("VALOR %s" % pga)
         logging.error(f"Error en cacululoPGA {network}.{station}.{tr.stats.channel}: {e}")
-    return pga * 100.0  # Convertir a cm/s^2
+    return pga #* 100.0  # Convertir a cm/s^2
 
 def get_streams_for_event_from_directory(base_dir: str, event: str) -> dict[tuple[str, str], Stream]:
     """Lee todos los .mseed en base_dir/event, agrupa por (network, station) y fusiona trazas.
@@ -321,7 +321,8 @@ def proceso(agrupados, inv_path,evento,inicio):
     res3 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}/",
                            "lis@163.178.174.210:/home/lis/formato_lis/registros_edificios/"])
     #envia archivos lis a repositorio stuart
-    #result = subprocess.run(['scp', '-r', f"/home/lis/waves/archivosLis/{evento}", self.direccionWebServer], capture_output=True, text=True)
+    res4 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}",
+                             "lis@163.178.109.101:/home/lis/repositorio_archivo_lis/por_eventos/"])
 
 
 
@@ -342,30 +343,28 @@ def proceso(agrupados, inv_path,evento,inicio):
     # consultar el evento.id, traer los datos
     #datosEvento = obtener_datos_por_id(evento)
     # chequear si el evento no existe en la tabla nueva
-    fechaEvento = chequeaEvento(evento)
+    #fechaEvento = chequeaEvento(evento)
     # si no existe mandar a guardar en tabla de eventos nueva
-    if not fechaEvento:
-        # se llama el jma para insertar valores del nuevo evento
-        print("sacando JMA nuevo")
+    jmaEvento = chequeaJMA(evento)
+    logging.info(f"Evento JMA existe: {jmaEvento['existe']}")
+    if jmaEvento['existe']==0:
+        logging.info("sacando JMA nuevo")
         resultJMA = subprocess.run(
             ["python3", rutaScrips+"jma_estructuras.py", "--evento",
-             evento, "--ruta", OUTPUT_DIR + evento, "--tipo", "1"])
+            evento, "--ruta", OUTPUT_DIR + evento, "--tipo", "1"])
         logging.info("Resultado del JMA insertar %s" % resultJMA)
-
     else:
         # si llega un evento mas nuevo, lo actualiza
         #print(fechaEvento['fecha'])
         #t0 = inicio
         #print(t0)
-        if fechaEvento['fecha'].strftime('%Y%m%dT%H%M%S') < inicio:
-            print("sacando JMA actualizando")
-            # se llama el jma para actualizar valores del evento
-            resultJMA = subprocess.run(
-                ["python3", rutaScrips+"/jma_estructuras.py", "--evento",
-                 evento, "--ruta", OUTPUT_DIR + evento, "--tipo", "2"])
-            logging.info("Resultado del JMA actualizar %s" % resultJMA)
+        logging.info("Actualizando JMA")
+        # se llama el jma para actualizar valores del evento
+        resultJMA = subprocess.run(
+            ["python3", rutaScrips+"/jma_estructuras.py", "--evento",
+             evento, "--ruta", OUTPUT_DIR + evento, "--tipo", "2"])
+        logging.info("Resultado del JMA actualizar %s" % resultJMA)
 
-            # si no hay evento mas nuevo, no se hace nada
 
 
 #funcion para calcular la distancia de epicentro e hipocentro
@@ -411,20 +410,20 @@ def archivoLis(resultados,evento,fecha):
         # se llama al escribe lis que es un proceso externo, se envian todos los parametros necesarios
         result = subprocess.run(
             ["python3", rutaScrips+"escribe_lis.py", "--mseed", archivos[0], "--out",
-             f"/home/lis/waves/archivosLis/{evento}/{fecha}_{resultados['estacion']}.lis",
-             "--station-name", resultados['site_name'],"--event-date",evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S'),
+             f"/home/lis/waves/archivosLis/{evento}/{fecha.replace('-', '').replace(':', '').replace('T', '')[:-2]}{resultados['estacion']}.lis",
+             "--station-name", resultados['site_name'],"--event-date",fecha.replace("-", "/").replace("T", " ")[:-3],
              "--event-lat",str(datos['latitud']),"--event-lon", str(datos["longitud"]),"--event-depth",str(datos["profundidad"]),"--event-mw",str(datos["magnitud"]),
              "--station-code",resultados['estacion'],"--station-lat",str(resultados['latitud']),"--station-lon",str(resultados['longitud']),
              "--pga-n00e",str(resultados['hnn']),"--pga-updo",str(resultados['hnz']),"--pga-n90e",str(resultados['hne']),"--station-elev", str(resultados['altitud']),
              "--instrument-type", str(resultados['site_manufacturer']), "--serial", str(resultados['site_serial']),"--epicentral-km",str(epicentral_dist),
-             "--hypocentral-km", str(distancias['dist_hipocentral_km']),"--azimuth",str(distancias['azimuth_deg']),"--site-condition","FFD","--soil-type",str(soil),
-             "--epicenter", epicenter_str
+             "--hypocentral-km", str(distancias['dist_hipocentral_km']),"--azimuth",str(distancias['azimuth_deg']),"--site-condition","BDG","--soil-type",str(soil),
+             "--epicenter", epicenter_str, "--units","gal"
              ])
         #Logging.info("Resultado de los archivos LIS %s" % result)
     except Exception as e:
         print(
-            "--El archivo no tiene las tres componentes %s---------\n" % resultados['estacion'])
-        logging.error(f"El archivo no tiene las tres componentes {resultados['estacion']}, error = {e}")
+            "--Fallo creando el archivo lis para: %s---------\n" % resultados['estacion'])
+        logging.error(f"Fallo creando el archivo lis para: {resultados['estacion']}, error = {e}")
 
 
 #funcion para calcular la cuidad mas cercana al epicentro
@@ -780,6 +779,39 @@ def chequeaEvento(evento):
     finally:
         conn.close()
     return resultados
+
+#chequea la existencia de registros JMA para un evento
+def chequeaJMA(evento):
+
+    logging.info(
+        "Chequeando JMA para evento %s " %evento)
+    conn = pymysql.connect(  # conexión usa parametros puestos arriba
+        host=local_host,
+        user=local_user,
+        password=local_password,
+        db=local_db,
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    try:
+        with (conn.cursor() as cursor):
+            # Create a new record
+            consulta_sql = "SELECT EXISTS ( SELECT 1 FROM informes.jma_estructuras WHERE idEvento = %s ) AS existe;"
+            # Ejecutar la consulta pasando los parámetros
+            cursor.execute(consulta_sql,evento)
+            # Obtener todos los resultados
+            resultados = cursor.fetchone()
+            #print(resultados['fecha'])
+        # Commit changes
+        conn.commit()
+    except  Exception as e:
+        logging.error(
+            "--ERROR---------Se registro el siguiente error %s  \n" %e)
+    finally:
+        conn.close()
+    return resultados
+
+
 
 
 def main():

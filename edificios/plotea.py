@@ -78,7 +78,7 @@ def Plotear(imagenpng,ruta):
                     corners=float(filterCorners),
                 )
                 # Convert from m/s^2 to cm/s^2
-                tr.data *= 100.0
+                #tr.data *= 100.0
                 logging.info(f"--valor max de la traza {tr.stats.channel} en cm/s**2 {max(tr.data)}--\n")
             except Exception as e:
                 #print(f"Error processing {tr.id}: {e}")

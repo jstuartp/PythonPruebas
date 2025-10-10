@@ -367,7 +367,9 @@ class EventListener(client.Application):
             res3 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
                                    "lis@163.178.174.210:/home/lis/formato_lis/registros_revisados"])
             #envia archivos lis a repositorio stuart
-            #result = subprocess.run(['scp', '-r', f"/home/lis/waves/LIS/{evento.publicID()}", self.direccionWebServer], capture_output=True, text=True)
+            res4 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/LIS/{evento}",
+                                   "lis@163.178.109.101:/home/lis/repositorio_archivo_lis/por_eventos/"])
+            print(res4)
             print("Voy a llamar a estucturas")
             # proceso para activar evento en servidor estructuras
             estructuras = subprocess.Popen(
