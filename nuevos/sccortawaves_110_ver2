@@ -23,9 +23,11 @@ import matplotlib.pyplot as plt
 from soupsieve.css_types import pickle_register
 
 from seiscomp import core, client, io,  logging
+from seiscomp.core import Time
 from seiscomp import client, datamodel
 from seiscomp.client import Protocol
 from seiscomp import logging as Logging
+from seiscomp.datamodel import Event, Origin, PublicObject
 from time import strftime
 from joblib import Parallel, delayed
 import os
@@ -93,7 +95,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(False)
+        self.setLoggingToStdErr(True)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -171,7 +173,15 @@ class EventListener(client.Application):
     def doSomethingWithEvent(self, obj):
 
         evento = datamodel.Event.Cast(obj)
-        tiempo = evento.creationInfo().creationTime().toString("%Y-%m-%dT%H:%M:%S.%f")
+        hora = self.obtener_fecha_id(evento.publicID())
+        myhora = hora["hora"]
+        dt = datetime.strptime(str(myhora), "%Y-%m-%d %H:%M:%S")
+
+        # Convertir al formato deseado con milisegundos
+        tiempo = dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]  # recorta a 3 decimales
+        #tiempo = evento.creationInfo().creationTime().toString("%Y-%m-%dT%H:%M:%S.%f")
+        #raise SystemExit
+        #tiempo = Time.FromString("2025-10-22T03:57:05.114Z", "%Y-%m-%dT%H:%M:%S.%fZ")
         tiempo2 = datetime.strptime(tiempo, "%Y-%m-%dT%H:%M:%S.%f")
         inv_path = self.seiscomp_path+"/share/scripts/inventory_full_fdns.xml"
         self.proceso(tiempo,inv_path,evento)
@@ -202,7 +212,7 @@ class EventListener(client.Application):
         net = inventory.select(network=network, station=station)
         if net:
             tr.remove_response(inventory=net, output="ACC")
-            #print("PUDE REMOVER PARA %s" % tr.stats.station)
+            #print("PUDE REMOVER PARA %s" % tr)
 
 
         # Calcular PGA (valor máximo absoluto)
@@ -234,7 +244,7 @@ class EventListener(client.Application):
                 #print("PGA SPLIT PARA %s" % tr.stats.station)
                 #print("Canal %s" % tr.stats.channel)
                 #print("VALOR %s" % pga)
-            logging.warning(f"Error en {network}.{station}.{tr.stats.channel}: {e}")
+            logging.warning(f"Error CALCULANDO PGA {network}.{station}.{tr.stats.channel}: {e}")
         return pga * 100.0  # Convertir a cm/s^2
 
     def proceso(self,time_inicial_str, inv_path,evento):
@@ -290,23 +300,33 @@ class EventListener(client.Application):
                         mysta = net.stations[0]
 
                         if not st or len(st) == 0:
+                            logging.warning(f"Error en {network}.{station}: no hay trazas")
                             continue
                         #tr = st[0]
                         # 6. Aplicar respuesta y calcular PGA
                         m = 0.0
                         for tr in st:
-                            pga = self.calculate_pga(tr, inventory, network, station, location, channel)
-                            if pga > m:
-                                m = pga
-                          #  pgas.append({
-                          #      "pga": pga
-                           # })
-                            pgasChannel.append({str(tr.stats.channel).lower() :pga})
+                            try:
+                                pga = self.calculate_pga(tr, inventory, network, station, location, channel)
+                                print(f"Estacion: {station} canal: {tr.stats.channel} PGA {pga}")
+                                if pga > m:
+                                    m = pga
+                              #  pgas.append({
+                              #      "pga": pga
+                               # })
+                                try:
+                                    pgasChannel.append({str(tr.stats.channel).lower() :pga})
+                                    print(f"valores de pga {pgasChannel}")
+                                except Exception as e:
+                                    print(f"Error en pgaschannel {e}")
+                            except Exception as e:
+                                print(f" Canales no validos {e}")
+                                continue
                         maximos.append({
                             "station" : station,
                             "maximos" : m
                         })
-                        #print(pgasChannel)
+                        print("pase los maximos")
                         resultados.append({
                             "fecha_evento": t0,
                             "fecha_calculo": datetime.now(),
@@ -321,6 +341,7 @@ class EventListener(client.Application):
                             "site_manufacturer": manufacturer,
                             "site_serial": serial
                         })
+                        print("pase resultados")
                         ultimo = resultados[-1]
                         for i in pgasChannel:
                             ultimo.update(i)
@@ -332,10 +353,12 @@ class EventListener(client.Application):
                             "t1": t1,
                             "t2": t2,
                         })
+                        print("pase streams")
+
 
                     except Exception as e:
-                        logging.warning(f"Error en {network}.{station}: {e}")
-                        continue
+                        logging.error(f"Error en {network}.{station}: leyendo traza y arreglos {e}__ {mysta}")
+                        #continue
 
         # 7. Ordenar y seleccionar los 20 registros con mayor PGA
         maximos = sorted(maximos, key=lambda x: -x["maximos"])
@@ -343,7 +366,8 @@ class EventListener(client.Application):
 
         #print(resultados)
         # si existen al menos 5 estaciones que superan el umbral, se registra
-        #print(maximos[4]["maximos"])
+        #print(maximos)
+        #self.cortaWaves(streams, evento.publicID(), t0)
         if maximos[4]["maximos"] >= 2:
             #se activa para guardar el informe
             informe = 1
@@ -675,6 +699,7 @@ class EventListener(client.Application):
     def cortaWaves(self,streams,evento,t0):
 
         ruta = OUTPUT_DIR+evento
+        localizaciones_permitidas = ["00","","11", "12", "13"]
         try:
             os.stat(ruta)
         except:
@@ -683,6 +708,10 @@ class EventListener(client.Application):
         for idx, res in enumerate(streams, 1):
             # Recortar la traza en la ventana deseada (si es necesario)
             tr = res["st"]
+            for mytr in tr.copy():
+                if mytr.stats.location not in localizaciones_permitidas:
+                    tr.remove(mytr)
+
             tr.trim(starttime=res["t1"], endtime=res["t2"])
 
             # Generar nombre de archivo//HACER DIRECTORIO POR CADA EVENTO
@@ -820,6 +849,39 @@ class EventListener(client.Application):
             finally:
                 conn.close()
 
+    #Consulta a la base para extraer los datos del evento
+    def obtener_fecha_id(self,eventoId):
+        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+            host=my_host,
+            user=my_user,
+            password=my_password,
+            db=my_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        try:
+            with (conn.cursor() as cursor):
+                consulta = (
+                    "select distinct PEvent.publicID, Origin.time_value as hora,  Origin.latitude_value as latitud,"
+                    "Origin.longitude_value as longitud,"
+                    "M.magnitude_value as magnitud, "
+                    "Origin.depth_value as profundidad "
+                    "from Origin,PublicObject as POrigin,Event,PublicObject as PEvent, Magnitude as M "
+                    "where POrigin.publicID=Event.preferredOriginID and  M._parent_oid = Origin._oid "
+                    "and Origin._oid=POrigin._oid and Event._oid=PEvent._oid "
+                    "and PEvent.publicID = %s Order by Origin.time_value DESC;")
+                #print(consulta)
+                cursor.execute(consulta, eventoId)
+                resultado = cursor.fetchone()
+        finally:
+                conn.close()
+        return resultado
+
+
+
+
+
+
 
     #Consulta a la base para extraer los datos del evento
     def obtener_datos_por_id(self,eventoId):
@@ -920,7 +982,7 @@ class EventListener(client.Application):
         retraso_seg = 3.2 * 60  # 3 minutos en segundos
         if event:
             print("Evento actualizado {}".format(event.publicID()))
-            time.sleep(retraso_seg)
+            #time.sleep(retraso_seg)
             self.doSomethingWithEvent(event)
 
             #self.doSomethingWithEvent(event)
