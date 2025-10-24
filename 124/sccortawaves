@@ -49,8 +49,8 @@ from pathlib import Path
 
 #CONSTANTES BASES DE DATOS SEISCOMP
 my_host = 'localhost'
-my_user = 'root'
-my_password = 'lisucr01'
+my_user = 'sysop'
+my_password = 'sysop'
 my_db = 'seiscomp'
 
 #CONSTANTES BASES DE DATOS LOCAL
@@ -95,7 +95,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(False)
+        self.setLoggingToStdErr(True)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -982,7 +982,7 @@ class EventListener(client.Application):
         retraso_seg = 3.2 * 60  # 3 minutos en segundos
         if event:
             print("Evento actualizado {}".format(event.publicID()))
-            time.sleep(retraso_seg)
+            #time.sleep(retraso_seg)
             self.doSomethingWithEvent(event)
 
             #self.doSomethingWithEvent(event)
