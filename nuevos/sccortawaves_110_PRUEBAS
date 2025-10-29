@@ -95,7 +95,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(False)
+        self.setLoggingToStdErr(True)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
@@ -295,7 +295,7 @@ class EventListener(client.Application):
                     try:
                         st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
                         st.merge(method=1, fill_value='interpolate')
-                        stRaw = st
+                        stRaw = st.copy() #cambio para escribir mseed crudo
                         net = inventory.select(network=network, station=station)[0]
                         mysta = net.stations[0]
 
@@ -349,7 +349,8 @@ class EventListener(client.Application):
                             "evento": evento.publicID(),
                             "network": network,
                             "station": station,
-                            "st": stRaw.copy(),
+                            "st": st,
+                            "stRaw": stRaw,
                             "t1": t1,
                             "t2": t2,
                         })
@@ -368,41 +369,41 @@ class EventListener(client.Application):
         # si existen al menos 5 estaciones que superan el umbral, se registra
         #print(maximos)
         #self.cortaWaves(streams, evento.publicID(), t0)
-        if maximos[4]["maximos"] >= 2:
+        if maximos[0]["maximos"] >= 0:
             #se activa para guardar el informe
             informe = 1
             #se escriben los archivos mseed con la duracion determinada
             self.cortaWaves(streams, evento.publicID(), t0)
             #se hacen las imagenes de todos los archivos mseed escritos
-            result = subprocess.Popen(
-                ["python3", self.seiscomp_path+"/share/scripts/lis/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
+            #result = subprocess.Popen(
+             #   ["python3", self.seiscomp_path+"/share/scripts/lis/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
             #Logging.info("Resultado del ploteo %s" % result)
 
             # se escriben los archivos .LIS
             num_trabajos = -1  # Utiliza todos los núcleos disponibles
-            crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
-                delayed(self.archivoLis)(resultados[s], evento) for s in range(len(resultados)))
+            #crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
+            #    delayed(self.archivoLis)(resultados[s], evento) for s in range(len(resultados)))
             #Logging.info("Resultado del archivoLIS %s" % crealis)
             #envia archivos lis a servidor central
-            res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
-                                   "lis@163.178.101.86:/home/lis/formato_lis/registros_revisados"])
-            res2 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
-                                   "lis@163.178.109.104:/home/lis/formato_lis/registros_revisados"])
-            res3 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
-                                   "lis@163.178.174.210:/home/lis/formato_lis/registros_revisados"])
+            #res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
+            #                       "lis@163.178.101.86:/home/lis/formato_lis/registros_revisados"])
+            #res2 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
+            #                       "lis@163.178.109.104:/home/lis/formato_lis/registros_revisados"])
+            #res3 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
+            #                       "lis@163.178.174.210:/home/lis/formato_lis/registros_revisados"])
             #envia archivos lis a repositorio stuart
-            res4 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/LIS/{evento}",
-                                   "lis@163.178.109.101:/home/lis/repositorio_archivo_lis/por_eventos/"])
-            print(res4)
+            #res4 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/LIS/{evento}",
+            #                       "lis@163.178.109.101:/home/lis/repositorio_archivo_lis/por_eventos/"])
+            #print(res4)
             print("Voy a llamar a estucturas")
             # proceso para activar evento en servidor estructuras
-            estructuras = subprocess.Popen(
-                ["ssh", "lis@163.178.171.47" , f" nohup python3 {ESTRUCTURAS_SCRIPT} --start {evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S')}"
-                                               f" --event {str(evento.publicID())}"])
+            #estructuras = subprocess.Popen(
+            #    ["ssh", "lis@163.178.171.47" , f" nohup python3 {ESTRUCTURAS_SCRIPT} --start {evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S')}"
+            #                                   f" --event {str(evento.publicID())}"])
 
 
 
-
+            ''''
             # mandar a guardar los pga, iterando el arreglo y preguntando por cada estacion
             #print(resultados)
             for  res in resultados:
@@ -416,13 +417,14 @@ class EventListener(client.Application):
                 else:
                     # si la estación ya esta en la tabla pga -- hacer update
                     self.updateBd(res,idPga)
-
+            '''
 
 
             # mandar a plotear todo enviando la carpeta donde estan los mseed
         else:
             Logging.info("El evento %s No cumple con el umbral de aceleracion" %evento)
 
+        '''    
         # consultar el evento.id, traer los datos
         datosEvento = self.obtener_datos_por_id(evento.publicID())
         # chequear si el evento no existe en la tabla nueva
@@ -458,7 +460,7 @@ class EventListener(client.Application):
                 Logging.info("Resultado del JMA actualizar %s" % resultJMA)
 
                 # si no hay evento mas nuevo, no se hace nada
-
+        '''
 
     #funcion para calcular la distancia de epicentro e hipocentro
     def epicentral_and_hypocentral_obspy(self,lat_epi, lon_epi, lat_sta, lon_sta, depth_km):
@@ -704,21 +706,30 @@ class EventListener(client.Application):
             os.stat(ruta)
         except:
             os.mkdir(ruta)
+        try:
+            os.stat(ruta+"/raw")
+        except:
+            os.mkdir(ruta+"/raw")
 
         for idx, res in enumerate(streams, 1):
             # Recortar la traza en la ventana deseada (si es necesario)
             tr = res["st"]
+            trRaw =res["stRaw"]
             for mytr in tr.copy():
                 if mytr.stats.location not in localizaciones_permitidas:
                     tr.remove(mytr)
+                    trRaw.remove(mytr)
 
             tr.trim(starttime=res["t1"], endtime=res["t2"])
 
             # Generar nombre de archivo//HACER DIRECTORIO POR CADA EVENTO
             fname = f"{ruta}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
+            rawFile = f"{ruta}/raw/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}_RAW.mseed"
+
 
             try:
                 tr.write(fname, format="mseed")
+                trRaw.write(rawFile, format="mseed")
 
             except Exception as err:
                 Logging.error(
@@ -982,7 +993,7 @@ class EventListener(client.Application):
         retraso_seg = 3.2 * 60  # 3 minutos en segundos
         if event:
             print("Evento actualizado {}".format(event.publicID()))
-            time.sleep(retraso_seg)
+            #time.sleep(retraso_seg)
             self.doSomethingWithEvent(event)
 
             #self.doSomethingWithEvent(event)

@@ -699,21 +699,21 @@ class EventListener(client.Application):
     #guarda 3 minutos antes y 3 mins despues del evento
     def cortaWaves(self,streams,evento,t0):
 
-        ruta = OUTPUT_DIR+evento
-        localizaciones_permitidas = ["00","","11", "12", "13"]
+        ruta = OUTPUT_DIR + evento
+        localizaciones_permitidas = ["00", "", "11", "12", "13"]
         try:
             os.stat(ruta)
         except:
             os.mkdir(ruta)
         try:
-            os.stat(ruta+"/raw")
+            os.stat(ruta + "/raw")
         except:
-            os.mkdir(ruta+"/raw")
+            os.mkdir(ruta + "/raw")
 
         for idx, res in enumerate(streams, 1):
             # Recortar la traza en la ventana deseada (si es necesario)
             tr = res["st"]
-            trRaw =res["stRaw"]
+            trRaw = res["stRaw"]
             for mytr in tr.copy():
                 if mytr.stats.location not in localizaciones_permitidas:
                     tr.remove(mytr)
@@ -725,7 +725,6 @@ class EventListener(client.Application):
             fname = f"{ruta}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
             rawFile = f"{ruta}/raw/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}_RAW.mseed"
 
-
             try:
                 tr.write(fname, format="mseed")
                 trRaw.write(rawFile, format="mseed")
@@ -734,7 +733,7 @@ class EventListener(client.Application):
                 Logging.error(
                     "--FALLO EN ESCRITURA-- No data written for station %s \n" % res['station'])
                 Logging.error(
-                "--FALLO EN ESCRITURA-- ErrorMessange %s \n" % err)
+                    "--FALLO EN ESCRITURA-- ErrorMessange %s \n" % err)
 
 
 
