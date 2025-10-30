@@ -117,8 +117,11 @@ def main():
 
     sds_root = SDS_ROOT
     OUT_DIR = Path(f"/home/lis/waves/eventos/{args.event}/")
+    OUT_DIR_RAW = Path(f"/home/lis/waves/eventos/{args.event}/raw")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    OUT_DIR_RAW.mkdir(parents=True, exist_ok=True)
     os.makedirs(OUT_DIR, exist_ok=True)
+    os.makedirs(OUT_DIR_RAW, exist_ok=True)
     logfile = OUT_DIR / f"{args.event}.log"
     logging.basicConfig(
         filename=logfile,
@@ -138,8 +141,11 @@ def main():
 
     for net, sta, loc in triples:
         st_acc = leer_y_convertir_a_acc_cmss(client, inv, net, sta, loc, t0, t1)
+        loc_sel = loc if loc else "*"
+        stRaw = client.get_waveforms(net, sta, loc_sel, "HN?", t0, t1, merge=1)
         if len(st_acc):
             escribir_mseed_por_estacion(st_acc, out_dir, args.event, net, sta, loc,start.strftime("%Y%m%dT%H%M%S"))
+            escribir_mseed_por_estacion(stRaw, OUT_DIR_RAW, args.event, net, sta, loc, start.strftime("%Y%m%dT%H%M%S"))
 
     logging.info(f"Finalizado. Salida en: {out_dir}")
     logging.info("Iniciando procesamiento...")

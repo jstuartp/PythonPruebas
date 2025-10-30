@@ -96,7 +96,9 @@ class EventListener(client.Application):
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
         self.setLoggingToStdErr(True)
-        
+        self._cache = None
+
+
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
         self.taperMaxPercent=0.05
