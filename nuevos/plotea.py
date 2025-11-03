@@ -5,6 +5,7 @@ from urllib.parse import splitquery
 
 import matplotlib
 import subprocess
+import logging
 import obspy
 from pathlib import Path
 from matplotlib import pyplot as plt
@@ -48,7 +49,13 @@ def Plotear(imagenpng,ruta):
         nombrearchivo =imagenpng+nuevo_directorio+"/"+nombre_imagen+".png"
         dir_a_copiar = imagenpng+nuevo_directorio
         print(nombrearchivo)
-        logfile = "/home/lis/waves/imagenes/" +nuevo_directorio+"/plotlog.log"
+        logging.basicConfig(
+            filename="/home/lis/waves/imagenes/" + nuevo_directorio + "/plotlog.log",
+            level=logging.INFO,  # Nivel mínimo que se registrará
+            format='%(asctime)s [%(levelname)s] %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        #logfile = "/home/lis/waves/imagenes/" +nuevo_directorio+"/plotlog.log"
         try:
             os.stat(imagenpng+nuevo_directorio)
         except:
@@ -56,10 +63,8 @@ def Plotear(imagenpng,ruta):
         strNew = read(archivo, format="mseed")
         print("padre %s" %archivo.parent)
 
-        archivo = open(logfile, "a")
-        archivo.write(str(UTCDateTime.now()))
-        archivo.write("--Voy a procesar imagen de %s--\n" % nombre_imagen)
-        archivo.close()
+
+        logging.info(f"Voy a procesar imagen de {nombre_imagen}")
         # Preprocess each trace independently and remove instrument response
         strNew.merge(method=1, fill_value='interpolate')
         for tr in strNew:
@@ -76,27 +81,16 @@ def Plotear(imagenpng,ruta):
                 )
                 # Convert from m/s^2 to cm/s^2
                 tr.data *= 100.0
-                archivo = open(logfile, "a")
-                archivo.write(str(UTCDateTime.now()))
-                archivo.write(f"--valor max de la traza {tr.stats.channel} en cm/s**2 {max(tr.data)}--\n")
-                archivo.close()
+                logging.info(f"--valor max de la traza {tr.stats.channel} en cm/s**2 {max(tr.data)}--\n")
             except Exception as e:
                 #print(f"Error processing {tr.id}: {e}")
-                archivo = open(logfile, "a")
-                archivo.write(str(UTCDateTime.now()))
-                archivo.write("--ERROR Fallo el try de lectura para %s--\n" % e)
-                archivo.write(f"Error processing {tr.id}: {e}")
-                archivo.close()
+                logging.error(f"ERROR Fallo el try de lectura para {e}")
+
 
         matplotlib.use("agg")
         fig, axes = plt.subplots(len(strNew), 1, figsize=(12, 8), sharex=True)
         max_amp_global = max(abs(tr.data).max() for tr in strNew)
-        archivo = open(logfile, "a")
-        archivo.write(str(UTCDateTime.now()))
-        archivo.write(f"------Amplitud global para grafico {strNew[0].stats.station} es {max_amp_global}--\n")
-        archivo.close()
-
-
+        logging.info(f"------Amplitud global para grafico {strNew[0].stats.station} es {max_amp_global}--\n")
         nombreEstacion = strNew[0].stats.station
 
 
@@ -159,13 +153,12 @@ def Plotear(imagenpng,ruta):
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.savefig(nombrearchivo, dpi=300)
         plt.close(fig)
-        archivo = open(logfile, "a")
-        archivo.write(str(UTCDateTime.now()))
-        archivo.write("--Termine la imagen de %s--\n" % nombreEstacion)
-        archivo.close()
+        logging.info(f"Termine la imagen de {nombreEstacion}")
+
 
     direccionWebServer = "lis@163.178.170.245:/var/www/informes.lis.ucr.ac.cr/seiscomp/public/assets/waves"
     result = subprocess.run(['scp', '-r', dir_a_copiar, direccionWebServer], capture_output=True, text=True)
+    logging.info(f"Imagenes copiadas: {result}")
 
 
 

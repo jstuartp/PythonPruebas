@@ -1,7 +1,25 @@
 import numpy as np
-from obspy import read
+import sys
+from joblib import Parallel, delayed
+from pathlib import Path
+from obspy import read, read_inventory
 from scipy.fft import fft, ifft, fftfreq
 import argparse
+import pymysql
+
+
+#CONSTANTES BASES DE DATOS LOCAL
+local_host = '163.178.170.245'
+local_user = 'informes'
+local_password = 'B8EYvZRTpTUDquc3'
+local_db = 'informes'
+#local_host = 'localhost'
+#local_user = 'root'
+#local_password = 'jspz2383'
+#local_db = 'sismos_lis'
+
+inv_path = "/home/lis/seiscomp/share/scripts/inventory_full_fdns.xml"
+inventory = read_inventory(inv_path, format="STATIONXML")
 
 
 def jma_filters(frequencies):
@@ -88,51 +106,174 @@ def compute_jma_intensity(acc_ns, acc_ew, acc_up, fs=200.0):
     }
 
 
-def load_components_from_miniseed(file_path):
+def load_components_from_miniseed(file_path,evento,tipo):
     st = read(file_path)
-    if len(st) < 3:
-        raise ValueError("Expected at least 3 traces in the MiniSEED file (NS, EW, UP)")
+    station =""
+    network = ""
+    sta_lat =0
+    sta_long = 0
 
-    # Try to match components by channel code endings
-    components = {'N': None, 'E': None, 'Z': None}
-    for tr in st:
-        channel = tr.stats.channel.upper()
-        if channel.endswith("N") or channel.endswith("1"):
-            components['N'] = tr
-        elif channel.endswith("E") or channel.endswith("2"):
-            components['E'] = tr
-        elif channel.endswith("Z"):
-            components['Z'] = tr
+    try:
+        val = len(st) < 3
+        # Try to match components by channel code endings
+        components = {'N': None, 'E': None, 'Z': None}
+        for tr in st:
+            channel = tr.stats.channel.upper()
+            station = tr.stats.station
+            network = tr.stats.network
+            if channel.endswith("N") or channel.endswith("1"):
+                components['N'] = tr
+            elif channel.endswith("E") or channel.endswith("2"):
+                components['E'] = tr
+            elif channel.endswith("Z"):
+                components['Z'] = tr
 
-    if not all(components.values()):
-        raise ValueError("Could not find all 3 components (N, E, Z) in MiniSEED file.")
 
-    # Extract data and ensure same length
-    acc_ns = components['N'].data.astype(np.float64)*100
-    acc_ew = components['E'].data.astype(np.float64)*100
-    acc_up = components['Z'].data.astype(np.float64)*100
-    fs = components['N'].stats.sampling_rate
+        sta = inventory.select(network=network, station=station)[0]
+        my_sta=sta[0]
 
-    min_len = min(len(acc_ns), len(acc_ew), len(acc_up))
-    acc_ns = acc_ns[:min_len]
-    acc_ew = acc_ew[:min_len]
-    acc_up = acc_up[:min_len]
 
-    return acc_ns, acc_ew, acc_up, fs
+        if not all(components.values()):
+            raise ValueError("Could not find all 3 components (N, E, Z) in MiniSEED file.")
 
+        # Extract data and ensure same length
+        acc_ns = components['N'].data.astype(np.float64) * 100
+        acc_ew = components['E'].data.astype(np.float64) * 100
+        acc_up = components['Z'].data.astype(np.float64) * 100
+        fs = components['N'].stats.sampling_rate
+
+        min_len = min(len(acc_ns), len(acc_ew), len(acc_up))
+        acc_ns = acc_ns[:min_len]
+        acc_ew = acc_ew[:min_len]
+        acc_up = acc_up[:min_len]
+
+        data = compute_jma_intensity(acc_ns, acc_ew, acc_up, fs)
+        # guardar en base de datos "data" con el id de evento
+        print(station)
+        if(tipo == 1):
+            insertaBd(data, evento, station,my_sta.latitude,my_sta.longitude)
+            print(f"termine insertar {station}")
+        if(tipo == 2):
+            actualizaBd(data, evento, station,my_sta.latitude,my_sta.longitude)
+            print(f"termine actualizar {station}")
+    except Exception as e:
+        print(f"No existen las 3 componentes en el archivo {station}")
+
+
+
+
+def insertaBd(datos,evento,station,lat,lon):
+        #print(datos)
+        valores =[]
+        try:
+            valores = [evento,station,datos['a0_gal'], datos['I_continuous'], datos['I_truncated'], datos['JMA_intensity'],
+                       lat,lon]
+        except Exception as err:
+            print(
+                "--ERROR---------Fail in channels ")
+            print(
+                "--ERROR---------Error data %s " % station)
+        else:
+            #print(valores)
+            conn = pymysql.connect(  # conexión usa parametros puestos arriba
+                host=local_host,
+                user= local_user,
+                password= local_password,
+                db= local_db,
+                charset='utf8mb4',
+                cursorclass=pymysql.cursors.DictCursor
+            )
+            try:
+                with (conn.cursor() as cursor):
+                    # Create a new record
+                    sql = (
+                        "INSERT INTO `jma` (`idEvento`,`estacion`,`threshold_a0`,`continuos`,`truncated`, "
+                        "`jma`,`lat`,`lon`)"
+                        " VALUES (%s ,%s ,%s ,%s ,%s ,%s,%s,%s )")
+                    # print(values)
+                    cursor.execute(sql, valores)
+                # Commit changes
+                conn.commit()
+                print(
+                    "--EXITO---------Data save to Database  \n" )
+                #print("PGA guardado en la Base de Datos")
+            finally:
+                conn.close()
+
+
+def actualizaBd(datos, evento, station,lat,lon):
+    # print(datos)
+    valores = []
+    try:
+        valores = [ datos['a0_gal'], datos['I_continuous'], datos['I_truncated'], datos['JMA_intensity'],
+                   lat,lon,evento, station]
+    except Exception as err:
+        print(
+            "--ERROR---------Fail in channels ")
+        print(
+            "--ERROR---------Error data %s " % station)
+    else:
+        # print(valores)
+        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+            host=local_host,
+            user=local_user,
+            password=local_password,
+            db=local_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        try:
+            with (conn.cursor() as cursor):
+                # Create a new record
+                sql = (
+                    "Update `jma` SET `threshold_a0`=%s,`continuos`=%s,`truncated`=%s, "
+                    "`jma`=%s, `lat`=%s, `lon`=%s"
+                    " Where idEvento =%s and estacion = %s ")
+                # print(values)
+                cursor.execute(sql, valores)
+            # Commit changes
+            conn.commit()
+            print(
+                "--EXITO---------Data updated to Database  \n")
+            # print("PGA guardado en la Base de Datos")
+        finally:
+            conn.close()
+
+
+
+
+
+def calcula_jma(evento,ruta,tipo):
+    directorio = Path(ruta)
+    #activa el calculo del JMA
+    archivos_mseed = list(directorio.glob("*.mseed"))
+    #print(archivos_mseed)
+    num_trabajos = -1
+    calculaJma = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
+        delayed(load_components_from_miniseed)(archivo,evento,tipo) for archivo in archivos_mseed)
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Compute JMA Intensity from a MiniSEED file containing all 3 components.")
+    #parser.add_argument("mseed_file", help="MiniSEED file with NS, EW, and UP acceleration (in gals)")
+    parser.add_argument("--evento",type=str, required=True, help="Nombre del evento")
+    parser.add_argument("--ruta", type=str, required=True, help="ruta de archivos")
+    parser.add_argument("--tipo", type=int, required=True, help="1 inserta 2 actualiza")
+    args = parser.parse_args()
+    calcula_jma(args.evento,args.ruta,args.tipo)
+
+    #acc_ns, acc_ew, acc_up, fs = load_components_from_miniseed(args.mseed_file)
+
+    #result = compute_jma_intensity(acc_ns, acc_ew, acc_up, fs)
+    #print("\n📊 JMA Instrumental Seismic Intensity Results")
+    #print("============================================")
+    #print(f"Threshold a₀ (gal):       {result['a0_gal']}")
+    #print(f"Continuous intensity (I): {result['I_continuous']}")
+    #print(f"Truncated intensity (I):  {result['I_truncated']}")
+    #print(f"JMA Intensity Level:      {result['JMA_intensity']}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Compute JMA Intensity from a MiniSEED file containing all 3 components.")
-    parser.add_argument("mseed_file", help="MiniSEED file with NS, EW, and UP acceleration (in gals)")
-    args = parser.parse_args()
+    sys.exit(main())
 
-    acc_ns, acc_ew, acc_up, fs = load_components_from_miniseed(args.mseed_file)
 
-    result = compute_jma_intensity(acc_ns, acc_ew, acc_up, fs)
 
-    print("\n📊 JMA Instrumental Seismic Intensity Results")
-    print("============================================")
-    print(f"Threshold a₀ (gal):       {result['a0_gal']}")
-    print(f"Continuous intensity (I): {result['I_continuous']}")
-    print(f"Truncated intensity (I):  {result['I_truncated']}")
-    print(f"JMA Intensity Level:      {result['JMA_intensity']}")

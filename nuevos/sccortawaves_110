@@ -729,6 +729,7 @@ class EventListener(client.Application):
             try:
                 tr.write(fname, format="mseed")
                 trRaw.write(rawFile, format="mseed")
+                #copiar ambas carpetas al servidor repositorio
 
             except Exception as err:
                 Logging.error(

@@ -4,14 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="nuevos scripts para edificios, cortawaves llama a corta edficios">
-      <change afterPath="$PROJECT_DIR$/edificios/jma_estructuras.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/edificios/plotea.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/pythonProject1.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/pythonProject1.iml" afterDir="false" />
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="modificaciones sccortawaves&#10;se guardan mseed crudos">
+      <change afterPath="$PROJECT_DIR$/nuevos/jma.py_OLD" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/edificios/procesa_edificios.py" beforeDir="false" afterPath="$PROJECT_DIR$/edificios/procesa_edificios.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nuevos/sccortawaves_110_ver2" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/sccortawaves_110_ver2" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nuevos/jma.py" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/jma.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nuevos/jma_ver2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nuevos/plotea.py" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/plotea.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nuevos/sccortawaves_110" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/sccortawaves_110" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nuevos/sccortawaves_110_PRUEBAS" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,7 +80,7 @@
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/stuart/pavas/plot_solo.py&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/stuart/trabajo/torreUniversal/manual_sin_catalogo.py&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -115,6 +116,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -128,8 +130,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-PY-252.26830.99" />
-        <option value="bundled-python-sdk-164cda30dcd9-0af03a5fa574-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.26830.99" />
+        <option value="bundled-js-predefined-d6986cc7102b-75c7c973e13d-JavaScript-PY-253.27864.50" />
+        <option value="bundled-python-sdk-a9a34e35382e-30684d0e00d4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.27864.50" />
       </set>
     </attachedChunks>
   </component>
@@ -184,63 +186,12 @@
       <workItem from="1756143217529" duration="99024000" />
       <workItem from="1757702999428" duration="12147000" />
       <workItem from="1758899199953" duration="39586000" />
-      <workItem from="1759934199620" duration="21974000" />
-    </task>
-    <task id="LOCAL-00006" summary="scrip recive parametros por linea de comandos">
-      <option name="closed" value="true" />
-      <created>1708448645555</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1708448645555</updated>
-    </task>
-    <task id="LOCAL-00007" summary="scrip recive parametros por linea de comandos">
-      <option name="closed" value="true" />
-      <created>1708694844630</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1708694844630</updated>
-    </task>
-    <task id="LOCAL-00008" summary="cambios 29 febrero">
-      <option name="closed" value="true" />
-      <created>1709242110854</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1709242110854</updated>
-    </task>
-    <task id="LOCAL-00009" summary="cambios y nuevo script Local">
-      <option name="closed" value="true" />
-      <created>1710188549534</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1710188549534</updated>
-    </task>
-    <task id="LOCAL-00010" summary="nuevos scripts para cortar waves y otros">
-      <option name="closed" value="true" />
-      <created>1715030220054</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1715030220054</updated>
-    </task>
-    <task id="LOCAL-00011" summary="nuevos scripts para cortar waves y otros">
-      <option name="closed" value="true" />
-      <created>1715629288656</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1715629288656</updated>
-    </task>
-    <task id="LOCAL-00012" summary="cambios 20 del 5">
-      <option name="closed" value="true" />
-      <created>1716241161839</created>
-      <option name="number" value="00012" />
-      <option name="presentableId" value="LOCAL-00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1716241161839</updated>
+      <workItem from="1759934199620" duration="44820000" />
+      <workItem from="1760556323459" duration="604000" />
+      <workItem from="1761139278555" duration="36480000" />
+      <workItem from="1761599686116" duration="14002000" />
+      <workItem from="1761831111491" duration="10316000" />
+      <workItem from="1762199128115" duration="1172000" />
     </task>
     <task id="LOCAL-00013" summary="cambios 31/5&#10;La carpeta seiscomp tiene los scrips que si funcionan">
       <option name="closed" value="true" />
@@ -578,7 +529,63 @@
       <option name="project" value="LOCAL" />
       <updated>1759785813397</updated>
     </task>
-    <option name="localTasksCounter" value="55" />
+    <task id="LOCAL-00055" summary="nuevos scripts para edificios, cortawaves llama a corta edficios">
+      <option name="closed" value="true" />
+      <created>1759959610793</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1759959610794</updated>
+    </task>
+    <task id="LOCAL-00056" summary="nuevos scripts para edificios, cortawaves llama a corta edficios">
+      <option name="closed" value="true" />
+      <created>1760131937624</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1760131937624</updated>
+    </task>
+    <task id="LOCAL-00057" summary="nuevos scripts para edificios, cortawaves llama a corta edficios">
+      <option name="closed" value="true" />
+      <created>1761168844002</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1761168844002</updated>
+    </task>
+    <task id="LOCAL-00058" summary="nuevos scripts para edificios, cortawaves llama a corta edficios">
+      <option name="closed" value="true" />
+      <created>1761340694230</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1761340694230</updated>
+    </task>
+    <task id="LOCAL-00059" summary="modificaciones plotea">
+      <option name="closed" value="true" />
+      <created>1761600965527</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1761600965527</updated>
+    </task>
+    <task id="LOCAL-00060" summary="modificaciones sccortawaves&#10;se guardan mseed crudos">
+      <option name="closed" value="true" />
+      <created>1761764446756</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1761764446756</updated>
+    </task>
+    <task id="LOCAL-00061" summary="modificaciones sccortawaves&#10;se guardan mseed crudos">
+      <option name="closed" value="true" />
+      <created>1761860033557</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1761860033558</updated>
+    </task>
+    <option name="localTasksCounter" value="62" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -586,8 +593,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Version final del slmon" />
-    <MESSAGE value="Nueva version de CortaWaves, se lee la carpeta completa y se procesa dependiendo del archivo que se encuentre" />
     <MESSAGE value="Actualizacion de V2 Es la version que actualmente esta corriendo" />
     <MESSAGE value="actualizacion de update 8 de agosto" />
     <MESSAGE value="update 23 octubre&#10;SLMON con mediciones" />
@@ -611,7 +616,9 @@
     <MESSAGE value="jma guardando latitud y longitud de la estacion" />
     <MESSAGE value="cortawaves guarda .lis en todos los servidores&#10;nuevo script para cortar waves de edificios" />
     <MESSAGE value="nuevos scripts para edificios, cortawaves llama a corta edficios" />
-    <option name="LAST_COMMIT_MESSAGE" value="nuevos scripts para edificios, cortawaves llama a corta edficios" />
+    <MESSAGE value="modificaciones plotea" />
+    <MESSAGE value="modificaciones sccortawaves&#10;se guardan mseed crudos" />
+    <option name="LAST_COMMIT_MESSAGE" value="modificaciones sccortawaves&#10;se guardan mseed crudos" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
