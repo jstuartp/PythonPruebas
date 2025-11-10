@@ -610,7 +610,7 @@ def insertaBd(datos):
                    datos['longitud'], datos['hne'], datos['hnn'], datos['hnz'],
                    max(datos['hne'], datos['hnn'], datos['hnz']),
                    datos['evento'] + "/" + datos['network'] + "_" + datos['estacion'] + "_" + datos[
-                       'fecha_evento'], filterFreqMin, filterFreqMax]
+                       'fecha_evento'].strftime('%Y%m%dT%H%M%S'), filterFreqMin, filterFreqMax]
     except Exception as err:
         logging.error(
             "--ERROR---------Fail in channels for station %s " % datos['estacion'])
