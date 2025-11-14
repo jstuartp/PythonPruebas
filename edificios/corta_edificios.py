@@ -52,25 +52,27 @@ def leer_y_convertir_a_acc_cmss(client: SDSClient, inv, net: str, sta: str, loc:
     """
     loc_sel = loc if loc else "*"
     st = client.get_waveforms(net, sta, loc_sel, "HN?", t0, t1, merge=1)
+    print(st)
     if len(st) == 0:
         return Stream()
 
     # Filtrar exactamente HNE/HNN/HNZ y ordenar
     st = st.select(channel="HNE") + st.select(channel="HNN") + st.select(channel="HNZ")
+    print(st)
     if len(st) == 0:
         return Stream()
 
     out = Stream()
     for tr in st:
         inv_sel = inv.select(network=net, station=sta, location=tr.stats.location, channel=tr.stats.channel)
-        tr_acc = tr.copy().remove_response(inventory=inv_sel, output="ACC", zero_mean=True, taper=True)
-        tr_acc.data = tr_acc.data * 100.0  # m/s^2 -> cm/s^2
-        if not hasattr(tr_acc.stats, "processing"):
-            tr_acc.stats.processing = []
-        tr_acc.stats.processing.append("Converted to acceleration in cm/s^2 (from ACC m/s^2 * 100).")
-        tr_acc.stats.units = "cm/s^2"
-        out += tr_acc
-    return out
+        #tr_acc = tr.copy().remove_response(inventory=inv_sel, output="ACC", zero_mean=True, taper=True)
+        #tr_acc.data = tr_acc.data * 100.0  # m/s^2 -> cm/s^2
+        #if not hasattr(tr_acc.stats, "processing"):
+        #    tr_acc.stats.processing = []
+        #tr_acc.stats.processing.append("Converted to acceleration in cm/s^2 (from ACC m/s^2 * 100).")
+        #tr_acc.stats.units = "cm/s^2"
+        #out += tr_acc
+    return st
 
 def escribir_mseed_por_estacion(st: Stream, out_dir: Path, event_name: str, net: str, sta: str, loc: str, date: str):
     """
@@ -141,11 +143,12 @@ def main():
 
     for net, sta, loc in triples:
         st_acc = leer_y_convertir_a_acc_cmss(client, inv, net, sta, loc, t0, t1)
+        #print(st_acc)
         loc_sel = loc if loc else "*"
         stRaw = client.get_waveforms(net, sta, loc_sel, "HN?", t0, t1, merge=1)
         if len(st_acc):
             escribir_mseed_por_estacion(st_acc, out_dir, args.event, net, sta, loc,start.strftime("%Y%m%dT%H%M%S"))
-            escribir_mseed_por_estacion(stRaw, OUT_DIR_RAW, args.event, net, sta, loc, start.strftime("%Y%m%dT%H%M%S"))
+            #escribir_mseed_por_estacion(stRaw, OUT_DIR_RAW, args.event, net, sta, loc, start.strftime("%Y%m%dT%H%M%S"))
 
     logging.info(f"Finalizado. Salida en: {out_dir}")
     logging.info("Iniciando procesamiento...")

@@ -44,7 +44,7 @@ def Plotear(imagenpng,ruta):
     for archivo in archivos_mseed:
         nuevo_directorio =str(archivo).split("/")[-2]
         nombre_imagen =archivo.name.split(".")[0]
-        nombrearchivo =imagenpng+nuevo_directorio+"/"+nombre_imagen+"_acc.png"
+        nombrearchivo =imagenpng+nuevo_directorio+"/"+nombre_imagen+"_des.png"
         print(nombrearchivo)
 
         try:
@@ -53,7 +53,7 @@ def Plotear(imagenpng,ruta):
             os.mkdir(imagenpng+nuevo_directorio)
 
         logging.basicConfig(
-            filename="/home/lis/waves/imagenes/" + nuevo_directorio + "/plotlog_acc.log",
+            filename="/home/lis/waves/imagenes/" + nuevo_directorio + "/plotlog_dis.log",
             level=logging.INFO,  # Nivel mínimo que se registrará
             format='%(asctime)s [%(levelname)s] %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
@@ -68,7 +68,7 @@ def Plotear(imagenpng,ruta):
         strNew.merge(method=1, fill_value='interpolate')
         for tr in strNew:
             try:
-                tr.remove_response(inventory.select(network=tr.stats.network, station=tr.stats.station), output="ACC")
+                tr.remove_response(inventory.select(network=tr.stats.network, station=tr.stats.station), output="DISP")
                 tr.detrend("demean")
                 tr.detrend("linear")
                 tr.taper(max_percentage=float(taperMaxPercent), type=taperType)
