@@ -100,12 +100,12 @@ def doSomethingWithEvent(inicio,evento):
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
-    #tiempo = inicio
+    tiempo =  datetime.strptime(inicio, "%Y-%m-%dT%H:%M:%S")
     inv_path = "/home/lis/waves/inventory_Estructuras.xml"
     base = "/home/lis/waves/eventos/"
     agrupados = get_streams_for_event_from_directory(base,evento)
     #crudos = get_streams_for_event_from_directory(base,evento,0)
-    proceso(agrupados,inv_path,evento,inicio)
+    proceso(agrupados,inv_path,evento,tiempo)
     parametroa = rutaImagenes + evento + "/"
     logging.info("Proceso terminado")
 
@@ -324,24 +324,24 @@ def proceso(agrupados, inv_path,evento,inicio):
     #maximos = sorted(maximos, key=lambda x: -x["maximos"])
 
     #se hacen las imagenes de todos los archivos mseed escritos
-    result = subprocess.Popen(
-        ["python3", rutaScrips+"plotea.py", "--imagenpng", rutaImagenes,"--ruta", OUTPUT_DIR+evento])
-    logging.info("Resultado del ploteo %s" % result)
+    #result = subprocess.Popen(
+    #    ["python3", rutaScrips+"plotea.py", "--imagenpng", rutaImagenes,"--ruta", OUTPUT_DIR+evento])
+    #logging.info("Resultado del ploteo %s" % result)
 
-    result1 = subprocess.Popen(
-        ["python3", rutaScrips + "plotea_dis.py", "--imagenpng", rutaImagenes, "--ruta", OUTPUT_DIR + evento])
-    logging.info("Resultado del ploteo %s" % result1)
+    #result1 = subprocess.Popen(
+    #    ["python3", rutaScrips + "plotea_dis.py", "--imagenpng", rutaImagenes, "--ruta", OUTPUT_DIR + evento])
+    #logging.info("Resultado del ploteo %s" % result1)
 
-    result2 = subprocess.Popen(
-        ["python3", rutaScrips + "plotea_vel.py", "--imagenpng", rutaImagenes, "--ruta", OUTPUT_DIR + evento])
-    logging.info("Resultado del ploteo %s" % result2)
+    #result2 = subprocess.Popen(
+    #    ["python3", rutaScrips + "plotea_vel.py", "--imagenpng", rutaImagenes, "--ruta", OUTPUT_DIR + evento])
+    #logging.info("Resultado del ploteo %s" % result2)
 
 
 
     # se escriben los archivos .LIS
     num_trabajos = -1  # Utiliza todos los núcleos disponibles
     crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
-        delayed(archivoLis)(resultados[s], evento,inicio) for s in range(len(resultados)))
+        delayed(archivoLis)(resultados[s], evento,inicio.strftime("%Y%m%dT%H%M%S")) for s in range(len(resultados)))
     logging.info("Resultado del archivoLIS %s" % crealis)
     #envia archivos lis a servidor central
     res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}/",

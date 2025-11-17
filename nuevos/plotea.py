@@ -49,12 +49,7 @@ def Plotear(imagenpng,ruta):
         nombrearchivo =imagenpng+nuevo_directorio+"/"+nombre_imagen+".png"
         dir_a_copiar = imagenpng+nuevo_directorio
         print(nombrearchivo)
-        logging.basicConfig(
-            filename="/home/lis/waves/imagenes/" + nuevo_directorio + "/plotlog.log",
-            level=logging.INFO,  # Nivel mínimo que se registrará
-            format='%(asctime)s [%(levelname)s] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
+
         #logfile = "/home/lis/waves/imagenes/" +nuevo_directorio+"/plotlog.log"
         try:
             os.stat(imagenpng+nuevo_directorio)
@@ -62,7 +57,12 @@ def Plotear(imagenpng,ruta):
             os.mkdir(imagenpng+nuevo_directorio)
         strNew = read(archivo, format="mseed")
         print("padre %s" %archivo.parent)
-
+        logging.basicConfig(
+            filename="/home/lis/waves/imagenes/" + nuevo_directorio + "/plotlog.log",
+            level=logging.INFO,  # Nivel mínimo que se registrará
+            format='%(asctime)s [%(levelname)s] %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
 
         logging.info(f"Voy a procesar imagen de {nombre_imagen}")
         # Preprocess each trace independently and remove instrument response

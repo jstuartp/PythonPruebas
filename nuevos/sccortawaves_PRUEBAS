@@ -231,7 +231,7 @@ class EventListener(client.Application):
             st_umask = tr.split()
             a = []
             for tr1 in st_umask:
-                print("UMASK %s" % station)
+                #print("UMASK %s" % station)
                 #tr1 = tr1.remove_response(inventory, output="ACC")
                 tr1.detrend("demean")
                 tr1.detrend("linear")
@@ -316,7 +316,7 @@ class EventListener(client.Application):
                                # })
                                 try:
                                     pgasChannel.append({str(tr.stats.channel).lower() :pga})
-                                    print(f"valores de pga {pgasChannel}")
+                                    #print(f"valores de pga {pgasChannel}")
                                 except Exception as e:
                                     print(f"Error en pgaschannel {e}")
                             except Exception as e:
@@ -326,7 +326,7 @@ class EventListener(client.Application):
                             "station" : station,
                             "maximos" : m
                         })
-                        print("pase los maximos")
+                        #print("pase los maximos")
                         resultados.append({
                             "fecha_evento": t0,
                             "fecha_calculo": datetime.now(),
@@ -341,7 +341,7 @@ class EventListener(client.Application):
                             "site_manufacturer": manufacturer,
                             "site_serial": serial
                         })
-                        print("pase resultados")
+                        #print("pase resultados")
                         ultimo = resultados[-1]
                         for i in pgasChannel:
                             ultimo.update(i)
@@ -354,7 +354,7 @@ class EventListener(client.Application):
                             "t1": t1,
                             "t2": t2,
                         })
-                        print("pase streams")
+                        #print("pase streams")
 
 
                     except Exception as e:
@@ -377,7 +377,8 @@ class EventListener(client.Application):
             #se hacen las imagenes de todos los archivos mseed escritos
             result = subprocess.Popen(
                 ["python3", self.seiscomp_path+"/share/scripts/lis/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
-            #Logging.info("Resultado del ploteo %s" % result)
+            Logging.info("Resultado del ploteo %s" % result)
+            raise SystemExit
 
             # se escriben los archivos .LIS
             num_trabajos = -1  # Utiliza todos los núcleos disponibles
@@ -993,7 +994,7 @@ class EventListener(client.Application):
         retraso_seg = 3.2 * 60  # 3 minutos en segundos
         if event:
             print("Evento actualizado {}".format(event.publicID()))
-            time.sleep(retraso_seg)
+            #time.sleep(retraso_seg)
             self.doSomethingWithEvent(event)
 
             #self.doSomethingWithEvent(event)
