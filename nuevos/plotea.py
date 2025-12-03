@@ -28,6 +28,8 @@ filterType = "bandpass"
 filterFreqMin = 0.1
 filterFreqMax = 10
 filterCorners = 2
+plotdir = "/home/lis/waves/imagenes/"
+#plotdir = os.getcwd()
 
 
 
@@ -59,7 +61,7 @@ def Plotear(imagenpng,ruta):
         strNew = read(archivo, format="mseed")
         print("padre %s" %archivo.parent)
         logging.basicConfig(
-            filename="/home/lis/waves/imagenes/" + nuevo_directorio + "/plotlog.log",
+            filename=plotdir + nuevo_directorio + "/plotlog.log",
             level=logging.INFO,  # Nivel mínimo que se registrará
             format='%(asctime)s [%(levelname)s] %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
@@ -152,8 +154,12 @@ def Plotear(imagenpng,ruta):
 
         # 8) Etiqueta común del eje X
         axes[-1].set_xlabel("Tiempo (s)")
+        fechaI = inicio.strftime("%d-%m-%Y")
+        horaI = inicio.strftime("%H:%M:%S")
+        horaF = fin.strftime("%H:%M:%S")
+
         fig.suptitle(
-            f"Estación {strNew[0].stats.station} — {inicio.isoformat()} a {fin.isoformat()} (UTC)",
+            f"Estación {strNew[0].stats.station} — Sismo del {fechaI}\n de {horaI} a {horaF} (UTC)",
             fontsize=14
         )
 

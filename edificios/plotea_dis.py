@@ -151,8 +151,12 @@ def Plotear(imagenpng,ruta):
 
         # 8) Etiqueta común del eje X
         axes[-1].set_xlabel("Tiempo (s)")
+        fechaI = inicio.strftime("%d-%m-%Y")
+        horaI = inicio.strftime("%H:%M:%S")
+        horaF = fin.strftime("%H:%M:%S")
+
         fig.suptitle(
-            f"Estación {strNew[0].stats.station} — {inicio.isoformat()} a {fin.isoformat()} (UTC)",
+            f"Estación {strNew[0].stats.station} — Sismo del {fechaI}\n de {horaI} a {horaF} (UTC)",
             fontsize=14
         )
 
