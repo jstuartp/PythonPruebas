@@ -39,6 +39,7 @@ def Plotear(imagenpng,ruta):
     # Read the mseed file
     directorio = Path(ruta)
     archivos_mseed = list(directorio.glob("*.mseed"))
+    order = {"HNN": 0, "HNE": 1, "HNZ": 2}
 
 
     for archivo in archivos_mseed:
@@ -66,6 +67,14 @@ def Plotear(imagenpng,ruta):
         logging.info("--Voy a procesar imagen de %s--\n" % nombre_imagen)
         # Preprocess each trace independently and remove instrument response
         strNew.merge(method=1, fill_value='interpolate')
+        # Ordenar in-place la lista interna de trazas
+        strNew.traces.sort(
+            key=lambda tr: (
+                tr.stats.station,  # agrupar por estación
+                order.get(tr.stats.channel, 99),  # HNN < HNE < HNZ; otros al final
+                tr.stats.starttime  # desempate temporal (opcional)
+            )
+        )
         for tr in strNew:
             try:
                 tr.remove_response(inventory.select(network=tr.stats.network, station=tr.stats.station), output="DISP")
