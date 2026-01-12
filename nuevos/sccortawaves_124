@@ -457,6 +457,18 @@ class EventListener(client.Application):
                     ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
                      evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "2"])
                 Logging.info("Resultado del JMA actualizar %s" % resultJMA)
+            else:
+                if fechaEvento['fecha'] == t0:
+                    # actualizar evento
+                    Logging.info(
+                        "--Insertando evento existente %s---------\n" % evento.publicID())
+                    self.actualizaEvento(datosEvento, evento.publicID(),maximos[0]["maximos"],maximos[0]["station"],informe)
+                    # se llama el jma para actualizar valores del evento
+                    resultJMA = subprocess.run(
+                        ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
+                         evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "1"])
+                    Logging.info("Resultado del JMA Insertar %s" % resultJMA)
+
 
                 # si no hay evento mas nuevo, no se hace nada
 

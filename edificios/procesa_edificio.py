@@ -441,7 +441,7 @@ def archivoLis(resultados,evento,fecha):
         result = subprocess.run(
             ["python3", rutaScrips+"escribe_lis.py", "--mseed", archivos[0], "--out",
              f"/home/lis/waves/archivosLis/{evento}/{fecha.replace('-', '').replace(':', '').replace('T', '')[:-2]}{resultados['estacion']}.lis",
-             "--station-name", resultados['site_name'],"--event-date",fecha.replace("-", "/").replace("T", " ")[:-3],
+             "--station-name", resultados['site_name'],"--event-date",fecha.replace("-", "/").replace("T", "")[:-3],
              "--event-lat",str(datos['latitud']),"--event-lon", str(datos["longitud"]),"--event-depth",str(datos["profundidad"]),"--event-mw",str(datos["magnitud"]),
              "--station-code",resultados['estacion'],"--station-lat",str(resultados['latitud']),"--station-lon",str(resultados['longitud']),
              "--pga-n00e",str(resultados['hnn']),"--pga-updo",str(resultados['hnz']),"--pga-n90e",str(resultados['hne']),"--station-elev", str(resultados['altitud']),
