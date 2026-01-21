@@ -725,7 +725,7 @@ class EventListener(client.Application):
     def cortaWaves(self,streams,evento,t0):
 
         ruta = OUTPUT_DIR + evento
-        localizaciones_permitidas = ["00", "", "11", "12", "13"]
+        localizaciones_permitidas = ["00", "","01","11", "12", "13"]
         canales_permitidos = ["HNN", "HNZ", "HNE"]
         try:
             os.stat(ruta)
@@ -739,9 +739,10 @@ class EventListener(client.Application):
         for idx, res in enumerate(streams, 1):
             # Recortar la traza en la ventana deseada (si es necesario)
             tr = res["st"]
+            print(tr)
             trRaw = res["stRaw"]
             for mytr in tr.copy():
-                if mytr.stats.channel not in canales_permitidos:
+                if (mytr.stats.location not in localizaciones_permitidas) or (mytr.stats.channel not in canales_permitidos):
                     tr.remove(mytr)
                     trRaw.remove(mytr)
 
