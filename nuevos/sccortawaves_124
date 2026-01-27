@@ -179,7 +179,7 @@ class EventListener(client.Application):
         dt = datetime.strptime(str(myhora), "%Y-%m-%d %H:%M:%S")
 
         mylog.basicConfig(
-            filename=OUTPUT_DIR + evento.publicID() + '/log_evento_'+evento.publicID()+'.log',
+            filename='/home/lis/waves/logs/log_evento_'+evento.publicID()+'.log',
             level=mylog.INFO,  # Nivel mínimo que se registrará
             format='%(asctime)s [%(levelname)s] %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
@@ -739,7 +739,7 @@ class EventListener(client.Application):
         for idx, res in enumerate(streams, 1):
             # Recortar la traza en la ventana deseada (si es necesario)
             tr = res["st"]
-            print(tr)
+            #print(tr)
             trRaw = res["stRaw"]
             for mytr in tr.copy():
                 if (mytr.stats.location not in localizaciones_permitidas) or (mytr.stats.channel not in canales_permitidos):
