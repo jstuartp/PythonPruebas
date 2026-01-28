@@ -184,10 +184,13 @@ class EventListener(client.Application):
         #tiempo = Time.FromString("2025-10-22T03:57:05.114Z", "%Y-%m-%dT%H:%M:%S.%fZ")
         tiempo2 = datetime.strptime(tiempo, "%Y-%m-%dT%H:%M:%S.%f")
         inv_path = self.seiscomp_path+"/share/scripts/inventory_full_fdns.xml"
-        self.proceso(tiempo,inv_path,evento)
+        inf = self.proceso(tiempo,inv_path,evento)
         parametroa = self.rutaImagenes + evento.publicID() + "/"
-        print(parametroa)
-        print(self.direccionWebServer)
+        #print(parametroa)
+        #print(self.direccionWebServer)
+        if inf is 1:
+            resultspec = subprocess.run(
+                ["python3", self.seiscomp_path + "/share/scripts/lis/spectrum_accLogn.py", evento.publicID()])
         #proceso para copiar imagenes de ondas
         result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
         Logging.info("IMAGENES COPIADAS")
@@ -404,6 +407,7 @@ class EventListener(client.Application):
 
 
 
+
             # mandar a guardar los pga, iterando el arreglo y preguntando por cada estacion
             #print(resultados)
             for  res in resultados:
@@ -421,6 +425,8 @@ class EventListener(client.Application):
 
 
             # mandar a plotear todo enviando la carpeta donde estan los mseed
+
+            # Logging.info("Resultado del ploteo %s" % result)
         else:
             Logging.info("El evento %s No cumple con el umbral de aceleracion" %evento)
 
@@ -457,6 +463,7 @@ class EventListener(client.Application):
                     ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
                      evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "2"])
                 Logging.info("Resultado del JMA actualizar %s" % resultJMA)
+        return informe
 
                 # si no hay evento mas nuevo, no se hace nada
 

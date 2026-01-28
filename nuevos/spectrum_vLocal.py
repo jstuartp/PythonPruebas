@@ -82,6 +82,12 @@ def procesar_un_sismo(archivo, mapa_info, curvas_diseno, carpeta_salida):
     Procesa un archivo mseed. Recibe carpeta_salida como argumento.
     """
     nombre_archivo = os.path.basename(archivo)
+    mapa_zonas = {
+        "Z1": "ZI",
+        "Z2": "ZII",
+        "Z3": "ZIII",
+        "Z4": "ZIV"
+    }
 
     try:
         st = obspy.read(archivo)
@@ -116,9 +122,10 @@ def procesar_un_sismo(archivo, mapa_info, curvas_diseno, carpeta_salida):
 
         if info:
             clave = f"{info['zona']}{info['suelo']}"  # Ej: Z2S2
+            zona_romana = mapa_zonas.get(info['zona'], info['zona'])
             if clave in curvas_diseno:
                 datos_curva = curvas_diseno[clave]
-                etiqueta = f"Diseño {clave}"
+                etiqueta = f"Diseño CSCR {zona_romana}"
             else:
                 etiqueta = f"Falta {clave}"
         else:
@@ -150,8 +157,8 @@ def crear_grafica(periodos, resp_x, resp_y, rot_resp, station, filename_orig, ca
                   etiqueta_extra=None):
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    ax.plot(periodos, resp_x.spec_accel, label='HNE', linestyle=':', color='blue', alpha=0.4)
-    ax.plot(periodos, resp_y.spec_accel, label='HNN', linestyle=':', color='green', alpha=0.4)
+    ax.plot(periodos, resp_x.spec_accel, label='HNE',  color='blue', alpha=0.4)
+    ax.plot(periodos, resp_y.spec_accel, label='HNN',  color='green', alpha=0.4)
     ax.plot(periodos, rot_resp.spec_accel, label='RotD100', color='red', linewidth=2)
 
     if datos_extra is not None:
@@ -160,7 +167,7 @@ def crear_grafica(periodos, resp_x, resp_y, rot_resp, station, filename_orig, ca
     elif etiqueta_extra:
         ax.plot([], [], ' ', label=f"({etiqueta_extra})")
 
-    ax.set_title(f"Espectro de Respuesta - Estación: {station}")
+    ax.set_title(f"Espectro de Respuesta (amortiguamiento = 5 %) - Estación: {station}")
     ax.set_xlabel("Periodo (s)")
     ax.set_ylabel("Aceleración Espectral ($cm/s^2$)")
     ax.set_xscale('log')
