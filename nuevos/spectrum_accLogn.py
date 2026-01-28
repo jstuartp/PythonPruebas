@@ -11,7 +11,9 @@ from joblib import Parallel, delayed
 # ================= CONFIGURACIÓN FIJA =================
 # Estas variables siguen siendo relativas a donde corre el script,
 # o puedes poner rutas absolutas si prefieres.
-CARPETA_CURVAS = "./curvas_diseno"
+CARPETA_CURVAS = "/home/lis/seiscomp/share/scripts/lis/curvas_diseno"
+CARPETA_RAIZ ="/home/lis/waves/sds/"
+CARPETA_IMAGENES="/home/lis/waves/imagenes/"
 
 # Parámetros Cálculo
 AMORTIGUAMIENTO = 0.05
@@ -125,7 +127,7 @@ def procesar_un_sismo(archivo, mapa_info, curvas_diseno, carpeta_salida):
             zona_romana = mapa_zonas.get(info['zona'], info['zona'])
             if clave in curvas_diseno:
                 datos_curva = curvas_diseno[clave]
-                etiqueta = f"Diseño CSCR {zona_romana}"
+                etiqueta = f"Diseño CSCR {zona_romana}{info['suelo']}"
             else:
                 etiqueta = f"Falta {clave}"
         else:
@@ -171,13 +173,15 @@ def crear_grafica(periodos, resp_x, resp_y, rot_resp, station, filename_orig, ca
     ax.set_xlabel("Periodo (s)")
     ax.set_ylabel("Aceleración Espectral ($cm/s^2$)")
     ax.set_xscale('log')
+    ax.set_yscale('log')
     ax.set_xlim(left=0.01)
-    ax.grid(True, which="both", ls="-", alpha=0.3)
+    ax.grid(True, which="major", ls="-", alpha=0.5)
+    ax.grid(True, which="minor", ls=":", alpha=0.2)
     ax.legend()
 
     # Guardar en la carpeta dinámica
     nombre_limpio = os.path.splitext(filename_orig)[0]
-    ruta_guardado = os.path.join(carpeta_out, f"{station}_{nombre_limpio}_RotD100.png")
+    ruta_guardado = os.path.join(carpeta_out, f"{nombre_limpio}_RotD100_loglog.png")
 
     fig.savefig(ruta_guardado, dpi=150)
     plt.close(fig)
@@ -191,14 +195,14 @@ def main():
         print("   Ejemplo: python script.py ./sismos_2024\n")
         sys.exit(1)
 
-    carpeta_entrada = sys.argv[1]
-
+    nombreEvento = sys.argv[1]
+    carpeta_entrada = CARPETA_RAIZ+nombreEvento
     if not os.path.isdir(carpeta_entrada):
         print(f"\n❌ Error: La carpeta '{carpeta_entrada}' no existe.\n")
         sys.exit(1)
 
     # 2. Configurar Carpeta de Salida (Dentro de la de entrada)
-    carpeta_salida = os.path.join(carpeta_entrada, "espectros_acc")
+    carpeta_salida = os.path.join(CARPETA_IMAGENES+nombreEvento, "espectros_acc")
     if not os.path.exists(carpeta_salida):
         os.makedirs(carpeta_salida)
         print(f"📂 Carpeta creada: {carpeta_salida}")

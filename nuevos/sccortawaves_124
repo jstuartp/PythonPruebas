@@ -193,10 +193,16 @@ class EventListener(client.Application):
         #tiempo = Time.FromString("2025-10-22T03:57:05.114Z", "%Y-%m-%dT%H:%M:%S.%fZ")
         tiempo2 = datetime.strptime(tiempo, "%Y-%m-%dT%H:%M:%S.%f")
         inv_path = self.seiscomp_path+"/share/scripts/inventory_full_fdns.xml"
-        self.proceso(tiempo,inv_path,evento)
+        inf = self.proceso(tiempo,inv_path,evento)
         parametroa = self.rutaImagenes + evento.publicID() + "/"
-        print(parametroa)
-        print(self.direccionWebServer)
+        #print(parametroa)
+        #print(self.direccionWebServer)
+        if inf == 1:
+            time.sleep(450)
+            resultspec = subprocess.run(
+                ["python3", self.seiscomp_path + "/share/scripts/lis/spectrum_accLogn.py", evento.publicID()])
+        #ejecutar aqui los espectros esperando un minuto despues de todo...
+
         #proceso para copiar imagenes de ondas
         result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
         mylog.info("IMAGENES COPIADAS")
@@ -481,7 +487,7 @@ class EventListener(client.Application):
                         ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
                          evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "1"])
                     mylog.info("Resultado del JMA Insertar %s" % resultJMA)
-
+        return informe
 
                 # si no hay evento mas nuevo, no se hace nada
 
