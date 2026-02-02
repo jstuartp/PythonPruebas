@@ -179,7 +179,7 @@ class EventListener(client.Application):
         dt = datetime.strptime(str(myhora), "%Y-%m-%d %H:%M:%S")
 
         mylog.basicConfig(
-            filename=OUTPUT_DIR + evento.publicID() + '/log_evento_'+evento.publicID()+'.log',
+            filename='/home/lis/waves/logs/log_evento_'+evento.publicID()+'.log',
             level=mylog.INFO,  # Nivel mínimo que se registrará
             format='%(asctime)s [%(levelname)s] %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
@@ -193,10 +193,16 @@ class EventListener(client.Application):
         #tiempo = Time.FromString("2025-10-22T03:57:05.114Z", "%Y-%m-%dT%H:%M:%S.%fZ")
         tiempo2 = datetime.strptime(tiempo, "%Y-%m-%dT%H:%M:%S.%f")
         inv_path = self.seiscomp_path+"/share/scripts/inventory_full_fdns.xml"
-        self.proceso(tiempo,inv_path,evento)
+        inf = self.proceso(tiempo,inv_path,evento)
         parametroa = self.rutaImagenes + evento.publicID() + "/"
-        print(parametroa)
-        print(self.direccionWebServer)
+        #print(parametroa)
+        #print(self.direccionWebServer)
+        if inf == 1:
+            #time.sleep(30)
+            resultspec = subprocess.run(
+                ["python3", self.seiscomp_path + "/share/scripts/lis/spectrum_single_accLognV2.py", evento.publicID()])
+        #ejecutar aqui los espectros esperando un minuto despues de todo...
+
         #proceso para copiar imagenes de ondas
         result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
         mylog.info("IMAGENES COPIADAS")
@@ -388,7 +394,8 @@ class EventListener(client.Application):
             self.cortaWaves(streams, evento.publicID(), t0)
             #se hacen las imagenes de todos los archivos mseed escritos
             result = subprocess.Popen(
-                ["python3", self.seiscomp_path+"/share/scripts/lis/plotea.py", "--imagenpng", self.rutaImagenes,"--ruta", OUTPUT_DIR+evento.publicID()])
+                ["python3", self.seiscomp_path+"/share/scripts/lis/ploteaV2.py", "--imagenpng", self.rutaImagenes
+                 ,"--t0",t0.strftime('%Y%m%dT%H%M%S'),"--ruta", OUTPUT_DIR+evento.publicID()])
             #mylog.info("Resultado del ploteo %s" % result)
 
             # se escriben los archivos .LIS
@@ -406,7 +413,7 @@ class EventListener(client.Application):
             #envia archivos lis a repositorio stuart
             res4 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/LIS/{evento}",
                                    "lis@163.178.109.101:/home/lis/repositorio_archivo_lis/por_eventos/"])
-            print(res4)
+            #print(res4)
             print("Voy a llamar a estucturas")
             # proceso para activar evento en servidor estructuras
             estructuras = subprocess.Popen(
@@ -481,7 +488,7 @@ class EventListener(client.Application):
                         ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
                          evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "1"])
                     mylog.info("Resultado del JMA Insertar %s" % resultJMA)
-
+        return informe
 
                 # si no hay evento mas nuevo, no se hace nada
 
@@ -739,7 +746,7 @@ class EventListener(client.Application):
         for idx, res in enumerate(streams, 1):
             # Recortar la traza en la ventana deseada (si es necesario)
             tr = res["st"]
-            print(tr)
+            #print(tr)
             trRaw = res["stRaw"]
             for mytr in tr.copy():
                 if (mytr.stats.location not in localizaciones_permitidas) or (mytr.stats.channel not in canales_permitidos):
