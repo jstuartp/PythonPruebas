@@ -109,7 +109,7 @@ class EventListener(client.Application):
 
         self.rutaRaiz ="/home/lis/waves/corta/"
         self.rutaImagenes ="/home/lis/waves/imagenes/"
-        self.direccionWebServer = "lis@163.178.101.121:/var/www/informes.lis.ucr.ac.cr/seiscomp/public/assets/waves"
+        self.direccionWebServer = "lis@163.178.170.245:/var/www/informes.lis.ucr.ac.cr/seiscomp/public/assets/waves"
         self.seiscomp_path = os.environ.get("SEISCOMP_ROOT") # ruta del seiscomp base
         self.SDS_ROOT = self.seiscomp_path+"/var/lib/archive/"  # Ruta al SDS de seiscomp
         #mylog.info("Inicio de CortaWaves")
@@ -205,8 +205,9 @@ class EventListener(client.Application):
 
         #proceso para copiar imagenes de ondas
         result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
+        #mylog.info("IMAGENES COPIADAS")
+        #result = subprocess.run(['rsync', '-avz', parametroa,self.direccionWebServer])
         mylog.info("IMAGENES COPIADAS")
-
 
     def load_inventory_sc3(self,inv_path):
         # Ejemplo: usar StationXML o SC3ML convertido a Inventory de ObsPy
@@ -302,6 +303,7 @@ class EventListener(client.Application):
                         print(f"error {e}")
                     elevation = channel.elevation
                     print(f"Procesando estacion...{station}")
+                    mylog.info(f"Procesando estacion...{station}")
 
                     #print(elevation)
                     #print(manufacturer)
@@ -311,68 +313,205 @@ class EventListener(client.Application):
 
                     # 5. Leer la traza
                     try:
-                        st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
-                        st.merge(method=1, fill_value='interpolate')
-                        stRaw = st.copy()
-                        net = inventory.select(network=network, station=station)[0]
-                        mysta = net.stations[0]
+                        if station == "BID0": #CONDICION PUESTA PARA MANEJAR BIDO
+                            location = "00"
+                            mylog.info(f"DEBIO ENTRAR POR BID0...{station}")
+                            st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
+                            st.merge(method=1, fill_value='interpolate')
+                            stRaw = st.copy()
+                            net = inventory.select(network=network, station=station)[0]
+                            mysta = net.stations[0]
+                            mylog.info(f"AQUI DEBERIA IR BIDO LOC 1...{mysta}")
 
-                        if not st or len(st) == 0:
-                            mylog.warning(f"Error en {network}.{station}: no hay trazas")
-                            continue
-                        #tr = st[0]
-                        # 6. Aplicar respuesta y calcular PGA
-                        m = 0.0
-                        for tr in st:
-                            try:
-                                pga = self.calculate_pga(tr, inventory, network, station, location, channel)
-                                mylog.info(f"Estacion: {station} canal: {tr.stats.channel} PGA {pga}")
-                                if pga > m:
-                                    m = pga
-                              #  pgas.append({
-                              #      "pga": pga
-                               # })
-                                try:
-                                    pgasChannel.append({str(tr.stats.channel).lower() :pga})
-                                    mylog.info(f"valores de pga {pgasChannel}")
-                                except Exception as e:
-                                    mylog.error(f"Error en pgaschannel {e}")
-                            except Exception as e:
-                                mylog.error(f" Canales no validos {e}")
+                            if not st or len(st) == 0:
+                                mylog.warning(f"Error en {network}.{station}: no hay trazas")
                                 continue
-                        maximos.append({
-                            "station" : station,
-                            "maximos" : m
-                        })
-                        print("pase los maximos")
-                        resultados.append({
-                            "fecha_evento": t0,
-                            "fecha_calculo": datetime.now(),
-                            "evento": evento.publicID(),
-                            "tipo": 1,
-                            "network": network,
-                            "estacion": station,
-                            "latitud": mysta.latitude,
-                            "longitud": mysta.longitude,
-                            "site_name": site_name,
-                            "altitud": elevation,
-                            "site_manufacturer": manufacturer,
-                            "site_serial": serial
-                        })
-                        print("pase resultados")
-                        ultimo = resultados[-1]
-                        for i in pgasChannel:
-                            ultimo.update(i)
-                        streams.append({
-                            "evento": evento.publicID(),
-                            "network": network,
-                            "station": station,
-                            "st": st,
-                            "stRaw": stRaw,
-                            "t1": t1,
-                            "t2": t2,
-                        })
-                        print("pase streams")
+                            # tr = st[0]
+                            # 6. Aplicar respuesta y calcular PGA
+                            m = 0.0
+                            for tr in st:
+                                try:
+                                    pga = self.calculate_pga(tr, inventory, network, station, location, channel)
+                                    mylog.info(f"Estacion: {station} canal: {tr.stats.channel} PGA {pga}")
+                                    if pga > m:
+                                        m = pga
+                                    #  pgas.append({
+                                    #      "pga": pga
+                                    # })
+                                    try:
+                                        pgasChannel.append({str(tr.stats.channel).lower(): pga})
+                                        mylog.info(f"valores de pga {pgasChannel}")
+                                    except Exception as e:
+                                        mylog.error(f"Error en pgaschannel {e}")
+                                except Exception as e:
+                                    mylog.error(f" Canales no validos {e}")
+                                    continue
+                            maximos.append({
+                                "station": station,
+                                "maximos": m
+                            })
+                            print("pase los maximos")
+                            resultados.append({
+                                "fecha_evento": t0,
+                                "fecha_calculo": datetime.now(),
+                                "evento": evento.publicID(),
+                                "tipo": 1,
+                                "network": network,
+                                "estacion": station,
+                                "latitud": mysta.latitude,
+                                "longitud": mysta.longitude,
+                                "site_name": site_name,
+                                "altitud": elevation,
+                                "site_manufacturer": manufacturer,
+                                "site_serial": serial
+                            })
+                            print("pase resultados")
+                            ultimo = resultados[-1]
+                            for i in pgasChannel:
+                                ultimo.update(i)
+                            streams.append({
+                                "evento": evento.publicID(),
+                                "network": network,
+                                "station": station,
+                                "st": st,
+                                "stRaw": stRaw,
+                                "t1": t1,
+                                "t2": t2,
+                            })
+                            print("pase streams")
+
+                            #AHORA SE HACE CON BID0 LOCATION 0 PARA CREAR BID1 QUE NO EXISTE
+                            location = "01"
+                            st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
+                            st.merge(method=1, fill_value='interpolate')
+                            stRaw = st.copy()
+                            net = inventory.select(network=network, station=station)[0]
+                            mysta = net.stations[0]
+                            mylog.info(f"DEBIO ENTRAR POR BID0 location 0...{station}")
+                            mylog.info(f"DEBIO ENTRAR POR BID0...{mysta}")
+
+
+                            if not st or len(st) == 0:
+                                mylog.warning(f"Error en {network}.{station}: no hay trazas")
+                                continue
+                            # tr = st[0]
+                            # 6. Aplicar respuesta y calcular PGA
+                            m = 0.0
+                            for tr in st:
+                                try:
+                                    pga = self.calculate_pga(tr, inventory, network, station, location, channel)
+                                    mylog.info(f"Estacion: {station} canal: {tr.stats.channel} PGA {pga}")
+                                    if pga > m:
+                                        m = pga
+                                    #  pgas.append({
+                                    #      "pga": pga
+                                    # })
+                                    try:
+                                        pgasChannel.append({str(tr.stats.channel).lower(): pga})
+                                        mylog.info(f"valores de pga {pgasChannel}")
+                                    except Exception as e:
+                                        mylog.error(f"Error en pgaschannel {e}")
+                                except Exception as e:
+                                    mylog.error(f" Canales no validos {e}")
+                                    continue
+                            maximos.append({
+                                "station": "BID1",
+                                "maximos": m
+                            })
+                            print("pase los maximos")
+                            resultados.append({
+                                "fecha_evento": t0,
+                                "fecha_calculo": datetime.now(),
+                                "evento": evento.publicID(),
+                                "tipo": 1,
+                                "network": network,
+                                "estacion": "BID1",
+                                "latitud": mysta.latitude,
+                                "longitud": mysta.longitude,
+                                "site_name": site_name,
+                                "altitud": elevation,
+                                "site_manufacturer": manufacturer,
+                                "site_serial": serial
+                            })
+                            print("pase resultados")
+                            ultimo = resultados[-1]
+                            for i in pgasChannel:
+                                ultimo.update(i)
+                            streams.append({
+                                "evento": evento.publicID(),
+                                "network": network,
+                                "station": "BID1",
+                                "st": st,
+                                "stRaw": stRaw,
+                                "t1": t1,
+                                "t2": t2,
+                            })
+                            print("pase streams")
+                            mylog.info(f"Este array deberia incluir a BID1...{streams}")
+                        else:
+                            st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
+                            st.merge(method=1, fill_value='interpolate')
+                            stRaw = st.copy()
+                            net = inventory.select(network=network, station=station)[0]
+                            mysta = net.stations[0]
+
+                            if not st or len(st) == 0:
+                                mylog.warning(f"Error en {network}.{station}: no hay trazas")
+                                continue
+                            #tr = st[0]
+                            # 6. Aplicar respuesta y calcular PGA
+                            m = 0.0
+                            for tr in st:
+                                try:
+                                    pga = self.calculate_pga(tr, inventory, network, station, location, channel)
+                                    mylog.info(f"Estacion: {station} canal: {tr.stats.channel} PGA {pga}")
+                                    if pga > m:
+                                        m = pga
+                                  #  pgas.append({
+                                  #      "pga": pga
+                                   # })
+                                    try:
+                                        pgasChannel.append({str(tr.stats.channel).lower() :pga})
+                                        mylog.info(f"valores de pga {pgasChannel}")
+                                    except Exception as e:
+                                        mylog.error(f"Error en pgaschannel {e}")
+                                except Exception as e:
+                                    mylog.error(f" Canales no validos {e}")
+                                    continue
+                            maximos.append({
+                                "station" : station,
+                                "maximos" : m
+                            })
+                            print("pase los maximos")
+                            resultados.append({
+                                "fecha_evento": t0,
+                                "fecha_calculo": datetime.now(),
+                                "evento": evento.publicID(),
+                                "tipo": 1,
+                                "network": network,
+                                "estacion": station,
+                                "latitud": mysta.latitude,
+                                "longitud": mysta.longitude,
+                                "site_name": site_name,
+                                "altitud": elevation,
+                                "site_manufacturer": manufacturer,
+                                "site_serial": serial
+                            })
+                            print("pase resultados")
+                            ultimo = resultados[-1]
+                            for i in pgasChannel:
+                                ultimo.update(i)
+                            streams.append({
+                                "evento": evento.publicID(),
+                                "network": network,
+                                "station": station,
+                                "st": st,
+                                "stRaw": stRaw,
+                                "t1": t1,
+                                "t2": t2,
+                            })
+                            print("pase streams")
+
 
 
                     except Exception as e:
@@ -380,6 +519,7 @@ class EventListener(client.Application):
                         #continue
 
         # 7. Ordenar y seleccionar los 20 registros con mayor PGA
+        mylog.info(streams)
         maximos = sorted(maximos, key=lambda x: -x["maximos"])
 
 
@@ -749,9 +889,12 @@ class EventListener(client.Application):
             #print(tr)
             trRaw = res["stRaw"]
             for mytr in tr.copy():
-                if (mytr.stats.location not in localizaciones_permitidas) or (mytr.stats.channel not in canales_permitidos):
-                    tr.remove(mytr)
-                    trRaw.remove(mytr)
+                try:
+                    if (mytr.stats.location not in localizaciones_permitidas) or (mytr.stats.channel not in canales_permitidos):
+                        tr.remove(mytr)
+                        trRaw.remove(mytr)
+                except Exception as err:
+                    mylog.error(f"--FALLO CORTAR-- No se pudo cortar{res['station']}")
 
             tr.trim(starttime=res["t1"], endtime=res["t2"])
 
@@ -1025,7 +1168,7 @@ class EventListener(client.Application):
         retraso_seg = 3.2 * 60  # 3 minutos en segundos
         if event:
             print("Evento actualizado {}".format(event.publicID()))
-            time.sleep(retraso_seg)
+            #time.sleep(retraso_seg)
             self.doSomethingWithEvent(event)
 
             #self.doSomethingWithEvent(event)
