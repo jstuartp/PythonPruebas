@@ -47,6 +47,7 @@ from datetime import timedelta
 import numpy as np
 from dotenv import load_dotenv
 from pathlib import Path
+import json
 
 #CONSTANTES BASES DE DATOS SEISCOMP
 my_host = 'localhost'
@@ -532,6 +533,7 @@ class EventListener(client.Application):
             informe = 1
             #se escriben los archivos mseed con la duracion determinada
             self.cortaWaves(streams, evento.publicID(), t0)
+            #raise SystemExit
             #se hacen las imagenes de todos los archivos mseed escritos
             result = subprocess.Popen(
                 ["python3", self.seiscomp_path+"/share/scripts/lis/ploteaV2.py", "--imagenpng", self.rutaImagenes
@@ -884,8 +886,25 @@ class EventListener(client.Application):
             os.mkdir(ruta + "/raw")
 
         for idx, res in enumerate(streams, 1):
+            #header = res["st"].stats
+
+            payload = {
+                "meta": {
+                    "station": res["station"],
+                    "network": res["network"],
+                    # Convertimos a string ISO 8601 (Ej: "2024-02-27T10:30:00.000Z")
+                    "start_time": t0.strftime('%Y%m%dT%H%M%S'),
+                    "sample_rate": 200,
+                    "npts": 7001
+                },
+                "data": {}
+            }
+
+
+
             # Recortar la traza en la ventana deseada (si es necesario)
             tr = res["st"]
+            st = res["st"]
             #print(tr)
             trRaw = res["stRaw"]
             for mytr in tr.copy():
@@ -898,13 +917,28 @@ class EventListener(client.Application):
 
             tr.trim(starttime=res["t1"], endtime=res["t2"])
 
+            # 2. Rellenar los vectores de datos
+            for traza in tr:
+                # Usamos el nombre del canal como clave (ej: "HNZ", "HNE")
+                canal = traza.stats.channel
+
+                # IMPORTANTE: .tolist() es necesario porque 'json' no serializa numpy arrays
+                payload["data"][canal] = traza.data.tolist()
+
+
             # Generar nombre de archivo//HACER DIRECTORIO POR CADA EVENTO
             fname = f"{ruta}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
             rawFile = f"{ruta}/raw/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}_RAW.mseed"
+            jsonfname = f"{ruta}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.json"
+            #ruta_json = os.path.join(ruta, jsonfname)
+
 
             try:
                 tr.write(fname, format="mseed")
                 trRaw.write(rawFile, format="mseed")
+                with open(jsonfname, 'w') as f:
+                    # separators=(',', ':') elimina espacios vacíos para reducir peso
+                    json.dump(payload, f, separators=(',', ':'))
 
             except Exception as err:
                 mylog.error(
