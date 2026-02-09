@@ -519,7 +519,7 @@ class EventListener(client.Application):
                         #continue
 
         # 7. Ordenar y seleccionar los 20 registros con mayor PGA
-        mylog.info(streams)
+        #mylog.info(streams)
         maximos = sorted(maximos, key=lambda x: -x["maximos"])
 
 
@@ -581,7 +581,7 @@ class EventListener(client.Application):
 
             # mandar a plotear todo enviando la carpeta donde estan los mseed
         else:
-            mylog.info("El evento %s No cumple con el umbral de aceleracion" %evento)
+            #mylog.info("El evento %s No cumple con el umbral de aceleracion" %evento)
             mylog.info("El evento %s No cumple con el umbral de aceleracion" % evento)
 
         # consultar el evento.id, traer los datos
@@ -1168,7 +1168,7 @@ class EventListener(client.Application):
         retraso_seg = 3.2 * 60  # 3 minutos en segundos
         if event:
             print("Evento actualizado {}".format(event.publicID()))
-            #time.sleep(retraso_seg)
+            time.sleep(retraso_seg)
             self.doSomethingWithEvent(event)
 
             #self.doSomethingWithEvent(event)

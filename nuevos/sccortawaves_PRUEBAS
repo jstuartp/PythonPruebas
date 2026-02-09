@@ -69,6 +69,7 @@ local_db = 'informes'
 # Parámetros configurables
 #SDS_ROOT = "/home/lis/seiscomp/var/lib/archive/"                # Ruta al SDS de seiscomp
 OUTPUT_DIR = "/home/lis/waves/sds/"         # Carpeta de salida para los MiniSEED
+OUTPUT_JSON = "/home/lis/waves/imagenes/"         # Carpeta de salida para los JSON
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"  # Formato ISO para tiempo inicial
 # Dirección del servicio FDSN de su SeisComP (ajuste el host y puerto según su instalación)
 #FDSN_URL = "http://localhost:8080"  # Cambie localhost:8080 si corresponde
@@ -535,9 +536,9 @@ class EventListener(client.Application):
             self.cortaWaves(streams, evento.publicID(), t0)
             #raise SystemExit
             #se hacen las imagenes de todos los archivos mseed escritos
-            result = subprocess.Popen(
-                ["python3", self.seiscomp_path+"/share/scripts/lis/ploteaV2.py", "--imagenpng", self.rutaImagenes
-                 ,"--t0",t0.strftime('%Y%m%dT%H%M%S'),"--ruta", OUTPUT_DIR+evento.publicID()])
+            #result = subprocess.Popen(
+            #    ["python3", self.seiscomp_path+"/share/scripts/lis/ploteaV2.py", "--imagenpng", self.rutaImagenes
+            #     ,"--t0",t0.strftime('%Y%m%dT%H%M%S'),"--ruta", OUTPUT_DIR+evento.publicID()])
             #mylog.info("Resultado del ploteo %s" % result)
 
             # se escriben los archivos .LIS
@@ -874,12 +875,15 @@ class EventListener(client.Application):
     def cortaWaves(self,streams,evento,t0):
 
         ruta = OUTPUT_DIR + evento
+        rutaJson = OUTPUT_JSON + evento
         localizaciones_permitidas = ["00", "","01","11", "12", "13"]
         canales_permitidos = ["HNN", "HNZ", "HNE"]
         try:
             os.stat(ruta)
+            os.stat(rutaJson)
         except:
             os.mkdir(ruta)
+            os.mkdir(rutaJson)
         try:
             os.stat(ruta + "/raw")
         except:
@@ -929,7 +933,7 @@ class EventListener(client.Application):
             # Generar nombre de archivo//HACER DIRECTORIO POR CADA EVENTO
             fname = f"{ruta}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
             rawFile = f"{ruta}/raw/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}_RAW.mseed"
-            jsonfname = f"{ruta}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.json"
+            jsonfname = f"{rutaJson}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.json"
             #ruta_json = os.path.join(ruta, jsonfname)
 
 
