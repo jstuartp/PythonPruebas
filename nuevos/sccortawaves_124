@@ -1,6 +1,7 @@
 #!/usr/bin/env seiscomp-python
 # -*- coding: utf-8 -*-
 import glob
+import logging
 import re
 
 import matplotlib
@@ -47,6 +48,7 @@ from datetime import timedelta
 import numpy as np
 from dotenv import load_dotenv
 from pathlib import Path
+import json
 
 #CONSTANTES BASES DE DATOS SEISCOMP
 my_host = 'localhost'
@@ -68,6 +70,7 @@ local_db = 'informes'
 # Parámetros configurables
 #SDS_ROOT = "/home/lis/seiscomp/var/lib/archive/"                # Ruta al SDS de seiscomp
 OUTPUT_DIR = "/home/lis/waves/sds/"         # Carpeta de salida para los MiniSEED
+OUTPUT_JSON = "/home/lis/waves/imagenes/"         # Carpeta de salida para los JSON
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"  # Formato ISO para tiempo inicial
 # Dirección del servicio FDSN de su SeisComP (ajuste el host y puerto según su instalación)
 #FDSN_URL = "http://localhost:8080"  # Cambie localhost:8080 si corresponde
@@ -86,6 +89,15 @@ ruta_env = Path("/home/lis/.env")
 
 # Cargar el archivo .env desde esa ubicación
 load_dotenv(dotenv_path=ruta_env)
+
+# Esto se ejecuta una sola vez al arrancar el script.
+waveslogger= logging.getLogger("Sccortawaveslogger.")
+waveslogger.setLevel(logging.INFO)
+# Handler de Consola (Para que siempre veas en pantalla que el script está vivo)
+c_handler = logging.StreamHandler(sys.stdout)
+c_format = logging.Formatter('%(asctime)s - GLOBAL - %(message)s')
+c_handler.setFormatter(c_format)
+waveslogger.addHandler(c_handler)
 
 
 class EventListener(client.Application):
@@ -112,7 +124,7 @@ class EventListener(client.Application):
         self.direccionWebServer = "lis@163.178.170.245:/var/www/informes.lis.ucr.ac.cr/seiscomp/public/assets/waves"
         self.seiscomp_path = os.environ.get("SEISCOMP_ROOT") # ruta del seiscomp base
         self.SDS_ROOT = self.seiscomp_path+"/var/lib/archive/"  # Ruta al SDS de seiscomp
-        #mylog.info("Inicio de CortaWaves")
+        #waveslogger.info("Inicio de CortaWaves")
 
     def initConfiguration(self):
 
@@ -130,13 +142,13 @@ class EventListener(client.Application):
             print("Error while getting TYPE for TAPER: %s" % str(e))
         try:
             self.filterType = self.configGetString("filterType")
-            #mylog.info(self.filterType)
+            #waveslogger.info(self.filterType)
         except Exception as e:
             print("Error while getting TYPE for FILTER: %s" % str(e))
 
         try:
             self.filterCorners = self.configGetString("filterCorners")
-            #mylog.info(self.filterCorners)
+            #waveslogger.info(self.filterCorners)
         except Exception as e:
             print("Error while getting CORNERS for FILTER: %s" % str(e))
         try:
@@ -167,8 +179,30 @@ class EventListener(client.Application):
             print("Error while getting route for Web Server: %s" % str(e))
 
         return True
-    
-    
+
+    def configurar_log_evento(self,event_id):
+        """Crea y adjunta un FileHandler exclusivo para este evento."""
+        nombre_archivo = f"/home/lis/waves/logs/log_evento_{event_id}.log"
+
+        # Crear el handler de archivo
+        f_handler = logging.FileHandler(nombre_archivo)
+        f_handler.setLevel(logging.INFO)
+
+        # Formato específico para el archivo
+        f_format = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
+        f_handler.setFormatter(f_format)
+
+        # ADJUNTAR al logger principal
+        waveslogger.addHandler(f_handler)
+
+        return f_handler
+
+    def limpiar_log_evento(self,handler):
+        """Cierra el archivo y lo desvincula del logger."""
+        # 1. Cerrar el flujo al archivo
+        handler.close()
+        # 2. Quitar el handler del logger para que no se dupliquen mensajes futuros
+        waveslogger.removeHandler(handler)
     
     
     def doSomethingWithEvent(self, obj):
@@ -178,13 +212,10 @@ class EventListener(client.Application):
         myhora = hora["hora"]
         dt = datetime.strptime(str(myhora), "%Y-%m-%d %H:%M:%S")
 
-        mylog.basicConfig(
-            filename='/home/lis/waves/logs/log_evento_'+evento.publicID()+'.log',
-            level=mylog.INFO,  # Nivel mínimo que se registrará
-            format='%(asctime)s [%(levelname)s] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
-        mylog.info("LOG del calculo de sccortawaves para el evento %s" % evento.publicID())
+        file_handler = self.configurar_log_evento(evento.publicID())
+        ##Inicio del log para el evento
+        waveslogger.info("LOG del calculo de sccortawaves para el evento %s" % evento.publicID())
+        waveslogger.info(f"LOG Iniciado en: {hora}")
 
         # Convertir al formato deseado con milisegundos
         tiempo = dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]  # recorta a 3 decimales
@@ -201,13 +232,19 @@ class EventListener(client.Application):
             #time.sleep(30)
             resultspec = subprocess.run(
                 ["python3", self.seiscomp_path + "/share/scripts/lis/spectrum_single_accLognV2.py", evento.publicID()])
-        #ejecutar aqui los espectros esperando un minuto despues de todo...
 
-        #proceso para copiar imagenes de ondas
-        result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
-        #mylog.info("IMAGENES COPIADAS")
-        #result = subprocess.run(['rsync', '-avz', parametroa,self.direccionWebServer])
-        mylog.info("IMAGENES COPIADAS")
+            # proceso para copiar imagenes de ondas
+            result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
+            # waveslogger.info("IMAGENES COPIADAS")
+            # result = subprocess.run(['rsync', '-avz', parametroa,self.direccionWebServer])
+            waveslogger.info(f"IMAGENES COPIADAS para evento {evento.publicID()}")
+
+
+        waveslogger.info(f"Cerrando el log de {evento.publicID()}")
+        #limpio el log para que haga otro archivo
+        self.limpiar_log_evento(file_handler)
+
+
 
     def load_inventory_sc3(self,inv_path):
         # Ejemplo: usar StationXML o SC3ML convertido a Inventory de ObsPy
@@ -243,9 +280,9 @@ class EventListener(client.Application):
             #print("PGA NORMAL PARA %s" % tr.stats.station)
             #print("Canal %s" % tr.stats.channel)
             #print("VALOR %s" % pga)
-            mylog.info("PGA NORMAL PARA %s" % tr.stats.station)
-            mylog.info("Canal %s" % tr.stats.channel)
-            mylog.info("VALOR %s" % pga)
+            waveslogger.info("PGA NORMAL PARA %s" % tr.stats.station)
+            waveslogger.info("Canal %s" % tr.stats.channel)
+            waveslogger.info("VALOR %s" % pga)
         except  Exception as e:
             st_umask = tr.split()
             a = []
@@ -263,7 +300,7 @@ class EventListener(client.Application):
                 #print("PGA SPLIT PARA %s" % tr.stats.station)
                 #print("Canal %s" % tr.stats.channel)
                 #print("VALOR %s" % pga)
-            mylog.warning(f"Error CALCULANDO PGA {network}.{station}.{tr.stats.channel}: {e}")
+            waveslogger.warning(f"Error CALCULANDO PGA {network}.{station}.{tr.stats.channel}: {e}")
         return pga * 100.0  # Convertir a cm/s^2
 
     def proceso(self,time_inicial_str, inv_path,evento):
@@ -272,10 +309,11 @@ class EventListener(client.Application):
         t0 = UTCDateTime(time_inicial_str)
         t1 = t0 - 180  # 3 minutos antes
         t2 = t0 + 180  # 3 minutos después
+        waveslogger.info(f"El evento busca archivos entre {t1} y {t2} con ocurrencia en {t0}") #log del tiempo
 
         # 2. Cargar inventario completo (ObsPy Inventory)
         inventory = self.load_inventory_sc3(inv_path)
-        mylog.info(inventory)
+        waveslogger.info(inventory) #loggeando all el inventario
         # 3. Crear cliente SDS
         sds_client = SDSClient(self.SDS_ROOT)
 
@@ -303,7 +341,7 @@ class EventListener(client.Application):
                         print(f"error {e}")
                     elevation = channel.elevation
                     print(f"Procesando estacion...{station}")
-                    mylog.info(f"Procesando estacion...{station}")
+                    waveslogger.info(f"Procesando estacion...{station}")
 
                     #print(elevation)
                     #print(manufacturer)
@@ -315,16 +353,16 @@ class EventListener(client.Application):
                     try:
                         if station == "BID0": #CONDICION PUESTA PARA MANEJAR BIDO
                             location = "00"
-                            mylog.info(f"DEBIO ENTRAR POR BID0...{station}")
+                            waveslogger.info(f"DEBIO ENTRAR POR BID0...{station}")
                             st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
                             st.merge(method=1, fill_value='interpolate')
                             stRaw = st.copy()
                             net = inventory.select(network=network, station=station)[0]
                             mysta = net.stations[0]
-                            mylog.info(f"AQUI DEBERIA IR BIDO LOC 1...{mysta}")
+                            waveslogger.info(f"AQUI DEBERIA IR BIDO LOC 1...{mysta}")
 
                             if not st or len(st) == 0:
-                                mylog.warning(f"Error en {network}.{station}: no hay trazas")
+                                waveslogger.warning(f"Error en {network}.{station}: no hay trazas")
                                 continue
                             # tr = st[0]
                             # 6. Aplicar respuesta y calcular PGA
@@ -332,7 +370,7 @@ class EventListener(client.Application):
                             for tr in st:
                                 try:
                                     pga = self.calculate_pga(tr, inventory, network, station, location, channel)
-                                    mylog.info(f"Estacion: {station} canal: {tr.stats.channel} PGA {pga}")
+                                    waveslogger.info(f"Estacion: {station} canal: {tr.stats.channel} PGA {pga}")
                                     if pga > m:
                                         m = pga
                                     #  pgas.append({
@@ -340,11 +378,11 @@ class EventListener(client.Application):
                                     # })
                                     try:
                                         pgasChannel.append({str(tr.stats.channel).lower(): pga})
-                                        mylog.info(f"valores de pga {pgasChannel}")
+                                        waveslogger.info(f"valores de pga {pgasChannel}")
                                     except Exception as e:
-                                        mylog.error(f"Error en pgaschannel {e}")
+                                        waveslogger.error(f"Error en pgaschannel {e}")
                                 except Exception as e:
-                                    mylog.error(f" Canales no validos {e}")
+                                    waveslogger.error(f" Canales no validos {e}")
                                     continue
                             maximos.append({
                                 "station": station,
@@ -387,12 +425,12 @@ class EventListener(client.Application):
                             stRaw = st.copy()
                             net = inventory.select(network=network, station=station)[0]
                             mysta = net.stations[0]
-                            mylog.info(f"DEBIO ENTRAR POR BID0 location 0...{station}")
-                            mylog.info(f"DEBIO ENTRAR POR BID0...{mysta}")
+                            #waveslogger.info(f"DEBIO ENTRAR POR BID0 location 0...{station}")
+                            #waveslogger.info(f"DEBIO ENTRAR POR BID0...{mysta}")
 
 
                             if not st or len(st) == 0:
-                                mylog.warning(f"Error en {network}.{station}: no hay trazas")
+                                waveslogger.warning(f"Error en {network}.{station}: no hay trazas")
                                 continue
                             # tr = st[0]
                             # 6. Aplicar respuesta y calcular PGA
@@ -400,7 +438,7 @@ class EventListener(client.Application):
                             for tr in st:
                                 try:
                                     pga = self.calculate_pga(tr, inventory, network, station, location, channel)
-                                    mylog.info(f"Estacion: {station} canal: {tr.stats.channel} PGA {pga}")
+                                    waveslogger.info(f"Estacion: {station} canal: {tr.stats.channel} PGA {pga}")
                                     if pga > m:
                                         m = pga
                                     #  pgas.append({
@@ -408,11 +446,11 @@ class EventListener(client.Application):
                                     # })
                                     try:
                                         pgasChannel.append({str(tr.stats.channel).lower(): pga})
-                                        mylog.info(f"valores de pga {pgasChannel}")
+                                        waveslogger.info(f"valores de pga {pgasChannel}")
                                     except Exception as e:
-                                        mylog.error(f"Error en pgaschannel {e}")
+                                        waveslogger.error(f"Error en pgaschannel {e}")
                                 except Exception as e:
-                                    mylog.error(f" Canales no validos {e}")
+                                    waveslogger.error(f" Canales no validos {e}")
                                     continue
                             maximos.append({
                                 "station": "BID1",
@@ -447,7 +485,7 @@ class EventListener(client.Application):
                                 "t2": t2,
                             })
                             print("pase streams")
-                            mylog.info(f"Este array deberia incluir a BID1...{streams}")
+                            #waveslogger.info(f"Este array deberia incluir a BID1...{streams}")
                         else:
                             st = sds_client.get_waveforms(network, station, location, channel, t1, t2)
                             st.merge(method=1, fill_value='interpolate')
@@ -456,7 +494,7 @@ class EventListener(client.Application):
                             mysta = net.stations[0]
 
                             if not st or len(st) == 0:
-                                mylog.warning(f"Error en {network}.{station}: no hay trazas")
+                                waveslogger.warning(f"Error en {network}.{station}: no hay trazas")
                                 continue
                             #tr = st[0]
                             # 6. Aplicar respuesta y calcular PGA
@@ -464,7 +502,7 @@ class EventListener(client.Application):
                             for tr in st:
                                 try:
                                     pga = self.calculate_pga(tr, inventory, network, station, location, channel)
-                                    mylog.info(f"Estacion: {station} canal: {tr.stats.channel} PGA {pga}")
+                                    waveslogger.info(f"Estacion: {station} canal: {tr.stats.channel} PGA {pga}")
                                     if pga > m:
                                         m = pga
                                   #  pgas.append({
@@ -472,11 +510,11 @@ class EventListener(client.Application):
                                    # })
                                     try:
                                         pgasChannel.append({str(tr.stats.channel).lower() :pga})
-                                        mylog.info(f"valores de pga {pgasChannel}")
+                                        waveslogger.info(f"valores de pga {pgasChannel}")
                                     except Exception as e:
-                                        mylog.error(f"Error en pgaschannel {e}")
+                                        waveslogger.error(f"Error en pgaschannel {e}")
                                 except Exception as e:
-                                    mylog.error(f" Canales no validos {e}")
+                                    waveslogger.error(f" Canales no validos {e}")
                                     continue
                             maximos.append({
                                 "station" : station,
@@ -515,11 +553,11 @@ class EventListener(client.Application):
 
 
                     except Exception as e:
-                        mylog.error(f"Error en {network}.{station}: leyendo traza y arreglos {e}__ {mysta}")
+                        waveslogger.error(f"Error en {network}.{station}: leyendo traza y arreglos {e}__ {mysta}")
                         #continue
 
         # 7. Ordenar y seleccionar los 20 registros con mayor PGA
-        #mylog.info(streams)
+        #waveslogger.info(streams)
         maximos = sorted(maximos, key=lambda x: -x["maximos"])
 
 
@@ -527,22 +565,24 @@ class EventListener(client.Application):
         # si existen al menos 5 estaciones que superan el umbral, se registra
         #print(maximos)
         #self.cortaWaves(streams, evento.publicID(), t0)
+        waveslogger.info(f"6 aceleraciones maximas del evento: {maximos[:6]}")
         if maximos[4]["maximos"] >= 2:
             #se activa para guardar el informe
             informe = 1
             #se escriben los archivos mseed con la duracion determinada
             self.cortaWaves(streams, evento.publicID(), t0)
+            #raise SystemExit
             #se hacen las imagenes de todos los archivos mseed escritos
-            result = subprocess.Popen(
-                ["python3", self.seiscomp_path+"/share/scripts/lis/ploteaV2.py", "--imagenpng", self.rutaImagenes
-                 ,"--t0",t0.strftime('%Y%m%dT%H%M%S'),"--ruta", OUTPUT_DIR+evento.publicID()])
-            #mylog.info("Resultado del ploteo %s" % result)
+            #result = subprocess.Popen(
+            #    ["python3", self.seiscomp_path+"/share/scripts/lis/ploteaV2.py", "--imagenpng", self.rutaImagenes
+            #     ,"--t0",t0.strftime('%Y%m%dT%H%M%S'),"--ruta", OUTPUT_DIR+evento.publicID()])
+            #waveslogger.info("Resultado del ploteo %s" % result)
 
             # se escriben los archivos .LIS
             num_trabajos = -1  # Utiliza todos los núcleos disponibles
             crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
                 delayed(self.archivoLis)(resultados[s], evento) for s in range(len(resultados)))
-            #mylog.info("Resultado del archivoLIS %s" % crealis)
+            #waveslogger.info("Resultado del archivoLIS %s" % crealis)
             #envia archivos lis a servidor central
             res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
                                    "lis@163.178.101.86:/home/lis/formato_lis/registros_revisados"])
@@ -581,8 +621,7 @@ class EventListener(client.Application):
 
             # mandar a plotear todo enviando la carpeta donde estan los mseed
         else:
-            #mylog.info("El evento %s No cumple con el umbral de aceleracion" %evento)
-            mylog.info("El evento %s No cumple con el umbral de aceleracion" % evento)
+            waveslogger.info(f"El evento {evento.publicID()} No cumple con el umbral de aceleracion ")
 
         # consultar el evento.id, traer los datos
         datosEvento = self.obtener_datos_por_id(evento.publicID())
@@ -591,16 +630,15 @@ class EventListener(client.Application):
         # si no existe mandar a guardar en tabla de eventos nueva
         if not fechaEvento:
             # si no esta se inserta
-            mylog.info(
-                "--Guardando nuevo evento %s---------\n" % evento.publicID())
+            waveslogger.info(f"Guardando nuevo evento {evento.publicID()} en base de datos")
             self.insertarEvento(datosEvento,maximos[0]["maximos"],maximos[0]["station"],informe)
             # se llama el jma para insertar valores del nuevo evento
             resultJMA = subprocess.run(
                 ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
                  evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "1"])
             if(resultJMA):
-                mylog.info("Exito guardando JMA")
-            mylog.info("Resultado del JMA insertar %s" % resultJMA)
+                waveslogger.info("Exito guardando JMA")
+            waveslogger.info("Resultado del JMA insertar %s" % resultJMA)
 
         else:
             # si llega un evento mas nuevo, lo actualiza
@@ -609,25 +647,23 @@ class EventListener(client.Application):
             #print(t0)
             if fechaEvento['fecha'] < t0:
                 # actualizar evento
-                mylog.info(
-                    "--Actualizando evento existente %s---------\n" % evento.publicID())
+                waveslogger.info(f"Actualizando evento {evento.publicID()} existente en la DB")
                 self.actualizaEvento(datosEvento, evento.publicID(),maximos[0]["maximos"],maximos[0]["station"],informe)
                 # se llama el jma para actualizar valores del evento
                 resultJMA = subprocess.run(
                     ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
                      evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "2"])
-                mylog.info("Resultado del JMA actualizar %s" % resultJMA)
+                waveslogger.info("Resultado del JMA actualizar %s" % resultJMA)
             else:
                 if fechaEvento['fecha'] >= t0:
                     # actualizar evento
-                    mylog.info(
-                        "--Insertando evento existente %s---------\n" % evento.publicID())
+                    waveslogger.info(f"Insertando evento {evento.publicID()} existente en la DB")
                     self.actualizaEvento(datosEvento, evento.publicID(),maximos[0]["maximos"],maximos[0]["station"],informe)
                     # se llama el jma para actualizar valores del evento
                     resultJMA = subprocess.run(
                         ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
                          evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "1"])
-                    mylog.info("Resultado del JMA Insertar %s" % resultJMA)
+                    waveslogger.info("Resultado del JMA Insertar %s" % resultJMA)
         return informe
 
                 # si no hay evento mas nuevo, no se hace nada
@@ -687,11 +723,11 @@ class EventListener(client.Application):
                      "--hypocentral-km", str(distancias['dist_hipocentral_km']),"--azimuth",str(distancias['azimuth_deg']),"--site-condition","FFD","--soil-type",str(soil),
                      "--epicenter", epicenter_str
                      ])
-                #mylog.info("Resultado de los archivos LIS %s" % result)
+                #waveslogger.info("Resultado de los archivos LIS %s" % result)
         except Exception as e:
-            mylog.error(
-                "--El archivo no tiene las tres componentes %s---------\n" % resultados['estacion'])
-            print(f"El archivo no tiene las tres componentes {resultados['estacion']}")
+            waveslogger.error(f"El archivo no tiene las tres componentes {resultados['estacion']}")
+            waveslogger.error(f"---Error se registra como: {e}")
+
 
 
     #funcion para calcular la cuidad mas cercana al epicentro
@@ -828,7 +864,7 @@ class EventListener(client.Application):
     #actualiza en caso de que llegue un evento igual, pero con fecha actualizada
     def actualizaEvento(self, datos,idEvento,maxAcelera,lugarAcelera,informe):
 
-        mylog.info(
+        waveslogger.info(
             "Actualizando evento %s " % idEvento)
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=local_host,
@@ -858,11 +894,11 @@ class EventListener(client.Application):
                 cursor.execute(sql, valores)
             # Commit changes
             conn.commit()
-            mylog.info(
+            waveslogger.info(
                 "--EXITO---------Evento actualizado  \n" )
             #print("Nuevos sismo registrado")
         except  Exception as e:
-            mylog.error(
+            waveslogger.error(
                 "--ERROR---------Se registro el siguiente error actualizando datos %s  \n" %e)
         finally:
             conn.close()
@@ -872,20 +908,40 @@ class EventListener(client.Application):
     def cortaWaves(self,streams,evento,t0):
 
         ruta = OUTPUT_DIR + evento
+        rutaJson = OUTPUT_JSON + evento
         localizaciones_permitidas = ["00", "","01","11", "12", "13"]
         canales_permitidos = ["HNN", "HNZ", "HNE"]
         try:
             os.stat(ruta)
+            os.stat(rutaJson)
         except:
             os.mkdir(ruta)
+            os.mkdir(rutaJson)
         try:
             os.stat(ruta + "/raw")
         except:
             os.mkdir(ruta + "/raw")
 
         for idx, res in enumerate(streams, 1):
+            #header = res["st"].stats
+
+            payload = {
+                "meta": {
+                    "station": res["station"],
+                    "network": res["network"],
+                    # Convertimos a string ISO 8601 (Ej: "2024-02-27T10:30:00.000Z")
+                    "start_time": t0.strftime('%Y%m%dT%H%M%S'),
+                    "sample_rate": 200,
+                    "npts": 7001
+                },
+                "data": {}
+            }
+
+
+
             # Recortar la traza en la ventana deseada (si es necesario)
             tr = res["st"]
+            st = res["st"]
             #print(tr)
             trRaw = res["stRaw"]
             for mytr in tr.copy():
@@ -894,22 +950,37 @@ class EventListener(client.Application):
                         tr.remove(mytr)
                         trRaw.remove(mytr)
                 except Exception as err:
-                    mylog.error(f"--FALLO CORTAR-- No se pudo cortar{res['station']}")
+                    waveslogger.error(f"--FALLO CORTAR-- No se pudo cortar{res['station']}")
 
             tr.trim(starttime=res["t1"], endtime=res["t2"])
+
+            # 2. Rellenar los vectores de datos
+            for traza in tr:
+                # Usamos el nombre del canal como clave (ej: "HNZ", "HNE")
+                canal = traza.stats.channel
+
+                # IMPORTANTE: .tolist() es necesario porque 'json' no serializa numpy arrays
+                payload["data"][canal] = traza.data.tolist()
+
 
             # Generar nombre de archivo//HACER DIRECTORIO POR CADA EVENTO
             fname = f"{ruta}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
             rawFile = f"{ruta}/raw/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}_RAW.mseed"
+            jsonfname = f"{rutaJson}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.json"
+            #ruta_json = os.path.join(ruta, jsonfname)
+
 
             try:
                 tr.write(fname, format="mseed")
                 trRaw.write(rawFile, format="mseed")
+                with open(jsonfname, 'w') as f:
+                    # separators=(',', ':') elimina espacios vacíos para reducir peso
+                    json.dump(payload, f, separators=(',', ':'))
 
             except Exception as err:
-                mylog.error(
+                waveslogger.error(
                     "--FALLO EN ESCRITURA-- No data written for station %s \n" % res['station'])
-                mylog.error(
+                waveslogger.error(
                     "--FALLO EN ESCRITURA-- ErrorMessange %s \n" % err)
 
 
@@ -945,7 +1016,7 @@ class EventListener(client.Application):
                 cursor.execute(sql, valores)
             # Commit changes
             conn.commit()
-            mylog.info(
+            waveslogger.info(
                 "--EXITO---------New event saved  \n" )
             print("Nuevos sismo registrado")
         finally:
@@ -963,9 +1034,9 @@ class EventListener(client.Application):
                        datos['evento'] + "/" + datos['network'] + "_" + datos['estacion'] + "_" + datos[
                            'fecha_evento'].strftime('%Y%m%dT%H%M%S'), self.filterFreqMin, self.filterFreqMax]
         except Exception as err:
-            mylog.error(
+            waveslogger.error(
                 "--ERROR---------Fail in channels for station %s " % datos['estacion'])
-            mylog.error(
+            waveslogger.error(
                 "--ERROR---------Error data %s " % err)
         else:
             #print(valores)
@@ -988,7 +1059,7 @@ class EventListener(client.Application):
                     cursor.execute(sql, valores)
                 # Commit changes
                 conn.commit()
-                mylog.info(
+                waveslogger.info(
                     "--EXITO---------Data save to Database  \n" )
                 #print("PGA guardado en la Base de Datos")
             finally:
@@ -1004,9 +1075,9 @@ class EventListener(client.Application):
                        datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],max(datos['hne'],datos['hnn'],datos['hnz']),
                        datos['evento']+"/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'].strftime('%Y%m%dT%H%M%S'),self.filterFreqMin,self.filterFreqMax,data_id]
         except Exception as err:
-            mylog.error(
+            waveslogger.error(
                 "--ERROR---------Fail in channels for station %s " % datos['estacion'])
-            mylog.error(
+            waveslogger.error(
                 "--ERROR---------Error data %s " % err)
             #print(datos)
         else:
@@ -1029,7 +1100,7 @@ class EventListener(client.Application):
                     cursor.execute(sql, valores)
                 # Commit changes
                 conn.commit()
-                mylog.info(
+                waveslogger.info(
                     "--EXITO---------Data updated to Database  \n" )
                 #print("PGA actualizado en la Base de Datos")
             finally:
@@ -1133,7 +1204,7 @@ class EventListener(client.Application):
     #chequea la fecha del evento a insertar, si ya existe
     def chequeaEvento(self,evento):
 
-        mylog.info(
+        waveslogger.info(
             "Chequeando evento %s " %evento)
         conn = pymysql.connect(  # conexión usa parametros puestos arriba
             host=local_host,
@@ -1155,7 +1226,7 @@ class EventListener(client.Application):
             # Commit changes
             conn.commit()
         except  Exception as e:
-            mylog.error(
+            waveslogger.error(
                 "--ERROR---------Se registro el siguiente error %s  \n" %e)
         finally:
             conn.close()
