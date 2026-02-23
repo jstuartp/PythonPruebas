@@ -156,6 +156,9 @@ def main():
         ["python3","/home/lis/waves/scripts/procesa_edificio.py", "--start", args.start, "--event",
          args.event])
     logging.info(f"Resultado de proceso... {result}")
+    resultPlot = subprocess.Popen(
+        ["python3", "/home/lis/waves/scripts/mseed_to_json.py", "/home/lis/waves/eventos/"+args.event])
+    logging.info(f"Resultado de proceso... {resultPlot}")
 
 if __name__ == "__main__":
     main()

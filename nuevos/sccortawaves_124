@@ -180,9 +180,9 @@ class EventListener(client.Application):
 
         return True
 
-    def configurar_log_evento(self,event_id):
+    def configurar_log_evento(self,event_id,myhora):
         """Crea y adjunta un FileHandler exclusivo para este evento."""
-        nombre_archivo = f"/home/lis/waves/logs/log_evento_{event_id}.log"
+        nombre_archivo = f"/home/lis/waves/logs/log_evento_{myhora}_{event_id}.log"
 
         # Crear el handler de archivo
         f_handler = logging.FileHandler(nombre_archivo)
@@ -212,10 +212,10 @@ class EventListener(client.Application):
         myhora = hora["hora"]
         dt = datetime.strptime(str(myhora), "%Y-%m-%d %H:%M:%S")
 
-        file_handler = self.configurar_log_evento(evento.publicID())
+        file_handler = self.configurar_log_evento(evento.publicID(),str(myhora))
         ##Inicio del log para el evento
         waveslogger.info("LOG del calculo de sccortawaves para el evento %s" % evento.publicID())
-        waveslogger.info(f"LOG Iniciado en: {hora}")
+        waveslogger.info(f"LOG Iniciado en: {str(myhora)}")
 
         # Convertir al formato deseado con milisegundos
         tiempo = dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]  # recorta a 3 decimales

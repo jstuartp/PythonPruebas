@@ -86,28 +86,58 @@ rutaRaiz ="/home/lis/waves/eventos/"
 rutaImagenes ="/home/lis/waves/imagenes/"
 direccionWebServer = "lis@163.178.101.121:/var/www/informes.lis.ucr.ac.cr/seiscomp/public/assets/waves"
 
+waveslogger= logging.getLogger("Sccortawaveslogger.")
+waveslogger.setLevel(logging.INFO)
+# Handler de Consola (Para que siempre veas en pantalla que el script está vivo)
+c_handler = logging.StreamHandler(sys.stdout)
+c_format = logging.Formatter('%(asctime)s - GLOBAL - %(message)s')
+c_handler.setFormatter(c_format)
+waveslogger.addHandler(c_handler)
 
 
+def configurar_log_evento(event_id,myhora):
+    """Crea y adjunta un FileHandler exclusivo para este evento."""
+    nombre_archivo = f"/home/lis/waves/logs/log_evento_{myhora}_{event_id}.log"
 
+    # Crear el handler de archivo
+    f_handler = logging.FileHandler(nombre_archivo)
+    f_handler.setLevel(logging.INFO)
+
+    # Formato específico para el archivo
+    f_format = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
+    f_handler.setFormatter(f_format)
+
+    # ADJUNTAR al logger principal
+    waveslogger.addHandler(f_handler)
+
+    return f_handler
+
+
+def limpiar_log_evento(handler):
+    """Cierra el archivo y lo desvincula del logger."""
+    # 1. Cerrar el flujo al archivo
+    handler.close()
+    # 2. Quitar el handler del logger para que no se dupliquen mensajes futuros
+    waveslogger.removeHandler(handler)
 
 
 def doSomethingWithEvent(inicio,evento):
 
-    logging.basicConfig(
-        filename=rutaRaiz+evento+'/log_evento.log',
-        level=logging.INFO,  # Nivel mínimo que se registrará
-        format='%(asctime)s [%(levelname)s] %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
+    file_handler = configurar_log_evento(evento.publicID(),str(inicio))
+    ##Inicio del log para el evento
+
 
     tiempo =  datetime.strptime(inicio, "%Y-%m-%dT%H:%M:%S")
     inv_path = "/home/lis/waves/inventory_Estructuras.xml"
     base = "/home/lis/waves/eventos/"
+    waveslogger.info("LOG del calculo de procesaEdificios para el evento %s" % evento.publicID())
+    waveslogger.info(f"LOG Iniciado en: {tiempo}")
     agrupados = get_streams_for_event_from_directory(base,evento)
     #crudos = get_streams_for_event_from_directory(base,evento,0)
     proceso(agrupados,inv_path,evento,tiempo)
     parametroa = rutaImagenes + evento + "/"
-    logging.info("Proceso terminado")
+    waveslogger.info("Proceso terminado")
+    limpiar_log_evento(file_handler)
 
     #proceso para copiar imagenes de ondas
     #result = subprocess.run(['scp', '-r', parametroa, direccionWebServer], capture_output=True, text=True)
@@ -138,7 +168,7 @@ def calculate_pga(tr, inventory, network, station, location, channel,tipo):
 
 
     # Calcular PGA (valor máximo absoluto)
-    logging.info("Calculando PGA")
+    waveslogger.info("Calculando PGA")
     try:
         tr.detrend("demean")
         tr.detrend("linear")
@@ -167,7 +197,7 @@ def calculate_pga(tr, inventory, network, station, location, channel,tipo):
             #print("PGA SPLIT PARA %s" % tr.stats.station)
             #print("Canal %s" % tr.stats.channel)
             #print("VALOR %s" % pga)
-        logging.error(f"Error en cacululoPGA {network}.{station}.{tr.stats.channel}: {e}")
+        waveslogger.error(f"Error en cacululoPGA {network}.{station}.{tr.stats.channel}: {e}")
     return pga * 100.0  # Convertir a cm/s^2
 
 def get_streams_for_event_from_directory(base_dir: str, event: str) -> dict[tuple[str, str], Stream]:
@@ -183,14 +213,14 @@ def get_streams_for_event_from_directory(base_dir: str, event: str) -> dict[tupl
 
     paths = sorted(glob.glob(os.path.join(ruta_evento, "*.mseed")))
     if not paths:
-        logging.error("No se encontraron archivos .mseed en %s", ruta_evento)
+        waveslogger.error("No se encontraron archivos .mseed en %s", ruta_evento)
 
     agrupados: dict[tuple[str, str], Stream] = {}
     for p in paths:
         try:
             st = read(p)
         except Exception as e:
-            logging.error("No se pudo leer %s: %s", p, e)
+            waveslogger.error("No se pudo leer %s: %s", p, e)
         #continue
         for tr in st:
             key = (tr.stats.network, tr.stats.station)
@@ -203,7 +233,7 @@ def get_streams_for_event_from_directory(base_dir: str, event: str) -> dict[tupl
                     st.merge(method=1, fill_value="interpolate")
                     agrupados[key] = st
                 except Exception as e:
-                    logging.error("No se pudo fusionar stream %s: %s", key, e)
+                    waveslogger.error("No se pudo fusionar stream %s: %s", key, e)
 
     return agrupados
 
@@ -223,7 +253,7 @@ def proceso(agrupados, inv_path,evento,inicio):
     #agrupados = self.get_streams_for_event_from_directory(base_dir, event)
 
     # 4. Recorre todos los canales de aceleración del inventario
-    logging.info("Voy a recorrer streams")
+    waveslogger.info("Voy a recorrer streams")
 
     for (net, sta), st in agrupados.items():
 
@@ -246,7 +276,7 @@ def proceso(agrupados, inv_path,evento,inicio):
             serial = "unknown"
             logging.error(f"error {e}")
         elevation = channel.elevation
-        logging.info(f"Procesando estacion...{sta}")
+        waveslogger.info(f"Procesando estacion...{sta}")
         location = "**"
         channel = "HN*"
         pgasChannel = []
@@ -264,7 +294,7 @@ def proceso(agrupados, inv_path,evento,inicio):
             # 6. Aplicar respuesta y calcular PGA
             m=v=d = 0.0
             for tr in st:
-                logging.info(f"Voy a calcular pga para {tr.stats.channel}")
+                waveslogger.info(f"Voy a calcular pga para {tr.stats.channel}")
                 pga = calculate_pga(tr.copy(), catalogo_net, network, station, location, channel,0)
                 pgv = calculate_pga(tr.copy(), catalogo_net, network, station, location, channel,1)
                 pgd = calculate_pga(tr.copy(), catalogo_net, network, station, location, channel,2)
@@ -313,7 +343,7 @@ def proceso(agrupados, inv_path,evento,inicio):
             })
 
         except Exception as e:
-            logging.error(f"Error en {net}.{sta}: {e}")
+            waveslogger.error(f"Error en {net}.{sta}: {e}")
             print(e)
             continue
 
@@ -342,7 +372,7 @@ def proceso(agrupados, inv_path,evento,inicio):
     num_trabajos = -1  # Utiliza todos los núcleos disponibles
     crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
         delayed(archivoLis)(resultados[s], evento,inicio.strftime("%Y%m%dT%H%M%S")) for s in range(len(resultados)))
-    logging.info("Resultado del archivoLIS %s" % crealis)
+    waveslogger.info("Resultado del archivoLIS %s" % crealis)
     #envia archivos lis a servidor central
     res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}/",
                            "lis@163.178.101.86:/home/lis/formato_lis/registros_edificios/"])
@@ -376,24 +406,24 @@ def proceso(agrupados, inv_path,evento,inicio):
     #fechaEvento = chequeaEvento(evento)
     # si no existe mandar a guardar en tabla de eventos nueva
     jmaEvento = chequeaJMA(evento)
-    logging.info(f"Evento JMA existe: {jmaEvento['existe']}")
+    waveslogger.info(f"Evento JMA existe: {jmaEvento['existe']}")
     if jmaEvento['existe']==0:
-        logging.info("sacando JMA nuevo")
+        waveslogger.info("sacando JMA nuevo")
         resultJMA = subprocess.run(
             ["python3", rutaScrips+"jma_estructuras.py", "--evento",
             evento, "--ruta", OUTPUT_DIR + evento, "--tipo", "1"])
-        logging.info("Resultado del JMA insertar %s" % resultJMA)
+        waveslogger.info("Resultado del JMA insertar %s" % resultJMA)
     else:
         # si llega un evento mas nuevo, lo actualiza
         #print(fechaEvento['fecha'])
         #t0 = inicio
         #print(t0)
-        logging.info("Actualizando JMA")
+        waveslogger.info("Actualizando JMA")
         # se llama el jma para actualizar valores del evento
         resultJMA = subprocess.run(
             ["python3", rutaScrips+"/jma_estructuras.py", "--evento",
              evento, "--ruta", OUTPUT_DIR + evento, "--tipo", "2"])
-        logging.info("Resultado del JMA actualizar %s" % resultJMA)
+        waveslogger.info("Resultado del JMA actualizar %s" % resultJMA)
 
 
 
@@ -453,7 +483,7 @@ def archivoLis(resultados,evento,fecha):
     except Exception as e:
         print(
             "--Fallo creando el archivo lis para: %s---------\n" % resultados['estacion'])
-        logging.error(f"Fallo creando el archivo lis para: {resultados['estacion']}, error = {e}")
+        waveslogger.error(f"Fallo creando el archivo lis para: {resultados['estacion']}, error = {e}")
 
 
 #funcion para calcular la cuidad mas cercana al epicentro
@@ -620,11 +650,11 @@ def actualizaEvento(datos,idEvento,maxAcelera,lugarAcelera,informe):
             cursor.execute(sql, valores)
         # Commit changes
         conn.commit()
-        logging.info(
+        waveslogger.info(
             "--EXITO---------Evento actualizado  \n" )
         #print("Nuevos sismo registrado")
     except  Exception as e:
-        logging.error(
+        waveslogger.error(
             "--ERROR---------Se registro el siguiente error actualizando datos %s  \n" %e)
     finally:
         conn.close()
@@ -644,9 +674,9 @@ def insertaBd(datos):
                    datos['hne_vel'], datos['hnn_vel'], datos['hnz_vel'],
                    datos['hne_des'], datos['hnn_des'], datos['hnz_des']]
     except Exception as err:
-        logging.error(
+        waveslogger.error(
             "--ERROR---------Fail in channels for station %s " % datos['estacion'])
-        logging.error(
+        waveslogger.error(
             "--ERROR---------Error data %s " % err)
     else:
         #print(valores)
@@ -670,7 +700,7 @@ def insertaBd(datos):
                 cursor.execute(sql, valores)
             # Commit changes
             conn.commit()
-            logging.info(
+            waveslogger.info(
                 "--EXITO---------Data save to Database  \n" )
             #print("PGA guardado en la Base de Datos")
         finally:
@@ -688,9 +718,9 @@ def updateBd(datos,idPga):
                    max(datos['hne'],datos['hnn'],datos['hnz']),
                    datos['evento']+"/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'],filterFreqMin,filterFreqMax,data_id]
     except Exception as err:
-        logging.error(
+        waveslogger.error(
             "--ERROR---------Fail in channels for station %s " % datos['estacion'])
-        logging.error(
+        waveslogger.error(
             "--ERROR---------Error data %s " % err)
         #print(datos)
     else:
@@ -716,7 +746,7 @@ def updateBd(datos,idPga):
                 cursor.execute(sql, valores)
             # Commit changes
             conn.commit()
-            logging.info(
+            waveslogger.info(
                 "--EXITO---------Data updated to Database  \n" )
             #print("PGA actualizado en la Base de Datos")
         finally:
@@ -811,7 +841,7 @@ def chequeaEvento(evento):
         # Commit changes
         conn.commit()
     except  Exception as e:
-        logging.error(
+        waveslogger.error(
             "--ERROR---------Se registro el siguiente error %s  \n" %e)
     finally:
         conn.close()
@@ -842,7 +872,7 @@ def chequeaJMA(evento):
         # Commit changes
         conn.commit()
     except  Exception as e:
-        logging.error(
+        waveslogger.error(
             "--ERROR---------Se registro el siguiente error %s  \n" %e)
     finally:
         conn.close()
