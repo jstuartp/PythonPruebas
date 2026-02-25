@@ -13,6 +13,7 @@ import argparse
 import os
 import subprocess
 import logging
+import time
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -21,6 +22,7 @@ from obspy.clients.filesystem.sds import Client as SDSClient
 #ruta al directorio seiscomp
 SDS_ROOT = "/home/lis/seiscomp/var/lib/archive/"  # Ruta al SDS de seiscomp
 Inventory= "/home/lis/waves/inventory_Estructuras.xml" # Ruta al inventario
+WEB_SERVER= "stuart@10.208.36.97:/var/www/html/seiscomp/public/assets/waves" # Ruta al servidor web
 
 # --------------------------- Utilidades --------------------------------- #
 
@@ -159,6 +161,10 @@ def main():
     resultPlot = subprocess.Popen(
         ["python3", "/home/lis/waves/scripts/mseed_to_json.py", "/home/lis/waves/eventos/"+args.event])
     logging.info(f"Resultado de proceso... {resultPlot}")
+    #esperar 15 mins y copiar carpetas json/evento a servidor web
+    #time.sleep(900) # espero 15 mins para que termine el procesamiento
+    resultCopia = subprocess.run(['rsync', '-av', "/home/lis/waves/jsons/"+args.event+"/edificio", WEB_SERVER+"/"+args.event+"/"])
+    logging.info(f"Resultado de proceso... {resultCopia}")
 
 if __name__ == "__main__":
     main()

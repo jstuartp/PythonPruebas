@@ -669,7 +669,7 @@ def insertaBd(datos):
                    datos['latitud'],
                    datos['longitud'], datos['hne'], datos['hnn'], datos['hnz'],
                    max(datos['hne'], datos['hnn'], datos['hnz']),
-                   datos['evento'] + "/" + datos['network'] + "_" + datos['estacion'] + "_" + datos[
+                   datos['evento'] + "/edificio/" + datos['network'] + "_" + datos['estacion'] + "_" + datos[
                        'fecha_evento'].strftime('%Y%m%dT%H%M%S'), filterFreqMin, filterFreqMax,
                    datos['hne_vel'], datos['hnn_vel'], datos['hnz_vel'],
                    datos['hne_des'], datos['hnn_des'], datos['hnz_des']]
@@ -716,7 +716,7 @@ def updateBd(datos,idPga):
                    datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],datos['hne_vel'], datos['hnn_vel'], datos['hnz_vel'],
                    datos['hne_des'], datos['hnn_des'], datos['hnz_des'],
                    max(datos['hne'],datos['hnn'],datos['hnz']),
-                   datos['evento']+"/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'],filterFreqMin,filterFreqMax,data_id]
+                   datos['evento']+"/edificio/"+datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'],filterFreqMin,filterFreqMax,data_id]
     except Exception as err:
         waveslogger.error(
             "--ERROR---------Fail in channels for station %s " % datos['estacion'])

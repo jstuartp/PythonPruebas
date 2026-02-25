@@ -327,27 +327,31 @@ class EventListener(client.Application):
         for net in inventory:
             for sta in net:
                 if sta.end_date is None:
-                    network = net.code
-                    station = sta.code
-                    site_name = sta.site.name
-                    channel = sta[0]
-                    soil = "" # obtener tipo de suelo
+                    waveslogger.info(f"Inicio proceso estacion {sta.code}")
                     try:
-                        manufacturer = channel.sensor.manufacturer
-                        serial = channel.sensor.serial_number
-                    except Exception as e:
-                        manufacturer ="unknown"
-                        serial = "unknown"
-                        print(f"error {e}")
-                    elevation = channel.elevation
-                    print(f"Procesando estacion...{station}")
-                    waveslogger.info(f"Procesando estacion...{station}")
+                        network = net.code
+                        station = sta.code
+                        site_name = sta.site.name
+                        channel = sta[0]
+                        soil = "" # obtener tipo de suelo
+                        try:
+                            manufacturer = channel.sensor.manufacturer
+                            serial = channel.sensor.serial_number
+                        except Exception as e:
+                            manufacturer ="unknown"
+                            serial = "unknown"
+                            print(f"error {e}")
+                        elevation = channel.elevation
+                        print(f"Procesando estacion...{station}")
+                        #waveslogger.info(f"Procesando estacion...{station}")
 
-                    #print(elevation)
-                    #print(manufacturer)
-                    location = "**"
-                    channel = "HN*"
-                    pgasChannel = []
+                        #print(elevation)
+                        #print(manufacturer)
+                        location = "**"
+                        channel = "HN*"
+                        pgasChannel = []
+                    except Exception as e:
+                        waveslogger.error(f"Error importante con la estacion {sta.code} {e}")
 
                     # 5. Leer la traza
                     try:
@@ -549,9 +553,6 @@ class EventListener(client.Application):
                                 "t2": t2,
                             })
                             print("pase streams")
-
-
-
                     except Exception as e:
                         waveslogger.error(f"Error en {network}.{station}: leyendo traza y arreglos {e}__ {mysta}")
                         #continue
@@ -598,7 +599,11 @@ class EventListener(client.Application):
             # proceso para activar evento en servidor estructuras
             estructuras = subprocess.Popen(
                 ["ssh", "lis@163.178.171.47" , f" nohup python3 {ESTRUCTURAS_SCRIPT} --start {evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S')}"
-                                               f" --event {str(evento.publicID())}"])
+                                               f" --event {str(evento.publicID())}"],
+            stdout = subprocess.DEVNULL,  # Ignora to do lo que el hijo imprima con print()
+            stderr = subprocess.DEVNULL,  # Ignora todos los mensajes de error del hijo
+            start_new_session = True  # Desvincula al hijo del padre
+            )
 
 
 
