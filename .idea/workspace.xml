@@ -4,165 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="modificacion en sccortawaves para contemplar el BIDO">
-      <change afterPath="$PROJECT_DIR$/nuevos/202601171859PEZE.lis" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/202601171859PEZE_plot.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/202601272259SJUD.lis" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/202601272259SJUD_plot.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/AGRE_plot.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/MF_SUN6_20260119T230655.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/espectros_acc/MF_SUN6_20260119T230655_RotD100_loglog.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/espectros_acc/SUN6_MF_SUN6_20260119T230655_RotD100.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/log_evento_UCR_lis2026biqs.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_AALA_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_AANG_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_AAZR_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_ABJT_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_ACLH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_ACLS_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_AFTN_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_AGRE_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_AGRH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_AGTS_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_ALCA_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_APMR_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_ARCT_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_ASCH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_ASRM_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_AUPA_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_BFR0_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_BFR1_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_BJL0_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_BJL1_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_CAVM_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_CCOT_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_CORS_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_CPAR_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_CSLG_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_CSRH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_CTBA_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_CTOB_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_CWAH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_GJTS_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_GLCR_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_GLIB_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_GLIH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_GNSR_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_GNYH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_GSTC_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_GSTR_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_HCPD_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_HHDA_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_HPVJ_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_HSJM_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_HVRG_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_LBAT_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_LCAR_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_LGMO_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_LGPA_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_LGPI_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_LLIH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_LLIM_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_LLMO_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PBNA_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PBNH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PCDA_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PCNH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PCNL_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PGOL_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PGTO_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PIRO_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PJCR_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PLPM_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PLRL_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_POSA_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_POSH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PPLN_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PPQR_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PPTG_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PPUN_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PQSH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PQUE_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_PUVT_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SBEB_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SCOH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SESC_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SFCL_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SFRA_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SGTS_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SHTH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SIAC_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SICP_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SION_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SJUD_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SLCJ_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SMOR_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SPCH_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SPCL_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SRVS_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SSBN_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SSMD_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SUN1_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SUN5_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SUN6_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SUN7_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/MF_SUNL_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/OV_CCOL_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/OV_CRUC_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/OV_CTCR_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/OV_EART_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/OV_JACO_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/OV_ORTG_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/OV_PEZE_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/OV_RIFO_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/UCR_lis2026biqs/raw/OV_RIOS_20260119T230655_RAW.mseed" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/copiaJson.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/Z2S1.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/Z2S2.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/Z2S3.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/Z2S4.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/Z3S1.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/Z3S2.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/Z3S3.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/Z3S4.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/Z4S1.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/Z4S2.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/Z4S3.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/Z4S4.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/modificados/Z2S1.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/modificados/Z2S2.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/modificados/Z2S3.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/modificados/Z2S4.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/modificados/Z3S2.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/modificados/Z3S3.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/modificados/Z3S4.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/modificados/Z4S1.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/modificados/Z4S2.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/modificados/Z4S3.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/modificados/Z4S4.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/multiplica.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/suelo.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/suelos.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/Z2S1.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/Z2S2.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/Z2S3.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/Z2S4.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/Z3S1.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/Z3S2.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/Z3S3.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/Z3S4.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/Z4S1.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/Z4S2.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/Z4S3.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/Z4S4.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/multiplica.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/suelo.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/curvas_diseno_resp/suelos.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/inventory_full_fdns.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nuevos/jsonFile.py" afterDir="false" />
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="cambios en procesa edificio para que solo guarde el nombre de la grafica y nada mas">
+      <change afterPath="$PROJECT_DIR$/edificios/mseed_to_jsonV2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nuevos/sccortawaves_124" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/sccortawaves_124" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/edificios/mseed_to_json.py" beforeDir="false" afterPath="$PROJECT_DIR$/edificios/mseed_to_json.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/edificios/procesa_edificio.py" beforeDir="false" afterPath="$PROJECT_DIR$/edificios/procesa_edificio.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -359,47 +205,7 @@
       <workItem from="1765554830146" duration="1208000" />
       <workItem from="1767621872655" duration="13000" />
       <workItem from="1767622377189" duration="76000" />
-      <workItem from="1767798556479" duration="89830000" />
-    </task>
-    <task id="LOCAL-00024" summary="update 23 octubre&#10;SLMON con mediciones">
-      <option name="closed" value="true" />
-      <created>1729703647068</created>
-      <option name="number" value="00024" />
-      <option name="presentableId" value="LOCAL-00024" />
-      <option name="project" value="LOCAL" />
-      <updated>1729703647068</updated>
-    </task>
-    <task id="LOCAL-00025" summary="update 6 de noviembre, incluido archivo sczabbix">
-      <option name="closed" value="true" />
-      <created>1730910083698</created>
-      <option name="number" value="00025" />
-      <option name="presentableId" value="LOCAL-00025" />
-      <option name="project" value="LOCAL" />
-      <updated>1730910083698</updated>
-    </task>
-    <task id="LOCAL-00026" summary="cambios al 16 de diciembre&#10;Modificaciones y utilitarios varios">
-      <option name="closed" value="true" />
-      <created>1734365818398</created>
-      <option name="number" value="00026" />
-      <option name="presentableId" value="LOCAL-00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1734365818398</updated>
-    </task>
-    <task id="LOCAL-00027" summary="cambios al 05_28&#10;Se crea cortaSDS.py para usar el SDS de seiscomp, falta probar con valores de aceleracion">
-      <option name="closed" value="true" />
-      <created>1748466010662</created>
-      <option name="number" value="00027" />
-      <option name="presentableId" value="LOCAL-00027" />
-      <option name="project" value="LOCAL" />
-      <updated>1748466010662</updated>
-    </task>
-    <task id="LOCAL-00028" summary="cambios al 05_30">
-      <option name="closed" value="true" />
-      <created>1748640580509</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1748640580509</updated>
+      <workItem from="1767798556479" duration="145625000" />
     </task>
     <task id="LOCAL-00029" summary="cambios del 02/06&#10;Nuevo script para ploetar, plotea2.py es el que esta en uso">
       <option name="closed" value="true" />
@@ -753,7 +559,47 @@
       <option name="project" value="LOCAL" />
       <updated>1770240033188</updated>
     </task>
-    <option name="localTasksCounter" value="73" />
+    <task id="LOCAL-00073" summary="modificacion en sccortawaves para crear json y no graficar en el servidor.&#10;Se crea un json nuevo y se envia junto con las graficas de espectros">
+      <option name="closed" value="true" />
+      <created>1770670534407</created>
+      <option name="number" value="00073" />
+      <option name="presentableId" value="LOCAL-00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1770670534407</updated>
+    </task>
+    <task id="LOCAL-00074" summary="modificaciones en sccortawaves_124, nuevo estilo de log.&#10;Cada nuevo evento se registra en un nuevo archivo de log separado.&#10;Cada vez que se procese un evento queda registrado en un solo archivo de log.">
+      <option name="closed" value="true" />
+      <created>1771446553192</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1771446553192</updated>
+    </task>
+    <task id="LOCAL-00075" summary="modificaciones en los procesamientos de edificios, se implementa el json &#10;cambios en sccortawaves_124 para mejorar el log">
+      <option name="closed" value="true" />
+      <created>1771879227137</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1771879227138</updated>
+    </task>
+    <task id="LOCAL-00076" summary="cambios en edificios y sccortawaves para manejo de errores">
+      <option name="closed" value="true" />
+      <created>1772055136408</created>
+      <option name="number" value="00076" />
+      <option name="presentableId" value="LOCAL-00076" />
+      <option name="project" value="LOCAL" />
+      <updated>1772055136409</updated>
+    </task>
+    <task id="LOCAL-00077" summary="cambios en procesa edificio para que solo guarde el nombre de la grafica y nada mas">
+      <option name="closed" value="true" />
+      <created>1772487396059</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1772487396059</updated>
+    </task>
+    <option name="localTasksCounter" value="78" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -761,11 +607,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="cambios en sccortawaves2" />
-    <MESSAGE value="cambios en sccortawaves2 y plotea2.py" />
-    <MESSAGE value="Cambios al 1 de agosto 2025" />
-    <MESSAGE value="Cambios al 11 de agosto 2025" />
-    <MESSAGE value="Cambios al 13 de agosto 2025" />
     <MESSAGE value="Cambios al 18 de agosto 2025" />
     <MESSAGE value="Cambios al 22 de agosto 2025" />
     <MESSAGE value="Cambios al 25 de agosto 2025" />
@@ -786,7 +627,12 @@
     <MESSAGE value="otra prueba jma. modificado el logueo, ahora se hace un archivo dentro de la carpeta que se procesa con todo" />
     <MESSAGE value="archivos nuevos de calculo de espectro" />
     <MESSAGE value="modificacion en sccortawaves para contemplar el BIDO" />
-    <option name="LAST_COMMIT_MESSAGE" value="modificacion en sccortawaves para contemplar el BIDO" />
+    <MESSAGE value="modificacion en sccortawaves para crear json y no graficar en el servidor.&#10;Se crea un json nuevo y se envia junto con las graficas de espectros" />
+    <MESSAGE value="modificaciones en sccortawaves_124, nuevo estilo de log.&#10;Cada nuevo evento se registra en un nuevo archivo de log separado.&#10;Cada vez que se procese un evento queda registrado en un solo archivo de log." />
+    <MESSAGE value="modificaciones en los procesamientos de edificios, se implementa el json &#10;cambios en sccortawaves_124 para mejorar el log" />
+    <MESSAGE value="cambios en edificios y sccortawaves para manejo de errores" />
+    <MESSAGE value="cambios en procesa edificio para que solo guarde el nombre de la grafica y nada mas" />
+    <option name="LAST_COMMIT_MESSAGE" value="cambios en procesa edificio para que solo guarde el nombre de la grafica y nada mas" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

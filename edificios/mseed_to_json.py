@@ -119,7 +119,7 @@ def procesar_mseed(input_dir):
                             "network": st_copy[0].stats.network,
                             "start_time": t0.strftime('%Y%m%dT%H%M%S'),
                             "sample_rate": 200,
-                            "npts": 7001
+                            "npts": st[0].stats.npts
                         },
                         "data": {}
                     }

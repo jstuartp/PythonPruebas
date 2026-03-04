@@ -44,9 +44,9 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 #CONSTANTES BASES DE DATOS SEISCOMP
-my_host = '163.178.101.110'
-my_user = 'lis'
-my_password = 'Ucr_lis_seiscomp_110'
+my_host = '163.178.101.124'
+my_user = 'sysop'
+my_password = 'sysop'
 my_db = 'seiscomp'
 
 #CONSTANTES BASES DE DATOS LOCAL
@@ -123,14 +123,14 @@ def limpiar_log_evento(handler):
 
 def doSomethingWithEvent(inicio,evento):
 
-    file_handler = configurar_log_evento(evento.publicID(),str(inicio))
+    file_handler = configurar_log_evento(evento,str(inicio))
     ##Inicio del log para el evento
 
 
     tiempo =  datetime.strptime(inicio, "%Y-%m-%dT%H:%M:%S")
     inv_path = "/home/lis/waves/inventory_Estructuras.xml"
     base = "/home/lis/waves/eventos/"
-    waveslogger.info("LOG del calculo de procesaEdificios para el evento %s" % evento.publicID())
+    waveslogger.info("LOG del calculo de procesaEdificios para el evento %s" % evento)
     waveslogger.info(f"LOG Iniciado en: {tiempo}")
     agrupados = get_streams_for_event_from_directory(base,evento)
     #crudos = get_streams_for_event_from_directory(base,evento,0)
@@ -367,25 +367,6 @@ def proceso(agrupados, inv_path,evento,inicio):
     #logging.info("Resultado del ploteo %s" % result2)
 
 
-
-    # se escriben los archivos .LIS
-    num_trabajos = -1  # Utiliza todos los núcleos disponibles
-    crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
-        delayed(archivoLis)(resultados[s], evento,inicio.strftime("%Y%m%dT%H%M%S")) for s in range(len(resultados)))
-    waveslogger.info("Resultado del archivoLIS %s" % crealis)
-    #envia archivos lis a servidor central
-    res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}/",
-                           "lis@163.178.101.86:/home/lis/formato_lis/registros_edificios/"])
-    res2 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}/",
-                           "lis@163.178.109.104:/home/lis/formato_lis/registros_edificios/"])
-    res3 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}/",
-                           "lis@163.178.174.210:/home/lis/formato_lis/registros_edificios/"])
-    #envia archivos lis a repositorio stuart
-    res4 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}",
-                             "lis@163.178.109.101:/home/lis/repositorio_archivo_lis/por_eventos/"])
-
-
-
     # mandar a guardar los pga, iterando el arreglo y preguntando por cada estacion
     #print(resultados)
     for  res in resultados:
@@ -399,12 +380,22 @@ def proceso(agrupados, inv_path,evento,inicio):
             # si la estación ya esta en la tabla pga -- hacer update
             updateBd(res,idPga)
 
-
-    # consultar el evento.id, traer los datos
-    #datosEvento = obtener_datos_por_id(evento)
-    # chequear si el evento no existe en la tabla nueva
-    #fechaEvento = chequeaEvento(evento)
-    # si no existe mandar a guardar en tabla de eventos nueva
+    # se escriben los archivos .LIS
+    num_trabajos = -1  # Utiliza todos los núcleos disponibles
+    crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
+        delayed(archivoLis)(resultados[s], evento, inicio.strftime("%Y%m%dT%H%M%S")) for s in
+        range(len(resultados)))
+    waveslogger.info("Resultado del archivoLIS %s" % crealis)
+    # envia archivos lis a servidor central
+    res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}/",
+                             "lis@163.178.101.86:/home/lis/formato_lis/registros_edificios/"])
+    res2 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}/",
+                             "lis@163.178.109.104:/home/lis/formato_lis/registros_edificios/"])
+    res3 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}/",
+                             "lis@163.178.174.210:/home/lis/formato_lis/registros_edificios/"])
+    # envia archivos lis a repositorio stuart
+    res4 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/archivosLis/{evento}",
+                               "lis@163.178.109.101:/home/lis/repositorio_archivo_lis/por_eventos/"])
     jmaEvento = chequeaJMA(evento)
     waveslogger.info(f"Evento JMA existe: {jmaEvento['existe']}")
     if jmaEvento['existe']==0:
@@ -446,6 +437,8 @@ def epicentral_and_hypocentral_obspy(lat_epi, lon_epi, lat_sta, lon_sta, depth_k
 def archivoLis(resultados,evento,fecha):
 
     #el try elimina las estaciones que no tienen las 3 componentes
+    waveslogger.info(f"creando archivos LIS")
+    result = ''
     try:
 
         carpeta = os.path.join(OUTPUT_DIR, evento)
@@ -483,7 +476,7 @@ def archivoLis(resultados,evento,fecha):
     except Exception as e:
         print(
             "--Fallo creando el archivo lis para: %s---------\n" % resultados['estacion'])
-        waveslogger.error(f"Fallo creando el archivo lis para: {resultados['estacion']}, error = {e}")
+        waveslogger.error(f"Fallo creando el archivo lis para: {resultados['estacion']}, resultado escribelis {result}, error = {e}")
 
 
 #funcion para calcular la cuidad mas cercana al epicentro
