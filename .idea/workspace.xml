@@ -5,10 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="cambios en procesa edificio para que solo guarde el nombre de la grafica y nada mas">
-      <change afterPath="$PROJECT_DIR$/edificios/mseed_to_jsonV2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/edificios/espectro_f.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/edificios/mseed_to_json.py_OLD" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/edificios/plotea_f.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/edificios/mseed_to_json.py" beforeDir="false" afterPath="$PROJECT_DIR$/edificios/mseed_to_json.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/edificios/procesa_edificio.py" beforeDir="false" afterPath="$PROJECT_DIR$/edificios/procesa_edificio.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/edificios/mseed_to_jsonV2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/edificios/plotea.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -205,15 +208,7 @@
       <workItem from="1765554830146" duration="1208000" />
       <workItem from="1767621872655" duration="13000" />
       <workItem from="1767622377189" duration="76000" />
-      <workItem from="1767798556479" duration="145625000" />
-    </task>
-    <task id="LOCAL-00029" summary="cambios del 02/06&#10;Nuevo script para ploetar, plotea2.py es el que esta en uso">
-      <option name="closed" value="true" />
-      <created>1748898006665</created>
-      <option name="number" value="00029" />
-      <option name="presentableId" value="LOCAL-00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1748898006665</updated>
+      <workItem from="1767798556479" duration="157293000" />
     </task>
     <task id="LOCAL-00030" summary="cambios del 02/06&#10;Nuevo script para ploetar, plotea2.py es el que esta en uso">
       <option name="closed" value="true" />
@@ -599,7 +594,15 @@
       <option name="project" value="LOCAL" />
       <updated>1772487396059</updated>
     </task>
-    <option name="localTasksCounter" value="78" />
+    <task id="LOCAL-00078" summary="cambios en procesa edificio para que solo guarde el nombre de la grafica y nada mas">
+      <option name="closed" value="true" />
+      <created>1772654050246</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1772654050246</updated>
+    </task>
+    <option name="localTasksCounter" value="79" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

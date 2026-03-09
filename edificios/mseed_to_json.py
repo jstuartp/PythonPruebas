@@ -4,6 +4,11 @@ import json
 import logging
 import argparse
 from pathlib import Path
+
+# Nuevas importaciones para la integración matemática y filtros
+import numpy as np
+from scipy.integrate import cumulative_trapezoid
+from scipy.signal import butter, filtfilt
 from obspy import read, read_inventory
 
 
@@ -12,26 +17,19 @@ def setup_logger(log_dir, dir_name):
     Configura el sistema de logging para escribir en un archivo específico por evento,
     además de mostrar la salida en la consola.
     """
-    # Crear el directorio de logs si no existe
     os.makedirs(log_dir, exist_ok=True)
-
     log_file = os.path.join(log_dir, f"log_evento_{dir_name}.log")
 
-    # Crear un logger personalizado
     logger = logging.getLogger(f"procesador_{dir_name}")
-    logger.setLevel(logging.DEBUG)  # Nivel base del logger
+    logger.setLevel(logging.DEBUG)
 
-    # Evitar duplicar logs si la función se llama varias veces
     if not logger.handlers:
-        # Formato del log
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
-        # Handler para el archivo
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
 
-        # Handler para la consola (opcional, pero útil al correr en terminal)
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(formatter)
@@ -42,25 +40,35 @@ def setup_logger(log_dir, dir_name):
     return logger
 
 
+def filtro_paso_alto(data, cutoff, fs, order=4):
+    """
+    Aplica un filtro paso alto para eliminar la desviación de la línea base (drift)
+    que ocurre naturalmente al integrar señales sísmicas.
+    """
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='high', analog=False)
+    # filtfilt aplica el filtro hacia adelante y hacia atrás para no desfasar la onda
+    y = filtfilt(b, a, data)
+    return y
+
+
 def procesar_mseed(input_dir):
     """
     Lee archivos mseed de un directorio, remueve la respuesta instrumental para
-    obtener ACC, VEL y DISP, y los guarda como JSON.
+    obtener ACC usando ObsPy, y usa SciPy para integrar a VEL y DISP.
+    Guarda los resultados como JSON.
     """
-    # 1. Definir rutas y variables principales
     input_path = Path(input_dir)
-    dir_name = input_path.name  # Extrae el 'nombredirectorio' final de la ruta
+    dir_name = input_path.name
 
-    # Rutas estáticas definidas en tus requerimientos
     inventory_file = "/home/lis/waves/inventory_Estructuras.xml"
     base_json_dir = f"/home/lis/waves/jsons/{dir_name}/edificio"
     log_dir = "/home/lis/waves/logs/"
 
-    # 2. Inicializar el logger
     logger = setup_logger(log_dir, dir_name)
     logger.info(f"Iniciando procesamiento del directorio: {input_path}")
 
-    # 3. Validar entradas
     if not input_path.exists() or not input_path.is_dir():
         logger.error(f"El directorio de entrada no existe o no es un directorio: {input_path}")
         sys.exit(1)
@@ -69,11 +77,9 @@ def procesar_mseed(input_dir):
         logger.error(f"El archivo de inventario no existe: {inventory_file}")
         sys.exit(1)
 
-    # 4. Crear directorio de salida JSON si no existe
     os.makedirs(base_json_dir, exist_ok=True)
     logger.info(f"Directorio de salida JSON preparado: {base_json_dir}")
 
-    # 5. Cargar el inventario (Metadata de las estaciones)
     try:
         logger.info(f"Cargando inventario desde: {inventory_file}")
         inventory = read_inventory(inventory_file)
@@ -81,70 +87,92 @@ def procesar_mseed(input_dir):
         logger.error(f"Error al cargar el inventario XML: {e}")
         sys.exit(1)
 
-    # Buscar archivos .mseed (puedes ajustar la extensión si tus archivos no la tienen)
     mseed_files = list(input_path.glob("*.mseed"))
     if not mseed_files:
         logger.warning(f"No se encontraron archivos .mseed en {input_dir}")
         return
 
-    # 6. Procesar cada archivo MiniSEED
     for file_path in mseed_files:
         logger.info(f"Procesando archivo: {file_path.name}")
 
         try:
-            # Leer el archivo MiniSEED (generalmente contendrá 3 traces)
             st = read(str(file_path))
 
-            # Definir las unidades de salida requeridas
-            output_types = ['ACC', 'VEL', 'DISP']
+            # 1. Obtener la Aceleración usando ObsPy
+            st_acc = st.copy()
 
-            for out_type in output_types:
-                # Trabajar sobre una copia para no alterar el stream original en cada iteración
-                st_copy = st.copy()
+            try:
+                # Opcional pero recomendado: un pre_filt básico para la remoción de respuesta
+                st_acc.remove_response(inventory=inventory, output='ACC', pre_filt=(0.05, 0.1, 30.0, 35.0))
 
-                try:
-                    # Remover la respuesta instrumental.
-                    # Nota de Sismología: Para VEL y DISP, suele ser muy recomendable aplicar
-                    # un 'pre_filt' para evitar que el ruido de baja frecuencia se amplifique
-                    # durante la integración. Lo dejo como lo pediste, pero tenlo en cuenta.
-                    st_copy.remove_response(inventory=inventory, output=out_type)
+                # Variables base asumiendo que todos los canales del archivo comparten meta
+                t0 = st_acc[0].stats.starttime
+                fs = st_acc[0].stats.sampling_rate
+                npts = st_acc[0].stats.npts
+                dt = 1.0 / fs  # Diferencial de tiempo en segundos
 
-                    # Asumimos que todos los traces en el stream comparten meta-información básica
-                    # Tomamos el primero para armar el bloque "meta"
-                    t0 = st_copy[0].stats.starttime
+                # Preparar los diccionarios de datos para los JSON
+                datos_acc = {}
+                datos_vel = {}
+                datos_disp = {}
 
-                    payload = {
-                        "meta": {
-                            "station": st_copy[0].stats.station,
-                            "network": st_copy[0].stats.network,
-                            "start_time": t0.strftime('%Y%m%dT%H%M%S'),
-                            "sample_rate": 200,
-                            "npts": st[0].stats.npts
-                        },
-                        "data": {}
-                    }
+                for tr in st_acc:
+                    canal = tr.stats.channel
+                    acc_raw = tr.data
 
-                    # Llenar el bloque de datos con cada Trace (ej. HNE, HNN, HNZ)
-                    for tr in st_copy:
-                        channel_name = tr.stats.channel
-                        # Convertimos el array de numpy a una lista normal de Python para JSON
-                        payload["data"][channel_name] = tr.data.tolist()
+                    # --- PROCESAMIENTO MATEMÁTICO ---
 
-                    # Construir el nombre del archivo JSON de salida
-                    # Ejemplo: sismo_ACC.json
-                    base_name = file_path.stem  # Nombre del archivo sin extensión
+                    # A. Aceleración Limpia
+                    # Quitamos la media (detrend) y filtramos
+                    acc_clean = acc_raw - np.mean(acc_raw)
+                    acc_clean = filtro_paso_alto(acc_clean, cutoff=0.05, fs=fs)
+
+                    # ---> CONVERSIÓN DE UNIDADES <---
+                    # Multiplicamos to_do el arreglo por 100 para pasar de m/s² a cm/s²
+                    acc_clean = acc_clean * 100.0
+
+                    # B. Integrar para obtener Velocidad
+                    vel_raw = cumulative_trapezoid(acc_clean, dx=dt, initial=0.0)
+                    vel_clean = vel_raw - np.mean(vel_raw)
+                    vel_clean = filtro_paso_alto(vel_clean, cutoff=0.05, fs=fs)
+
+                    # C. Integrar para obtener Desplazamiento
+                    disp_raw = cumulative_trapezoid(vel_clean, dx=dt, initial=0.0)
+                    disp_clean = disp_raw - np.mean(disp_raw)
+                    disp_clean = filtro_paso_alto(disp_clean, cutoff=0.05, fs=fs)
+
+                    # Guardar en diccionarios convirtiendo a listas de Python
+                    datos_acc[canal] = acc_clean.tolist()
+                    datos_vel[canal] = vel_clean.tolist()
+                    datos_disp[canal] = disp_clean.tolist()
+
+                # --- GENERACIÓN DE JSONs ---
+
+                meta_base = {
+                    "station": st_acc[0].stats.station,
+                    "network": st_acc[0].stats.network,
+                    "start_time": t0.strftime('%Y%m%dT%H%M%S'),
+                    "sample_rate": fs,
+                    "npts": npts
+                }
+
+                base_name = file_path.stem  # Nombre del archivo sin extensión
+
+                # Función auxiliar para guardar cada tipo
+                def guardar_json(out_type, datos):
                     json_filename = f"{base_name}_{out_type}.json"
                     json_filepath = os.path.join(base_json_dir, json_filename)
-
-                    # Guardar el JSON
+                    payload = {"meta": meta_base, "data": datos}
                     with open(json_filepath, 'w') as f:
                         json.dump(payload, f)
-
                     logger.info(f"  -> Archivo JSON generado con éxito: {json_filename}")
 
-                except Exception as e:
-                    logger.error(
-                        f"  -> Error al remover respuesta o generar JSON para {out_type} en {file_path.name}: {e}")
+                guardar_json("ACC", datos_acc)
+                guardar_json("VEL", datos_vel)
+                guardar_json("DISP", datos_disp)
+
+            except Exception as e:
+                logger.error(f"  -> Error al procesar matemática o generar JSON para {file_path.name}: {e}")
 
         except Exception as e:
             logger.error(f"Error al leer el archivo MiniSEED {file_path.name}: {e}")
@@ -153,13 +181,11 @@ def procesar_mseed(input_dir):
 
 
 if __name__ == "__main__":
-    # Configurar el parseo de argumentos por línea de comandos
-    parser = argparse.ArgumentParser(description="Convierte archivos MiniSEED a JSON (ACC, VEL, DISP)")
+    parser = argparse.ArgumentParser(
+        description="Convierte archivos MiniSEED a JSON (ACC, VEL, DISP) mediante integración numérica")
     parser.add_argument("input_dir", help="Ruta al directorio que contiene los archivos mseed a procesar")
 
     args = parser.parse_args()
 
-    # Limpiar la ruta para evitar problemas con barras diagonales al final (ej. /carpeta/ vs /carpeta)
     clean_input_dir = os.path.normpath(args.input_dir)
-
     procesar_mseed(clean_input_dir)
