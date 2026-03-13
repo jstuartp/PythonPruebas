@@ -126,7 +126,7 @@ def main():
     OUT_DIR_RAW.mkdir(parents=True, exist_ok=True)
     os.makedirs(OUT_DIR, exist_ok=True)
     os.makedirs(OUT_DIR_RAW, exist_ok=True)
-    logfile = OUT_DIR / f"{args.event}.log"
+    logfile = OUT_DIR / f"CortaEdificio_{args.event}.log"
     logging.basicConfig(
         filename=logfile,
         level=logging.INFO,  # Nivel mínimo que se registrará
@@ -161,8 +161,10 @@ def main():
     resultPlot = subprocess.Popen(
         ["python3", "/home/lis/waves/scripts/mseed_to_json.py", "/home/lis/waves/eventos/"+args.event])
     logging.info(f"Resultado de proceso... {resultPlot}")
+
+
     #esperar 15 mins y copiar carpetas json/evento a servidor web
-    #time.sleep(900) # espero 15 mins para que termine el procesamiento
+    time.sleep(90) # espero 15 mins para que termine el procesamiento
     resultCopia = subprocess.run(['rsync', '-av', "/home/lis/waves/jsons/"+args.event+"/edificio", WEB_SERVER+"/"+args.event+"/"])
     logging.info(f"Resultado de proceso... {resultCopia}")
 
