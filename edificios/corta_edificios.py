@@ -154,17 +154,47 @@ def main():
 
     logging.info(f"Finalizado. Salida en: {out_dir}")
     logging.info("Iniciando procesamiento...")
-    result = subprocess.Popen(
+    #se llama el procesa edificio
+    procesa_edificio = subprocess.Popen(
         ["python3","/home/lis/waves/scripts/procesa_edificio.py", "--start", args.start, "--event",
-         args.event])
-    logging.info(f"Resultado de proceso... {result}")
-    resultPlot = subprocess.Popen(
-        ["python3", "/home/lis/waves/scripts/mseed_to_json.py", "/home/lis/waves/eventos/"+args.event])
-    logging.info(f"Resultado de proceso... {resultPlot}")
+         args.event],stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    # se llama el guardar jsons
+    guarda_jsons = subprocess.Popen(
+        ["python3", "/home/lis/waves/scripts/mseed_to_json.py", "/home/lis/waves/eventos/"+args.event]
+        ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    # se llama el espectros de fourier
+    espectros_f = subprocess.Popen(
+        ["python3", "/home/lis/waves/scripts/espectro_f.py", "/home/lis/waves/eventos/" + args.event]
+        ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
+    procesos = [
+        ('procesa_edificio', procesa_edificio),
+        ('guarda_jsons', guarda_jsons),
+        ('espectros_f', espectros_f)
+    ]
 
-    #esperar 15 mins y copiar carpetas json/evento a servidor web
-    time.sleep(90) # espero 15 mins para que termine el procesamiento
+    for nombre, p in procesos:
+        # communicate() pausa el script principal hasta que 'p' termina,
+        # y nos devuelve una tupla con los mensajes impresos y los errores
+        salida, errores = p.communicate()
+
+        logging.info(f"--- {nombre} ---")
+
+        # Imprimir la salida estándar (lo que se imprimió con print() dentro del proceso)
+        if salida.strip():
+            logging.info(f"Salida:\n{salida.strip()}")
+
+        # Imprimir los errores (si hubo alguna excepción o error de ejecución)
+        if errores.strip():
+            logging.error(f"Errores:\n{errores.strip()}")
+
+        # Verificar si terminó correctamente (0 = Éxito, otro número = Error)
+        if p.returncode == 0:
+            logging.info(f"Estado: Finalizado con éxito (Código {p.returncode})\n")
+        else:
+            logging.error(f"Estado: Falló (Código {p.returncode})\n")
+
+    # 3. Ejecutar la fase final
     resultCopia = subprocess.run(['rsync', '-av', "/home/lis/waves/jsons/"+args.event+"/edificio", WEB_SERVER+"/"+args.event+"/"])
     logging.info(f"Resultado de proceso... {resultCopia}")
 

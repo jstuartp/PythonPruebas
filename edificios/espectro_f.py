@@ -43,6 +43,21 @@ def procesar_carpeta_mseed(ruta_carpeta):
             # Leer el archivo MiniSEED completo (contiene múltiples trazas/componentes)
             stream = obspy.read(str(archivo))
 
+            #recortando el archivo para ver solo el espacio del sismo
+            tiempo_inicio = stream[0].stats.starttime
+            # Calcular el centro temporal del archivo
+            # minutos = 180 segundos. El centro está a los 90 segundos del inicio.
+            tiempo_centro = tiempo_inicio + 90
+
+            # Definir los nuevos límites de corte (t0 y t1)
+            # 1 minuto (60 segundos) hacia atrás del centro, y 1 minuto hacia adelante
+            t0 = tiempo_centro - 60
+            t1 = tiempo_centro + 40
+
+            # 5. Aplicar el recorte al stream
+            stream.trim(starttime=t0, endtime=t1)
+
+
             # Diccionario que almacenará todas las componentes de este archivo
             resultados_json = {}
 

@@ -190,6 +190,3 @@ if __name__ == "__main__":
 
     clean_input_dir = os.path.normpath(args.input_dir)
     procesar_mseed(clean_input_dir)
-    resultEspectroF = subprocess.Popen(
-        ["python3", "/home/lis/waves/scripts/espectro_f.py", "/home/lis/waves/eventos/" + args.input_dir])
-    logging.info(f"Resultado de proceso... {resultEspectroF}")
