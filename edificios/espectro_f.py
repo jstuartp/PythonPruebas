@@ -1,4 +1,5 @@
 import obspy
+from obspy import read_inventory
 import numpy as np
 import json
 import argparse
@@ -9,12 +10,15 @@ from pathlib import Path
 # ==========================================
 # Ruta base donde se generará la estructura de carpetas.
 BASE_DIR_SALIDA = "/home/lis/waves/jsons"
+# Ruta al inventario StationXML
+INVENTORY_PATH = "/home/lis/waves/inventory_Estructuras.xml"
 
 
 def procesar_carpeta_mseed(ruta_carpeta):
     """
     Recorre una carpeta, calcula el espectro de Fourier de todas las componentes
-    de los .mseed y guarda un único JSON por sismo con estructura de diccionario.
+    de los .mseed (removiendo la respuesta instrumental) y guarda un único JSON
+    por sismo con estructura de diccionario.
     """
     carpeta_entrada = Path(ruta_carpeta)
 
@@ -26,6 +30,14 @@ def procesar_carpeta_mseed(ruta_carpeta):
 
     if not archivos_mseed:
         print(f"⚠️ No se encontraron archivos .mseed en '{ruta_carpeta}'.")
+        return
+
+    # Cargar el inventario una sola vez antes de procesar los archivos
+    try:
+        inv = read_inventory(INVENTORY_PATH)
+        print(f"📄 Inventario cargado correctamente desde: {INVENTORY_PATH}")
+    except Exception as e:
+        print(f"❌ Error al cargar el inventario: {e}")
         return
 
     # 1. Extraer el nombre de la carpeta de origen y construir la ruta de salida
@@ -43,7 +55,16 @@ def procesar_carpeta_mseed(ruta_carpeta):
             # Leer el archivo MiniSEED completo (contiene múltiples trazas/componentes)
             stream = obspy.read(str(archivo))
 
-            #recortando el archivo para ver solo el espacio del sismo
+            # --- NUEVO: Remover respuesta instrumental ---
+            # Se aplica antes del trim para evitar que el 'taper' afecte la porción del sismo
+            stream.remove_response(inventory=inv, output="ACC", zero_mean=True, taper=True)
+
+            # Convertir de m/s^2 a cm/s^2 (común en ingeniería sísmica)
+            for traza in stream:
+                traza.data = traza.data * 100.0
+            # ---------------------------------------------
+
+            # recortando el archivo para ver solo el espacio del sismo
             tiempo_inicio = stream[0].stats.starttime
             # Calcular el centro temporal del archivo
             # minutos = 180 segundos. El centro está a los 90 segundos del inicio.
@@ -56,7 +77,6 @@ def procesar_carpeta_mseed(ruta_carpeta):
 
             # 5. Aplicar el recorte al stream
             stream.trim(starttime=t0, endtime=t1)
-
 
             # Diccionario que almacenará todas las componentes de este archivo
             resultados_json = {}

@@ -3,13 +3,8 @@
 import glob
 import argparse
 
-import matplotlib
-from future.backports.datetime import timedelta
-from obspy.clients.fdsn import Client
-from obspy import read, UTCDateTime
-from threading import Timer
-import time
-from concurrent.futures import ProcessPoolExecutor
+from scipy.integrate import cumulative_trapezoid
+from scipy.signal import butter, filtfilt
 import sys
 import traceback
 import logging
@@ -35,13 +30,8 @@ from obspy.geodetics.base import gps2dist_azimuth
 from geopy.distance import geodesic
 from obspy import io
 #from obspy.signal.peak import pk_tr
-from obspy.signal.filter import envelope
-from obspy.clients.filesystem.sds import Client as SDSClient
-from obspy.signal.invsim import simulate_seismometer
-from datetime import timedelta
+
 import numpy as np
-from dotenv import load_dotenv
-from pathlib import Path
 
 #CONSTANTES BASES DE DATOS SEISCOMP
 my_host = '163.178.101.124'
@@ -156,19 +146,51 @@ def load_inventory_sc3(inv_path):
     #return inventory
     return read_inventory(inv_path, format="STATIONXML")
 
-def calculate_pga(tr, inventory, network, station, location, channel,tipo):
+def filtro_paso_alto(data, cutoff, fs, order=4):
+    """
+    Aplica un filtro paso alto para eliminar la desviación de la línea base (drift)
+    que ocurre naturalmente al integrar señales sísmicas.
+    """
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='high', analog=False)
+    # filtfilt aplica el filtro hacia adelante y hacia atrás para no desfasar la onda
+    y = filtfilt(b, a, data)
+    return y
+
+
+def calculate_pgv(tr):
+    dt = 1.0 / 200
+    # B. Integrar para obtener Velocidad
+    vel_raw = cumulative_trapezoid(tr, dx=dt, initial=0.0)
+    vel_clean = vel_raw - np.mean(vel_raw)
+    vel_clean = filtro_paso_alto(vel_clean, cutoff=0.05, fs=200)
+    pgv = np.max(np.abs(vel_clean))
+    return pgv *100
+
+def calculate_pgd(tr):
+    dt = 1.0 / 200
+    # B. Integrar para obtener Velocidad
+    vel_raw = cumulative_trapezoid(tr, dx=dt, initial=0.0)
+    vel_clean = vel_raw - np.mean(vel_raw)
+    vel_clean = filtro_paso_alto(vel_clean, cutoff=0.05, fs=200)
+    disp_raw = cumulative_trapezoid(vel_clean, dx=dt, initial=0.0)
+    disp_clean = disp_raw - np.mean(disp_raw)
+    disp_clean = filtro_paso_alto(disp_clean, cutoff=0.05, fs=200)
+    pgd = np.max(np.abs(disp_clean))
+    return pgd *100
+
+def calculate_pga(tr, inventory, network, station, location, channel):
     # Se asume que 'tr' es ya un Trace de aceleración en m/s^2
     # Aplicar la respuesta instrumental (de ser necesario)
     # Si la respuesta ya está aplicada, omitir el siguiente bloque
     #net = inventory.select(network=network, station=station)
     #print(inventory)
-    outputs = {0: "ACC", 1: "VEL", 2: "DISP"}
-    output = outputs.get(tipo)
-    tr.remove_response(inventory=inventory, output=output)
+    tr.remove_response(inventory=inventory, output="ACC")
 
 
     # Calcular PGA (valor máximo absoluto)
-    waveslogger.info("Calculando PGA")
+    #waveslogger.info("Calculando PGA")
     try:
         tr.detrend("demean")
         tr.detrend("linear")
@@ -295,9 +317,9 @@ def proceso(agrupados, inv_path,evento,inicio):
             m=v=d = 0.0
             for tr in st:
                 waveslogger.info(f"Voy a calcular pga para {tr.stats.channel}")
-                pga = calculate_pga(tr.copy(), catalogo_net, network, station, location, channel,0)
-                pgv = calculate_pga(tr.copy(), catalogo_net, network, station, location, channel,1)
-                pgd = calculate_pga(tr.copy(), catalogo_net, network, station, location, channel,2)
+                pga = calculate_pga(tr.copy(), catalogo_net, network, station, location, channel)
+                pgv = calculate_pgv(tr.copy())
+                pgd = calculate_pgd(tr.copy())
                 if pga > m:
                     m = pga
                 if pgv > v:
@@ -311,9 +333,9 @@ def proceso(agrupados, inv_path,evento,inicio):
                 "station": station,
                 "maximos": m
             })
-            print(pgasChannel)
-            print(pgvsChannel)
-            print(pgdsChannel)
+            waveslogger.info(f"PGA: {pgasChannel}")
+            waveslogger.info(f"PGV: {pgvsChannel}")
+            waveslogger.info(f"PGD: {pgdsChannel}")
             resultados.append({
                 "fecha_evento": inicio,
                 "fecha_calculo": datetime.now(),
@@ -709,7 +731,7 @@ def updateBd(datos,idPga):
                    datos['longitud'],datos['hne'],datos['hnn'],datos['hnz'],datos['hne_vel'], datos['hnn_vel'], datos['hnz_vel'],
                    datos['hne_des'], datos['hnn_des'], datos['hnz_des'],
                    max(datos['hne'],datos['hnn'],datos['hnz']),
-                   datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'],filterFreqMin,filterFreqMax,data_id]
+                   datos['network']+"_"+datos['estacion']+"_"+datos['fecha_evento'].strftime('%Y%m%dT%H%M%S'),filterFreqMin,filterFreqMax,data_id]
     except Exception as err:
         waveslogger.error(
             "--ERROR---------Fail in channels for station %s " % datos['estacion'])
