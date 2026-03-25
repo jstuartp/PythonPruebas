@@ -77,7 +77,7 @@ def leer_y_convertir_a_acc_cmss(client: SDSClient, inv, net: str, sta: str, loc:
         loc_sel = loc if loc else "*"
         st = client.get_waveforms(net, sta, loc_sel, "HN?", t0, t1, merge=1)
 
-    print(st)
+    #print(st)
     if len(st) == 0:
         return Stream()
 
@@ -165,7 +165,7 @@ def main():
     #print(inv)
     client = SDSClient(str(sds_root))
     triples = estaciones_con_HN(inv)
-    #print(triples)
+    print(triples)
     if not triples:
         logging.error("No estaciones con HN/HNZ")
         raise RuntimeError("El inventario no contiene estaciones con los canales HNE/HNN/HNZ.")
@@ -184,7 +184,10 @@ def main():
             stRaw = client.get_waveforms(net, sta, loc_sel, "HN?", t0, t1, merge=1)
 
         if len(st_acc):
-            escribir_mseed_por_estacion(st_acc, out_dir, args.event, net, sta, loc, start.strftime("%Y%m%dT%H%M%S"))
+            try:
+                escribir_mseed_por_estacion(st_acc, out_dir, args.event, net, sta, loc, start.strftime("%Y%m%dT%H%M%S"))
+            except Exception as e:
+                print(f"Este es el error en {sta} error {e}")
             # escribir_mseed_por_estacion(stRaw, OUT_DIR_RAW, args.event, net, sta, loc, start.strftime("%Y%m%dT%H%M%S"))
 
     logging.info(f"Finalizado. Salida en: {out_dir}")

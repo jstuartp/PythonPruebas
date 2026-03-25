@@ -80,7 +80,7 @@ def format_header_line(label: str, value: str) -> str:
     similar al archivo de ejemplo. Se usa una columna destino estándar.
     """
     # Columna donde inicia el valor (1-indexed aproximado al ejemplo)
-    VALUE_COL = 45
+    VALUE_COL = 46
     spaces = VALUE_COL -len(label) - len(value)
     #left = f"{label}"
     #spaces = max(1, VALUE_COL - len(left))
