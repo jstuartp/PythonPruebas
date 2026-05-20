@@ -170,7 +170,7 @@ def calculate_pgv(tr):
 
 def calculate_pgd(tr):
     dt = 1.0 / 200
-    # B. Integrar para obtener Velocidad
+    # B. Integrar de nuevo para obtener Desplazamiento
     vel_raw = cumulative_trapezoid(tr, dx=dt, initial=0.0)
     vel_clean = vel_raw - np.mean(vel_raw)
     vel_clean = filtro_paso_alto(vel_clean, cutoff=0.05, fs=200)
