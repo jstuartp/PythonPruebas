@@ -3,6 +3,7 @@
 import glob
 import logging
 import re
+import shutil
 
 import matplotlib
 from future.backports.datetime import timedelta
@@ -274,6 +275,43 @@ class EventListener(client.Application):
         y = filtfilt(b, a, data)
         return y
 
+    def filtro_pasa_banda(self, data, fs, freq_min=0.05, freq_max=25.0, corners=2, taper_percent=0.05):
+        """
+        Aplica un taper de tipo Hann en los extremos de la señal y luego un
+        filtro pasa banda para aislar las frecuencias sísmicas de interés.
+        """
+        npts = len(data)
+
+        # 1. Aplicar el Taper (Hann)
+        # Calculamos la cantidad de puntos que representan el porcentaje deseado (ej. 5%)
+        taper_length = int(npts * taper_percent)
+
+        if taper_length > 0:
+            # Se genera una ventana de Hann del doble del tamaño del borde
+            window = np.hanning(2 * taper_length)
+            taper_array = np.ones(npts)
+
+            # Atenuación suave al inicio (mitad ascendente de la ventana)
+            taper_array[:taper_length] = window[:taper_length]
+            # Atenuación suave al final (mitad descendente de la ventana)
+            taper_array[-taper_length:] = window[-taper_length:]
+
+            # Aplicamos el taper a los datos originales
+            data = data * taper_array
+
+        # 2. Aplicar el Filtro Pasa Banda
+        nyq = 0.5 * fs
+        low = freq_min / nyq
+        high = freq_max / nyq
+
+        # Diseño del filtro Butterworth
+        b, a = butter(corners, [low, high], btype='bandpass', analog=False)
+
+        # filtfilt aplica el filtro hacia adelante y hacia atrás (fase cero)
+        y = filtfilt(b, a, data)
+
+        return y
+
     """
     Funion para calcular PGV, recibe un trace y calcula la integral completa
     utiliza el filtro paso alto, devuelve x100 para usar cm/s2.
@@ -283,7 +321,8 @@ class EventListener(client.Application):
         # B. Integrar para obtener Velocidad
         vel_raw = cumulative_trapezoid(tr, dx=dt, initial=0.0)
         vel_clean = vel_raw - np.mean(vel_raw)
-        vel_clean = self.filtro_paso_alto(vel_clean, cutoff=0.05, fs=200)
+        #vel_clean = self.filtro_paso_alto(vel_clean, cutoff=0.05, fs=200)
+        vel_clean = self.filtro_pasa_banda(vel_clean,fs=200)
         pgv = np.max(np.abs(vel_clean))
         return pgv * 100
 
@@ -297,10 +336,12 @@ class EventListener(client.Application):
         # B. Integrar de nuevo para obtener Desplazamiento
         vel_raw = cumulative_trapezoid(tr, dx=dt, initial=0.0)
         vel_clean = vel_raw - np.mean(vel_raw)
-        vel_clean = self.filtro_paso_alto(vel_clean, cutoff=0.05, fs=200)
+        #vel_clean = self.filtro_paso_alto(vel_clean, cutoff=0.05, fs=200)
+        vel_clean = self.filtro_pasa_banda(vel_clean, fs=200)
         disp_raw = cumulative_trapezoid(vel_clean, dx=dt, initial=0.0)
         disp_clean = disp_raw - np.mean(disp_raw)
-        disp_clean = self.filtro_paso_alto(disp_clean, cutoff=0.05, fs=200)
+        #disp_clean = self.filtro_paso_alto(disp_clean, cutoff=0.05, fs=200)
+        disp_clean = self.filtro_pasa_banda(disp_clean, fs=200)
         pgd = np.max(np.abs(disp_clean))
         return pgd * 100
 
@@ -880,81 +921,83 @@ class EventListener(client.Application):
     #guarda 3 minutos antes y 3 mins despues del evento
     def cortaWaves(self,streams,evento,t0):
 
-        ruta = OUTPUT_DIR + evento
-        rutaJson = OUTPUT_JSON + evento
-        localizaciones_permitidas = ["00", "","01","11", "12", "13"]
-        canales_permitidos = ["HNN", "HNZ", "HNE"]
-        try:
-            os.stat(ruta)
-            os.stat(rutaJson)
-        except:
-            os.mkdir(ruta)
-            os.mkdir(rutaJson)
-        try:
-            os.stat(ruta + "/raw")
-        except:
-            os.mkdir(ruta + "/raw")
+        # 1. Definición de rutas (usando os.path.join para evitar errores con los slashes)
+        ruta = os.path.join(OUTPUT_DIR, evento)
+        rutaJson = os.path.join(OUTPUT_JSON, evento)
+        rutaRaw = os.path.join(ruta, "raw")
 
+        localizaciones_permitidas = ["00", "", "01", "11", "12", "13"]
+        canales_permitidos = ["HNN", "HNZ", "HNE"]
+
+        # 2. Vaciado y creación de directorios
+        # Limpiar y recrear directorio de mseed (incluyendo su subcarpeta 'raw')
+        if os.path.exists(ruta):
+            shutil.rmtree(ruta)
+        os.makedirs(rutaRaw, exist_ok=True)  # Crea 'ruta' y 'ruta/raw' de una sola vez
+
+        # Limpiar y recrear directorio de JSONs
+        if os.path.exists(rutaJson):
+            shutil.rmtree(rutaJson)
+        os.makedirs(rutaJson, exist_ok=True)
+
+        # 3. Procesamiento de los streams
         for idx, res in enumerate(streams, 1):
-            #header = res["st"].stats
+
+            # Convertimos a string ISO 8601 (Ej: "2024-02-27T10:30:00")
+            timestamp_str = t0.strftime('%Y%m%dT%H%M%S')
 
             payload = {
                 "meta": {
                     "station": res["station"],
                     "network": res["network"],
-                    # Convertimos a string ISO 8601 (Ej: "2024-02-27T10:30:00.000Z")
-                    "start_time": t0.strftime('%Y%m%dT%H%M%S'),
+                    "start_time": timestamp_str,
                     "sample_rate": 200,
                     "npts": 7001
                 },
                 "data": {}
             }
 
-
-
-            # Recortar la traza en la ventana deseada (si es necesario)
+            # Recortar la traza en la ventana deseada
             tr = res["st"]
-            st = res["st"]
-            #print(tr)
             trRaw = res["stRaw"]
+
             for mytr in tr.copy():
                 try:
-                    if (mytr.stats.location not in localizaciones_permitidas) or (mytr.stats.channel not in canales_permitidos):
+                    if (mytr.stats.location not in localizaciones_permitidas) or (
+                            mytr.stats.channel not in canales_permitidos):
                         tr.remove(mytr)
                         trRaw.remove(mytr)
                 except Exception as err:
-                    waveslogger.error(f"--FALLO CORTAR-- No se pudo cortar{res['station']}")
+                    waveslogger.error(f"--FALLO CORTAR-- No se pudo cortar {res['station']}")
 
             tr.trim(starttime=res["t1"], endtime=res["t2"])
 
-            # 2. Rellenar los vectores de datos
+            # Rellenar los vectores de datos
             for traza in tr:
                 # Usamos el nombre del canal como clave (ej: "HNZ", "HNE")
                 canal = traza.stats.channel
-
                 # IMPORTANTE: .tolist() es necesario porque 'json' no serializa numpy arrays
                 payload["data"][canal] = traza.data.tolist()
 
+            # 4. Generar nombres de archivo estandarizados
+            base_filename = f"{res['network']}_{res['station']}_{timestamp_str}"
 
-            # Generar nombre de archivo//HACER DIRECTORIO POR CADA EVENTO
-            fname = f"{ruta}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.mseed"
-            rawFile = f"{ruta}/raw/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}_RAW.mseed"
-            jsonfname = f"{rutaJson}/{res['network']}_{res['station']}_{t0.strftime('%Y%m%dT%H%M%S')}.json"
-            #ruta_json = os.path.join(ruta, jsonfname)
+            fname = os.path.join(ruta, f"{base_filename}.mseed")
+            rawFile = os.path.join(rutaRaw, f"{base_filename}_RAW.mseed")
+            jsonfname = os.path.join(rutaJson, f"{base_filename}.json")
 
-
+            # 5. Escritura de archivos
             try:
                 tr.write(fname, format="mseed")
                 trRaw.write(rawFile, format="mseed")
+
                 with open(jsonfname, 'w') as f:
                     # separators=(',', ':') elimina espacios vacíos para reducir peso
                     json.dump(payload, f, separators=(',', ':'))
 
             except Exception as err:
-                waveslogger.error(
-                    "--FALLO EN ESCRITURA-- No data written for station %s \n" % res['station'])
-                waveslogger.error(
-                    "--FALLO EN ESCRITURA-- ErrorMessange %s \n" % err)
+                waveslogger.error(f"--FALLO EN ESCRITURA-- No data written for station {res['station']} \n")
+                waveslogger.error(f"--FALLO EN ESCRITURA-- ErrorMessage {err} \n")
 
 
 

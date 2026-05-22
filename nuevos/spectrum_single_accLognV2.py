@@ -133,10 +133,10 @@ def procesar_un_sismo(archivo, mapa_info, curvas_diseno, carpeta_salida):
             etiqueta = "Zona/Suelo Desconocido"
 
         # Cálculo Espectral
-        resp_x = pyrotd.calc_spec_accels(dt, accel_x, FREQS_OSCILADOR, AMORTIGUAMIENTO)
-        resp_y = pyrotd.calc_spec_accels(dt, accel_y, FREQS_OSCILADOR, AMORTIGUAMIENTO)
+        resp_x = pyrotd.calc_spec_accels(dt, accel_x, FREQS_OSCILADOR, AMORTIGUAMIENTO,osc_type="psa")
+        resp_y = pyrotd.calc_spec_accels(dt, accel_y, FREQS_OSCILADOR, AMORTIGUAMIENTO,osc_type="psa")
         rot_resp = pyrotd.calc_rotated_spec_accels(
-            dt, accel_x, accel_y, FREQS_OSCILADOR, AMORTIGUAMIENTO, percentiles=[100]
+            dt, accel_x, accel_y, FREQS_OSCILADOR, AMORTIGUAMIENTO, percentiles=[100],osc_type="psa"
         )
 
         # =========================================================================

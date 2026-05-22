@@ -4,14 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="arreglos para el escribe lis">
-      <change afterPath="$PROJECT_DIR$/nuevos/msseed_to_json_124.py" afterDir="false" />
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="trabajando nueva version de sccortawaves 124 para hacer velocidad y desplazamiento:&#10;todo funcional en sccortawaves_PRUEBAS&#10;seguir haciendo las pruebas en el servidor">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/edificios/procesa_edificio.py" beforeDir="false" afterPath="$PROJECT_DIR$/edificios/procesa_edificio.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nuevos/curvas_diseno/suelo.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/nuevos/curvas_diseno/suelos.csv" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/suelos.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nuevos/sccortawaves_124" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nuevos/spectrum_single_accLognV2.py" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/spectrum_single_accLognV2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -214,15 +210,7 @@
       <workItem from="1778100972497" duration="324000" />
       <workItem from="1778689321296" duration="2000" />
       <workItem from="1778704725195" duration="47000" />
-      <workItem from="1778704802936" duration="15786000" />
-    </task>
-    <task id="LOCAL-00036" summary="cambios en sccortawaves2 y plotea2.py">
-      <option name="closed" value="true" />
-      <created>1751317820960</created>
-      <option name="number" value="00036" />
-      <option name="presentableId" value="LOCAL-00036" />
-      <option name="project" value="LOCAL" />
-      <updated>1751317820960</updated>
+      <workItem from="1778704802936" duration="25342000" />
     </task>
     <task id="LOCAL-00037" summary="cambios en sccortawaves2 y plotea2.py">
       <option name="closed" value="true" />
@@ -608,7 +596,15 @@
       <option name="project" value="LOCAL" />
       <updated>1774476222769</updated>
     </task>
-    <option name="localTasksCounter" value="85" />
+    <task id="LOCAL-00085" summary="trabajando nueva version de sccortawaves 124 para hacer velocidad y desplazamiento:&#10;todo funcional en sccortawaves_PRUEBAS&#10;seguir haciendo las pruebas en el servidor">
+      <option name="closed" value="true" />
+      <created>1779304950963</created>
+      <option name="number" value="00085" />
+      <option name="presentableId" value="LOCAL-00085" />
+      <option name="project" value="LOCAL" />
+      <updated>1779304950964</updated>
+    </task>
+    <option name="localTasksCounter" value="86" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -616,7 +612,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="escribe_lis.py funcional, cambios al cortawaves que lo incorporan, plotea2 usa multihilo" />
     <MESSAGE value="jma listo y cambios a cortawaves y plotea" />
     <MESSAGE value="jma guardando latitud y longitud de la estacion" />
     <MESSAGE value="cortawaves guarda .lis en todos los servidores&#10;nuevo script para cortar waves de edificios" />
@@ -641,7 +636,8 @@
     <MESSAGE value="correccion de errores para que todos los scripts funcionen en cadena" />
     <MESSAGE value="modificacion para la ejecucion en secuencia" />
     <MESSAGE value="arreglos para el escribe lis" />
-    <option name="LAST_COMMIT_MESSAGE" value="arreglos para el escribe lis" />
+    <MESSAGE value="trabajando nueva version de sccortawaves 124 para hacer velocidad y desplazamiento:&#10;todo funcional en sccortawaves_PRUEBAS&#10;seguir haciendo las pruebas en el servidor" />
+    <option name="LAST_COMMIT_MESSAGE" value="trabajando nueva version de sccortawaves 124 para hacer velocidad y desplazamiento:&#10;todo funcional en sccortawaves_PRUEBAS&#10;seguir haciendo las pruebas en el servidor" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
