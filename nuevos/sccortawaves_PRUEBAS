@@ -124,7 +124,7 @@ class EventListener(client.Application):
 
         self.rutaRaiz ="/home/lis/waves/corta/"
         self.rutaImagenes ="/home/lis/waves/imagenes/"
-        self.direccionWebServer = "lis@163.178.170.245:/var/www/informes.lis.ucr.ac.cr/seiscomp/public/assets/waves"
+        self.direccionWebServer = "lis@163.178.170.245:/var/cache/graficas_seiscomp/waves"
         self.seiscomp_path = os.environ.get("SEISCOMP_ROOT") # ruta del seiscomp base
         self.SDS_ROOT = self.seiscomp_path+"/var/lib/archive/"  # Ruta al SDS de seiscomp
         #waveslogger.info("Inicio de CortaWaves")
@@ -583,7 +583,13 @@ class EventListener(client.Application):
             guarda_jsons = subprocess.Popen(
                 ["python3", "/home/lis/seiscomp/share/scripts/lis/mseed_to_json_124.py", "/home/lis/waves/sds/" + evento.publicID()]
                 , stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            #modificar este mseedtojson, para hacer los de vel y disp
+            #crear el json de duracion aqui
+            jsons_duracion = subprocess.run(
+                ["python3", "/home/lis/seiscomp/share/scripts/lis/mov_sismico.py","--directorio",
+                 "/home/lis/waves/sds/" + evento.publicID(),"--resultado","/home/lis/waves/imagenes/" + evento.publicID()+"/"]
+                , stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,errors="ignore")
+            #waveslogger.info(f"mensaje de duracion: {jsons_duracion}")
+
 
             #raise SystemExit
 
@@ -922,8 +928,8 @@ class EventListener(client.Application):
     def cortaWaves(self,streams,evento,t0):
 
         # 1. Definición de rutas (usando os.path.join para evitar errores con los slashes)
-        ruta = os.path.join(OUTPUT_DIR, evento)
-        rutaJson = os.path.join(OUTPUT_JSON, evento)
+        ruta = os.path.join(OUTPUT_DIR, evento) #directorio SDS donde se guardan mseeds
+        rutaJson = os.path.join(OUTPUT_JSON, evento) #directorio donde se guardan JSONS
         rutaRaw = os.path.join(ruta, "raw")
 
         localizaciones_permitidas = ["00", "", "01", "11", "12", "13"]
