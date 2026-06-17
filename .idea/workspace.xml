@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="trabajando nueva version de sccortawaves 124 para hacer velocidad y desplazamiento:&#10;todo funcional en sccortawaves_PRUEBAS&#10;seguir haciendo las pruebas en el servidor">
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="nueva version de espectrosGeoJson3.py para guardar en base de datos">
+      <change afterPath="$PROJECT_DIR$/nuevos/espectrosGeoJson4.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nuevos/espectrosGeoJson3.py" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/espectrosGeoJson3.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nuevos/spectrum_single_accLognV2.py" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/spectrum_single_accLognV2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -210,39 +211,7 @@
       <workItem from="1778100972497" duration="324000" />
       <workItem from="1778689321296" duration="2000" />
       <workItem from="1778704725195" duration="47000" />
-      <workItem from="1778704802936" duration="25342000" />
-    </task>
-    <task id="LOCAL-00037" summary="cambios en sccortawaves2 y plotea2.py">
-      <option name="closed" value="true" />
-      <created>1751490745805</created>
-      <option name="number" value="00037" />
-      <option name="presentableId" value="LOCAL-00037" />
-      <option name="project" value="LOCAL" />
-      <updated>1751490745805</updated>
-    </task>
-    <task id="LOCAL-00038" summary="cambios en sccortawaves2 y plotea2.py">
-      <option name="closed" value="true" />
-      <created>1753104066255</created>
-      <option name="number" value="00038" />
-      <option name="presentableId" value="LOCAL-00038" />
-      <option name="project" value="LOCAL" />
-      <updated>1753104066255</updated>
-    </task>
-    <task id="LOCAL-00039" summary="Cambios al 1 de agosto 2025">
-      <option name="closed" value="true" />
-      <created>1754082081661</created>
-      <option name="number" value="00039" />
-      <option name="presentableId" value="LOCAL-00039" />
-      <option name="project" value="LOCAL" />
-      <updated>1754082081661</updated>
-    </task>
-    <task id="LOCAL-00040" summary="Cambios al 1 de agosto 2025">
-      <option name="closed" value="true" />
-      <created>1754082089614</created>
-      <option name="number" value="00040" />
-      <option name="presentableId" value="LOCAL-00040" />
-      <option name="project" value="LOCAL" />
-      <updated>1754082089614</updated>
+      <workItem from="1778704802936" duration="76833000" />
     </task>
     <task id="LOCAL-00041" summary="Cambios al 11 de agosto 2025">
       <option name="closed" value="true" />
@@ -604,7 +573,39 @@
       <option name="project" value="LOCAL" />
       <updated>1779304950964</updated>
     </task>
-    <option name="localTasksCounter" value="86" />
+    <task id="LOCAL-00086" summary="sccortawaves con velocidad y desplazamiento en PRUEBAS. Ya funciona, queda como version 124&#10;Se modifica para que se limpie el directorio antes de volver a procesar los datos&#10;Se agrega PSA al espectro para tratar de reducir el calculo">
+      <option name="closed" value="true" />
+      <created>1779481705522</created>
+      <option name="number" value="00086" />
+      <option name="presentableId" value="LOCAL-00086" />
+      <option name="project" value="LOCAL" />
+      <updated>1779481705522</updated>
+    </task>
+    <task id="LOCAL-00087" summary="se modifica sccortawaves_PRUEBAS para calcular el movimiento del sismo&#10;se genera un nuevo script para calcular el tiempo que duro el movimiento&#10;el script genera un json con la informacion para los graficos">
+      <option name="closed" value="true" />
+      <created>1780348698075</created>
+      <option name="number" value="00087" />
+      <option name="presentableId" value="LOCAL-00087" />
+      <option name="project" value="LOCAL" />
+      <updated>1780348698075</updated>
+    </task>
+    <task id="LOCAL-00088" summary="se crea espectros_geojson.py para hacer los nuevos espectros, hay que probar">
+      <option name="closed" value="true" />
+      <created>1781126893394</created>
+      <option name="number" value="00088" />
+      <option name="presentableId" value="LOCAL-00088" />
+      <option name="project" value="LOCAL" />
+      <updated>1781126893394</updated>
+    </task>
+    <task id="LOCAL-00089" summary="nueva version de espectrosGeoJson3.py para guardar en base de datos">
+      <option name="closed" value="true" />
+      <created>1781559523636</created>
+      <option name="number" value="00089" />
+      <option name="presentableId" value="LOCAL-00089" />
+      <option name="project" value="LOCAL" />
+      <updated>1781559523636</updated>
+    </task>
+    <option name="localTasksCounter" value="90" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -612,10 +613,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="jma listo y cambios a cortawaves y plotea" />
-    <MESSAGE value="jma guardando latitud y longitud de la estacion" />
-    <MESSAGE value="cortawaves guarda .lis en todos los servidores&#10;nuevo script para cortar waves de edificios" />
-    <MESSAGE value="nuevos scripts para edificios, cortawaves llama a corta edficios" />
     <MESSAGE value="modificaciones plotea" />
     <MESSAGE value="modificaciones sccortawaves&#10;se guardan mseed crudos" />
     <MESSAGE value="cambios en plotea.py" />
@@ -637,7 +634,11 @@
     <MESSAGE value="modificacion para la ejecucion en secuencia" />
     <MESSAGE value="arreglos para el escribe lis" />
     <MESSAGE value="trabajando nueva version de sccortawaves 124 para hacer velocidad y desplazamiento:&#10;todo funcional en sccortawaves_PRUEBAS&#10;seguir haciendo las pruebas en el servidor" />
-    <option name="LAST_COMMIT_MESSAGE" value="trabajando nueva version de sccortawaves 124 para hacer velocidad y desplazamiento:&#10;todo funcional en sccortawaves_PRUEBAS&#10;seguir haciendo las pruebas en el servidor" />
+    <MESSAGE value="sccortawaves con velocidad y desplazamiento en PRUEBAS. Ya funciona, queda como version 124&#10;Se modifica para que se limpie el directorio antes de volver a procesar los datos&#10;Se agrega PSA al espectro para tratar de reducir el calculo" />
+    <MESSAGE value="se modifica sccortawaves_PRUEBAS para calcular el movimiento del sismo&#10;se genera un nuevo script para calcular el tiempo que duro el movimiento&#10;el script genera un json con la informacion para los graficos" />
+    <MESSAGE value="se crea espectros_geojson.py para hacer los nuevos espectros, hay que probar" />
+    <MESSAGE value="nueva version de espectrosGeoJson3.py para guardar en base de datos" />
+    <option name="LAST_COMMIT_MESSAGE" value="nueva version de espectrosGeoJson3.py para guardar en base de datos" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -661,6 +662,11 @@
           <url>file://$PROJECT_DIR$/seiscomp/plotea2.py</url>
           <line>2</line>
           <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/nuevos/ploteaV2.py</url>
+          <line>2</line>
+          <option name="timeStamp" value="5" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

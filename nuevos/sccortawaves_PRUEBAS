@@ -127,6 +127,7 @@ class EventListener(client.Application):
         self.direccionWebServer = "lis@163.178.170.245:/var/cache/graficas_seiscomp/waves"
         self.seiscomp_path = os.environ.get("SEISCOMP_ROOT") # ruta del seiscomp base
         self.SDS_ROOT = self.seiscomp_path+"/var/lib/archive/"  # Ruta al SDS de seiscomp
+        self.procesos_pendientes =[] # estructura para controlar los subprocesos
         #waveslogger.info("Inicio de CortaWaves")
 
     def initConfiguration(self):
@@ -234,9 +235,12 @@ class EventListener(client.Application):
         #print(parametroa)
         #print(self.direccionWebServer)
         if inf == 1:
-            #time.sleep(30)
+            #me aseguro que todos los procesos pendientes hayan terminado
+            for p in self.procesos_pendientes:
+                p.wait()
+
             resultspec = subprocess.run(
-                ["python3", self.seiscomp_path + "/share/scripts/lis/spectrum_single_accLognV2.py", evento.publicID()])
+                ["python3", self.seiscomp_path + "/share/scripts/lis/espectrosGeoJson4.py", evento.publicID()])
 
             # proceso para copiar imagenes de ondas
             result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
@@ -583,19 +587,21 @@ class EventListener(client.Application):
             guarda_jsons = subprocess.Popen(
                 ["python3", "/home/lis/seiscomp/share/scripts/lis/mseed_to_json_124.py", "/home/lis/waves/sds/" + evento.publicID()]
                 , stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            #referencio el proceso para esperar a que termine
+            self.procesos_pendientes.append(guarda_jsons)
             #crear el json de duracion aqui
-            jsons_duracion = subprocess.run(
+            jsons_mov_sismico = subprocess.run(
                 ["python3", "/home/lis/seiscomp/share/scripts/lis/mov_sismico.py","--directorio",
                  "/home/lis/waves/sds/" + evento.publicID(),"--resultado","/home/lis/waves/imagenes/" + evento.publicID()+"/"]
                 , stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,errors="ignore")
-            #waveslogger.info(f"mensaje de duracion: {jsons_duracion}")
+
 
 
             #raise SystemExit
 
 
             # se escriben los archivos .LIS
-            num_trabajos = -1  # Utiliza todos los núcleos disponibles
+            num_trabajos = 70  # Utiliza todos los núcleos disponibles
             crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
                 delayed(self.archivoLis)(resultados[s], evento) for s in range(len(resultados)))
             #waveslogger.info("Resultado del archivoLIS %s" % crealis)
@@ -609,7 +615,11 @@ class EventListener(client.Application):
             #envia archivos lis a repositorio stuart
             res4 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/LIS/{evento}",
                                    "lis@163.178.109.101:/home/lis/repositorio_archivo_lis/por_eventos/"])
-            #print(res4)
+            # referencio el proceso para esperar a que termine
+            self.procesos_pendientes.append(res1)
+            self.procesos_pendientes.append(res2)
+            self.procesos_pendientes.append(res3)
+
             print("Voy a llamar a estucturas")
             # proceso para activar evento en servidor estructuras
             estructuras = subprocess.Popen(
@@ -619,6 +629,7 @@ class EventListener(client.Application):
             stderr = subprocess.DEVNULL,  # Ignora todos los mensajes de error del hijo
             start_new_session = True  # Desvincula al hijo del padre
             )
+
 
 
 
@@ -656,6 +667,7 @@ class EventListener(client.Application):
             resultJMA = subprocess.run(
                 ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
                  evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "1"])
+
             if(resultJMA):
                 waveslogger.info("Exito guardando JMA")
             waveslogger.info("Resultado del JMA insertar %s" % resultJMA)
@@ -674,6 +686,7 @@ class EventListener(client.Application):
                     ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
                      evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "2"])
                 waveslogger.info("Resultado del JMA actualizar %s" % resultJMA)
+
             else:
                 if fechaEvento['fecha'] >= t0:
                     # actualizar evento
@@ -684,6 +697,7 @@ class EventListener(client.Application):
                         ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
                          evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "1"])
                     waveslogger.info("Resultado del JMA Insertar %s" % resultJMA)
+
         return informe
 
                 # si no hay evento mas nuevo, no se hace nada

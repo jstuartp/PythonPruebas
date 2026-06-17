@@ -110,6 +110,28 @@ def procesar_un_sismo(archivo, mapa_info, curvas_diseno, carpeta_salida, invento
         resp_y = pyrotd.calc_spec_accels(dt, accel_y, FREQS_OSCILADOR, AMORTIGUAMIENTO, osc_type="psa")
         rot_resp = pyrotd.calc_rotated_spec_accels(dt, accel_x, accel_y, FREQS_OSCILADOR, AMORTIGUAMIENTO, percentiles=[100], osc_type="psa")
 
+        # =========================================================================
+        # ---> NUEVO: MATEMÁTICA PARA VELOCIDAD Y DESPLAZAMIENTO <---
+        # =========================================================================
+        freqs = rot_resp.osc_freq
+        periodos_calc = 1.0 / freqs
+        omega = 2.0 * np.pi * freqs  # Frecuencia angular
+
+        # Extraer arreglos de Aceleración (cm/s²)
+        sa_x = resp_x.spec_accel
+        sa_y = resp_y.spec_accel
+        sa_rot = rot_resp.spec_accel
+
+        # Calcular arreglos de Velocidad Pseudo-Espectral (cm/s)
+        sv_x = sa_x / omega
+        sv_y = sa_y / omega
+        sv_rot = sa_rot / omega
+
+        # Calcular arreglos de Desplazamiento Espectral (cm)
+        sd_x = sa_x / (omega ** 2)
+        sd_y = sa_y / (omega ** 2)
+        sd_rot = sa_rot / (omega ** 2)
+
         # EXTRACCIÓN DE DATOS PARA EL GEOJSON
         freqs = rot_resp.osc_freq
         sa_values = rot_resp.spec_accel
@@ -142,9 +164,25 @@ def procesar_un_sismo(archivo, mapa_info, curvas_diseno, carpeta_salida, invento
             }
         }
 
-        # Generación de Gráficas
-        crear_grafica(PERIODOS, resp_x, resp_y, rot_resp, estacion_nombre, nombre_archivo, carpeta_salida, datos_curva, etiqueta, "_CSCR")
-        crear_grafica(PERIODOS, resp_x, resp_y, rot_resp, estacion_nombre, nombre_archivo, carpeta_salida, None, None, "")
+        # =========================================================================
+        # GENERACIÓN DE GRÁFICAS
+        # =========================================================================
+        # 1. Gráfica Aceleración con Curva Diseño CSCR
+        crear_grafica(periodos_calc, sa_x, sa_y, sa_rot, estacion_nombre, nombre_archivo, carpeta_salida,
+                      "Aceleración Espectral ($cm/s^2$)", "Espectro de Aceleración", "_RotD100_loglog_CSCR",
+                      datos_curva, etiqueta)
+
+        # 2. Gráfica Aceleración General
+        crear_grafica(periodos_calc, sa_x, sa_y, sa_rot, estacion_nombre, nombre_archivo, carpeta_salida,
+                      "Aceleración Espectral ($cm/s^2$)", "Espectro de Aceleración", "_RotD100_loglog", None, None)
+
+        # 3. Gráfica Velocidad
+        crear_grafica(periodos_calc, sv_x, sv_y, sv_rot, estacion_nombre, nombre_archivo, carpeta_salida,
+                      "Velocidad Espectral ($cm/s$)", "Espectro de Velocidad", "_vel", None, None)
+
+        # 4. Gráfica Desplazamiento
+        crear_grafica(periodos_calc, sd_x, sd_y, sd_rot, estacion_nombre, nombre_archivo, carpeta_salida,
+                      "Desplazamiento Espectral ($cm$)", "Espectro de Desplazamiento", "_disp", None, None)
 
         detalle = f"[{info['zona']}-{info['suelo']}]" if info else "[N/A]"
         return True, f"✅ {nombre_archivo} -> {estacion_nombre} {detalle}", feature_geojson
@@ -152,30 +190,35 @@ def procesar_un_sismo(archivo, mapa_info, curvas_diseno, carpeta_salida, invento
     except Exception as e:
         return False, f"❌ Error en {nombre_archivo}: {str(e)}", None
 
-def crear_grafica(periodos, resp_x, resp_y, rot_resp, station, filename_orig, carpeta_out, datos_extra=None, etiqueta_extra=None, sufijo_archivo=""):
+
+def crear_grafica(periodos, val_x, val_y, val_rot, station, filename_base, carpeta_out, ylabel, titulo,
+                  sufijo_archivo="", datos_extra=None, etiqueta_extra=None):
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(periodos, resp_x.spec_accel, label='HNE', color='blue', alpha=0.4)
-    ax.plot(periodos, resp_y.spec_accel, label='HNN', color='green', alpha=0.4)
-    ax.plot(periodos, rot_resp.spec_accel, label='RotD100', color='red', linewidth=2)
+
+    # Graficar los valores (ahora pasamos los arreglos directamente)
+    ax.plot(periodos, val_x, label='HNE', color='blue', alpha=0.4)
+    ax.plot(periodos, val_y, label='HNN', color='green', alpha=0.4)
+    ax.plot(periodos, val_rot, label='RotD100', color='red', linewidth=2)
+
+    # Solo agregar la curva de diseño si se proporciona (normalmente solo para Aceleración)
     if datos_extra is not None:
-        ax.plot(datos_extra["T"], datos_extra["A"], label=etiqueta_extra, color='black', linestyle='--', linewidth=2.5, alpha=0.8)
+        ax.plot(datos_extra["T"], datos_extra["A"], label=etiqueta_extra, color='black', linestyle='--', linewidth=2.5,
+                alpha=0.8)
     elif etiqueta_extra and datos_extra is None:
         ax.plot([], [], ' ', label=f"({etiqueta_extra})")
 
-    ax.set_title(f"Espectro de Respuesta (amortiguamiento = 5 %) - Estación: {station}")
+    ax.set_title(f"{titulo} (amortiguamiento = 5 %) - Estación: {station}")
     ax.set_xlabel("Periodo (s)")
-    ax.set_ylabel("Aceleración Espectral ($cm/s^2$)")
+    ax.set_ylabel(ylabel)
     ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_xlim(left=0.01)
     ax.grid(True, which="major", ls="-", alpha=0.5)
     ax.grid(True, which="minor", ls=":", alpha=0.2)
     ax.legend()
-    ruta_guardado = os.path.join(carpeta_out, f"{os.path.splitext(filename_orig)[0]}_RotD100_loglog{sufijo_archivo}.png")
-    fig.savefig(ruta_guardado, dpi=150)
 
-    # Liberar memoria cerrando explicitamente ambas cosas
-    plt.clf()
+    ruta_guardado = os.path.join(carpeta_out, f"{os.path.splitext(filename_base)[0]}{sufijo_archivo}.png")
+    fig.savefig(ruta_guardado, dpi=150)
     plt.close(fig)
 
 # =========================================================================
@@ -269,7 +312,7 @@ def main():
     # ---> CONFIGURACIÓN DE PARALELISMO <---
     # Dejamos la mitad de los procesadores libres para no saturar el servidor
     cores_totales = multiprocessing.cpu_count()
-    max_workers = max(1, cores_totales // 2)
+    max_workers = max(1, cores_totales // 3)
     print(f"⚡ Iniciando cálculo paralelo usando {max_workers} de {cores_totales} hilos disponibles...")
 
     features_geojson = []
