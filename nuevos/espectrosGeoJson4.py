@@ -132,6 +132,27 @@ def procesar_un_sismo(archivo, mapa_info, curvas_diseno, carpeta_salida, invento
         sd_y = sa_y / (omega ** 2)
         sd_rot = sa_rot / (omega ** 2)
 
+        # =========================================================================
+        # NUEVO: CÁLCULO DE APROXIMACIÓN A LA CURVA DE DISEÑO (Solo RotD100)
+        # =========================================================================
+        escala_aproximacion = None
+        escala_porcentaje = None
+
+        if datos_curva is not None:
+            # 1. Interpolar la aceleración de diseño para que coincida exactamente con periodos_calc
+            sa_diseno_interp = np.interp(periodos_calc, datos_curva["T"], datos_curva["A"])
+
+            # 2. Calcular el vector de escala de aproximación (Ratio) usando directamente RotD100
+            escala_aproximacion = sa_rot / sa_diseno_interp
+
+            # 3. Convertir a porcentaje para una lectura más intuitiva (ej. 120% = superó por 20%)
+            escala_porcentaje = escala_aproximacion * 100.0
+
+            # 4. Extraer métricas resumen de esta escala
+            indice_max_acercamiento = np.argmax(escala_aproximacion)
+            periodo_critico = periodos_calc[indice_max_acercamiento]
+            porcentaje_max = escala_porcentaje[indice_max_acercamiento]
+
         # EXTRACCIÓN DE DATOS PARA EL GEOJSON
         freqs = rot_resp.osc_freq
         sa_values = rot_resp.spec_accel
@@ -156,7 +177,9 @@ def procesar_un_sismo(archivo, mapa_info, curvas_diseno, carpeta_salida, invento
                 "sa_max_cm_s2": round(sa_max, 4),
                 "periodo_max_s": round(t_max, 4),
                 "sa_02_cm_s2": round(sa_02, 4),
-                "sa_10_cm_s2": round(sa_10, 4)
+                "sa_10_cm_s2": round(sa_10, 4),
+                "porcentaje_max" : porcentaje_max,
+                "periodo_critico" : periodo_critico
             },
             "geometry": {
                 "type": "Point",
