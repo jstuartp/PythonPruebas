@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="nueva version de espectrosGeoJson3.py para guardar en base de datos">
-      <change afterPath="$PROJECT_DIR$/nuevos/espectrosGeoJson4.py" afterDir="false" />
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="nueva version de espectrosGeoJson4.py para calcular la escala de aprox con el espectro">
+      <change afterPath="$PROJECT_DIR$/nuevos/jmaV2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nuevos/espectrosGeoJson3.py" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/espectrosGeoJson3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nuevos/jma.py_OLD" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -211,23 +211,7 @@
       <workItem from="1778100972497" duration="324000" />
       <workItem from="1778689321296" duration="2000" />
       <workItem from="1778704725195" duration="47000" />
-      <workItem from="1778704802936" duration="76833000" />
-    </task>
-    <task id="LOCAL-00041" summary="Cambios al 11 de agosto 2025">
-      <option name="closed" value="true" />
-      <created>1754947609032</created>
-      <option name="number" value="00041" />
-      <option name="presentableId" value="LOCAL-00041" />
-      <option name="project" value="LOCAL" />
-      <updated>1754947609032</updated>
-    </task>
-    <task id="LOCAL-00042" summary="Cambios al 13 de agosto 2025">
-      <option name="closed" value="true" />
-      <created>1755120124114</created>
-      <option name="number" value="00042" />
-      <option name="presentableId" value="LOCAL-00042" />
-      <option name="project" value="LOCAL" />
-      <updated>1755120124114</updated>
+      <workItem from="1778704802936" duration="112651000" />
     </task>
     <task id="LOCAL-00043" summary="Cambios al 18 de agosto 2025">
       <option name="closed" value="true" />
@@ -605,7 +589,23 @@
       <option name="project" value="LOCAL" />
       <updated>1781559523636</updated>
     </task>
-    <option name="localTasksCounter" value="90" />
+    <task id="LOCAL-00090" summary="nueva version de espectrosGeoJson4.py espectros funcionales de velocidad y desplazamiento y sccortawaves_PRUEBAS ya considera los espectros nuevos">
+      <option name="closed" value="true" />
+      <created>1781731796525</created>
+      <option name="number" value="00090" />
+      <option name="presentableId" value="LOCAL-00090" />
+      <option name="project" value="LOCAL" />
+      <updated>1781731796525</updated>
+    </task>
+    <task id="LOCAL-00091" summary="nueva version de espectrosGeoJson4.py para calcular la escala de aprox con el espectro">
+      <option name="closed" value="true" />
+      <created>1782163529607</created>
+      <option name="number" value="00091" />
+      <option name="presentableId" value="LOCAL-00091" />
+      <option name="project" value="LOCAL" />
+      <updated>1782163529607</updated>
+    </task>
+    <option name="localTasksCounter" value="92" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -613,8 +613,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="modificaciones plotea" />
-    <MESSAGE value="modificaciones sccortawaves&#10;se guardan mseed crudos" />
     <MESSAGE value="cambios en plotea.py" />
     <MESSAGE value="modificacion en procesa_edificios.py por error en el nombre" />
     <MESSAGE value="modificaciones en edificios y nuevos plotea" />
@@ -638,7 +636,9 @@
     <MESSAGE value="se modifica sccortawaves_PRUEBAS para calcular el movimiento del sismo&#10;se genera un nuevo script para calcular el tiempo que duro el movimiento&#10;el script genera un json con la informacion para los graficos" />
     <MESSAGE value="se crea espectros_geojson.py para hacer los nuevos espectros, hay que probar" />
     <MESSAGE value="nueva version de espectrosGeoJson3.py para guardar en base de datos" />
-    <option name="LAST_COMMIT_MESSAGE" value="nueva version de espectrosGeoJson3.py para guardar en base de datos" />
+    <MESSAGE value="nueva version de espectrosGeoJson4.py espectros funcionales de velocidad y desplazamiento y sccortawaves_PRUEBAS ya considera los espectros nuevos" />
+    <MESSAGE value="nueva version de espectrosGeoJson4.py para calcular la escala de aprox con el espectro" />
+    <option name="LAST_COMMIT_MESSAGE" value="nueva version de espectrosGeoJson4.py para calcular la escala de aprox con el espectro" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

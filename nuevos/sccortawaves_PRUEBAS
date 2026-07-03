@@ -111,7 +111,7 @@ class EventListener(client.Application):
         self.setDatabaseEnabled(False, False)
         self.setPrimaryMessagingGroup(Protocol.LISTENER_GROUP)
         self.addMessagingSubscription("EVENT")
-        self.setLoggingToStdErr(True)
+        self.setLoggingToStdErr(False)
         
         #seccion para manejar info de configuracion y loggin
         self.addMessagingSubscription("CONFIG")
