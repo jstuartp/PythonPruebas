@@ -87,7 +87,8 @@ def procesar_duracion_y_exportar(directorio, resultado,umbral=0.05):
 
     # 3. Si cumple con tener al menos 5 registros, se ejecuta tu fragmento de código
     if len(resultados_ordenados) >= 5:
-        nombre_archivo_json = f"{resultado}grafico_mov.json"
+        umbral_str = str(umbral).replace(".", "_")
+        nombre_archivo_json = f"{resultado}_{umbral_str}_grafico_mov.json"
         # Exportar el archivo JSON
         with open(nombre_archivo_json, 'w', encoding='utf-8') as f:
             json.dump(resultados_ordenados, f, indent=4)
@@ -111,7 +112,8 @@ def main():
     args = parser.parse_args()
 
     # Pasamos datos a la funcion
-    datos_json = procesar_duracion_y_exportar(args.directorio, args.resultado, 0.05)
+    datos1_json = procesar_duracion_y_exportar(args.directorio, args.resultado, 0.05)
+    datos2_json = procesar_duracion_y_exportar(args.directorio, args.resultado, 10)
 
 
 if __name__ == "__main__":

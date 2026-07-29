@@ -886,7 +886,7 @@ class EventListener(client.Application):
     def obtener_suelo(self, estacion_buscar):
         # Leer el CSV en un DataFrame
         #path = os.environ.get("SEISCOMP_ROOT")
-        dir = self.seiscomp_path + "/share/scripts/lis/suelo.csv"
+        dir = self.seiscomp_path + "/share/scripts/lis/curvas_diseno/suelos.csv"
         df = pd.read_csv(dir)
 
         # Convertir a diccionario: clave=estacion, valor=suelo

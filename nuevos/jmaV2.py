@@ -14,6 +14,7 @@ from shapely.geometry import box
 from matplotlib.colors import ListedColormap, BoundaryNorm
 import geopandas as gpd
 import matplotlib.colors as mcolors
+from scipy.spatial.distance import cdist
 import shapely
 
 
@@ -30,107 +31,123 @@ local_db = 'informes'
 inv_path = "/home/lis/seiscomp/share/scripts/inventory_full_fdns.xml"
 inventory = read_inventory(inv_path, format="STATIONXML")
 geojsonCr = "/home/lis/seiscomp/share/scripts/lis/CostaRicaS.json"
+ruta_salida="/home/lis/waves/imagenes"
 
 
 def generar_shakemap_estatico(datos, evento, ruta_salida):
     print(f"--- Generando ShakeMap estático para el evento: {evento} ---")
 
-    # Extraer I_continuous para una interpolación fluida
+    # Extraer variables para interpolación fluida
     lons = np.array([d['lon'] for d in datos])
     lats = np.array([d['lat'] for d in datos])
     valores = np.array([d['I_truncated'] for d in datos])
 
-    # Límites de Costa Rica
-    min_lon, max_lon = -86.5, -82.5
-    min_lat, max_lat = 8.0, 11.5
+    # Límites de Costa Rica (ajustados)
+    min_lon, max_lon = -86.1, -82.5
+    min_lat, max_lat = 8.0, 11.3
 
     # Malla de interpolación
     grid_lon, grid_lat = np.mgrid[min_lon:max_lon:200j, min_lat:max_lat:200j]
 
-    # 1. Usar 'linear' en lugar de 'cubic' para evitar el sobreimpulso
-    grid_z = griddata((lons, lats), valores, (grid_lon, grid_lat), method='linear')
+    # =====================================================================
+    # IDW
+    # =====================================================================
+    flat_glon = grid_lon.flatten()
+    flat_glat = grid_lat.flatten()
 
-    # 2. Rellenar los bordes (fuera de la malla convexa de estaciones) con nearest
-    grid_z_nearest = griddata((lons, lats), valores, (grid_lon, grid_lat), method='nearest')
-    grid_z = np.where(np.isnan(grid_z), grid_z_nearest, grid_z)
+    puntos_malla = np.column_stack((flat_glon, flat_glat))
+    puntos_estaciones = np.column_stack((lons, lats))
 
-    # 3. SEGURIDAD ADICIONAL: Limitar estrictamente los valores entre 0 y 7
-    # Esto asegura que ningún cálculo matemático se salga de la escala JMA
+    # Calcular la matriz de distancias
+    distancias = cdist(puntos_malla, puntos_estaciones)
+    dist_cero = distancias < 0.001
+
+    with np.errstate(divide='ignore'):
+        pesos = 1.0 / (distancias ** 2)
+
+    numerador = np.sum(pesos * valores, axis=1)
+    denominador = np.sum(pesos, axis=1)
+    grid_z_flat = numerador / denominador
+
+    for i in range(len(flat_glon)):
+        idx_coincidencia = np.where(dist_cero[i])[0]
+        if len(idx_coincidencia) > 0:
+            grid_z_flat[i] = valores[idx_coincidencia[0]]
+
+    # NUEVO: Recortar los datos a la forma de Costa Rica para que el océano sea transparente
+    try:
+        mapa_cr = gpd.read_file(geojsonCr)
+        geometria_cr = mapa_cr.geometry.unary_union
+
+        # Convertimos la malla a puntos espaciales y verificamos si están dentro del país
+        puntos_malla_geo = gpd.GeoSeries(gpd.points_from_xy(flat_glon, flat_glat))
+        puntos_dentro = puntos_malla_geo.within(geometria_cr)
+
+        # Asignamos NaN (Transparente) a todo lo que esté en el océano/afuera
+        grid_z_flat[~puntos_dentro] = np.nan
+    except Exception as e:
+        print(f"⚠️ Error al enmascarar con GeoJSON: {e}")
+
+    # Reconstruir la forma bidimensional
+    grid_z = grid_z_flat.reshape(grid_lon.shape)
     grid_z = np.clip(grid_z, 0, 7)
+    # =====================================================================
 
-    # Configurar el lienzo (sin título ni etiquetas en los bordes)
+    # Configurar el lienzo
     fig, ax = plt.subplots(figsize=(8, 8))
 
-    # 1. NUEVO COLormap: Gradiente continuo basado en tu imagen de referencia
-    colores_ref = ['#ffffff', '#a0c8ff', '#0000ff', '#00ff00', '#ffff00', '#ff8c00', '#ff0000', '#800000']
+    colores_ref = ['#ffffff', '#d2d2d2', '#0032ff', '#00faff', '#0bc200', '#ffff00', '#f77a00', '#f40001','#a90000','#640064']
     cmap_jma_smooth = mcolors.LinearSegmentedColormap.from_list('jma_smooth', colores_ref, N=256)
-    norm_jma = mcolors.Normalize(vmin=0, vmax=7)
+    norm_jma = mcolors.Normalize(vmin=0, vmax=10)
 
-    # contourf con 100 niveles para que el degradado se vea completamente suave
-    contorno = ax.contourf(
-        grid_lon, grid_lat, grid_z,
-        levels=np.linspace(0, 7, 100),
-        cmap=cmap_jma_smooth,
-        norm=norm_jma,
-        extend='both',
-        alpha=0.95
-    )
+    # NUEVO: alpha=0.55 para mayor transparencia sobre el mapa Leaflet
+   # contorno = ax.contourf(
+   #     grid_lon, grid_lat, grid_z,
+   #     levels=np.linspace(0, 7, 100),
+    #    cmap=cmap_jma_smooth,
+     #   norm=norm_jma,
+      #  extend='both',
+      #  alpha=0.55
+    #)
+
     mapa_raster = ax.pcolormesh(
         grid_lon, grid_lat, grid_z,
         cmap=cmap_jma_smooth,
         norm=norm_jma,
-        alpha=0.95,
-        shading='nearest'
+        alpha=0.55,
+        shading='gouraud'
     )
 
-    # 2. MÁSCARA Y BORDES: Ocultar extrapolación simulando el océano
+    # NUEVO: Solo dibujamos la frontera negra de Costa Rica, sin la máscara celeste exterior
     try:
-        mapa_cr = gpd.read_file(geojsonCr)  # RECUERDA PONER TU RUTA
-        geometria_cr = mapa_cr.geometry.unary_union
-        lienzo_bbox = box(min_lon - 1, min_lat - 1, max_lon + 1, max_lat + 1)
-        mascara_exterior = lienzo_bbox.difference(geometria_cr)
-
-        # Tapamos el exterior de Costa Rica con color celeste (simulando océano)
-        gpd.GeoSeries([mascara_exterior]).plot(ax=ax, facecolor='#d4e6f1', edgecolor='none', zorder=2)
-
-        # Dibujamos un contorno negro grueso
-        mapa_cr.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=1.8, zorder=3)
+        mapa_cr.plot(ax=ax, facecolor='none', edgecolor='black', linewidth=0, zorder=3)
     except Exception as e:
-        print(f"⚠️ No se pudo aplicar la máscara: {e}")
+        pass
 
-    # 3. ESTILO DE LA CUADRÍCULA: Marcas de lat/lon hacia adentro
+    # ESTILO DE LA CUADRÍCULA
     ax.set_xlim(min_lon, max_lon)
     ax.set_ylim(min_lat, max_lat)
-    ax.set_xticks([-86, -85, -84, -83])
-    ax.set_yticks([8, 9, 10, 11])
 
-    # Formato con el símbolo de grados
-    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, pos: f"{x:g}°"))
-    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, pos: f"{x:g}°"))
+    # NUEVO: Apagamos los ejes, números y bordes para que sea un overlay limpio
+    ax.axis('off')
 
-    # Configuración del borde grueso y marcas internas (similar al estilo GIS)
-    ax.tick_params(axis='both', which='major', direction='in', top=True, right=True,
-                   length=7, width=1.5, labelsize=10, zorder=5)
-    for spine in ax.spines.values():
-        spine.set_linewidth(1.5)
-        spine.set_zorder(5)
+    # LEYENDA JMA INCRUSTADA
+    #cax = ax.inset_axes([0.04, 0.04, 0.35, 0.025], zorder=6)
+    #cbar = fig.colorbar(mapa_raster, cax=cax, orientation='horizontal', ticks=[0, 1, 2, 3, 4, 5, 6, 7])
 
-    # 4. NUEVA LEYENDA JMA INCRUSTADA: Posicionada abajo a la izquierda
-    # [x_pos, y_pos, width, height]
-    cax = ax.inset_axes([0.04, 0.04, 0.35, 0.025], zorder=6)
+    # Agregamos un fondo blanco semi-transparente a la leyenda para que sea legible sobre el mapa base
+    #cax.set_facecolor((1.0, 1.0, 1.0, 0.7))
 
-    cbar = fig.colorbar(mapa_raster, cax=cax, orientation='horizontal', ticks=[0, 1, 2, 3, 4, 5, 6, 7])
-    cbar.ax.set_title("INTENSIDAD SISMICA ESCALA JMA", fontsize=9, pad=6, loc='left', fontweight='bold')
-    cbar.ax.tick_params(labelsize=9, length=4, direction='out')
+    #cbar.ax.set_title("INTENSIDAD SISMICA ESCALA JMA", fontsize=9, pad=6, loc='left', fontweight='bold')
+    #cbar.ax.tick_params(labelsize=9, length=4, direction='out')
 
-    # Agregar las etiquetas manuales debajo de la barra
-    cax.text(1, -2.2, "Débil", ha='center', va='top', fontsize=9, transform=cax.transData)
-    cax.text(3.5, -2.2, "Moderado", ha='center', va='top', fontsize=9, transform=cax.transData)
-    cax.text(6, -2.2, "Fuerte", ha='center', va='top', fontsize=9, transform=cax.transData)
+    #cax.text(1, -2.2, "Débil", ha='center', va='top', fontsize=9, transform=cax.transData)
+    #cax.text(3.5, -2.2, "Moderado", ha='center', va='top', fontsize=9, transform=cax.transData)
+    #cax.text(6, -2.2, "Fuerte", ha='center', va='top', fontsize=9, transform=cax.transData)
 
-    # Guardar imagen (Se aumentó ligeramente el DPI para mayor nitidez)
-    archivo_png = Path(ruta_salida) / f"{evento}_shakemap.png"
-    plt.savefig(archivo_png, dpi=200, bbox_inches='tight', facecolor='white')
+    # NUEVO: Guardar imagen con transparent=True y sin márgenes en blanco (pad_inches=0)
+    archivo_png = Path(ruta_salida) / f"{evento}_interpolado.png"
+    plt.savefig(archivo_png, dpi=200, bbox_inches='tight', pad_inches=0, transparent=True)
     plt.close()
 
     print(f"✅ Mapa estático guardado en: {archivo_png}")
@@ -370,9 +387,10 @@ def calcula_jma(evento,ruta,tipo):
         delayed(load_components_from_miniseed)(archivo,evento,tipo) for archivo in archivos_mseed)
     #print(calculaJma)
     datos_validos = [res for res in calculaJma if res is not None]
+    salida = ruta_salida+"/"+evento+"/"
 
     if len(datos_validos) > 3:  # Se necesitan al menos 4 puntos para interpolar bien
-        generar_shakemap_estatico(datos_validos, evento, ruta)
+        generar_shakemap_estatico(datos_validos, evento, salida)
     else:
         print("⚠️ No hay suficientes estaciones válidas para generar el ShakeMap.")
 
