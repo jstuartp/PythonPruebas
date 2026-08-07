@@ -7,7 +7,7 @@ import numpy as np
 from obspy import read
 from pathlib import Path
 
-def procesar_duracion_y_exportar(directorio, resultado,umbral=0.05):
+def procesar_duracion_y_exportar(directorio, resultado,umbral):
     """
     Calcula la duración 3D, filtra por umbral, ordena por duración máxima
     y exporta los resultados a un archivo JSON.

@@ -62,8 +62,12 @@ def generar_shakemap_estatico(datos, evento, ruta_salida):
     distancias = cdist(puntos_malla, puntos_estaciones)
     dist_cero = distancias < 0.001
 
+    factor_suavizado = 0.7  # Ajusta este valor (en grados). Un valor mayor = manchas más amplias.
     with np.errstate(divide='ignore'):
-        pesos = 1.0 / (distancias ** 2)
+        pesos = 1.0 / ((distancias + factor_suavizado) ** 15)
+
+    #with np.errstate(divide='ignore'):
+    #    pesos = 1.0 / (distancias ** 20)
 
     numerador = np.sum(pesos * valores, axis=1)
     denominador = np.sum(pesos, axis=1)

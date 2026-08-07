@@ -4,13 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="intentando hacer headmap con jma">
-      <change afterPath="$PROJECT_DIR$/nuevos/sccortawaves_manual.py" afterDir="false" />
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="modificaciones a archivos en uso y nuevos archivos">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nuevos/curvas_diseno/suelos.csv" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/curvas_diseno/suelos.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/eliminaHostZabbix.py" beforeDir="false" afterPath="$PROJECT_DIR$/eliminaHostZabbix.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/listado_host_borrar.txt" beforeDir="false" afterPath="$PROJECT_DIR$/listado_host_borrar.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nuevos/jmaV2.py" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/jmaV2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nuevos/mov_sismico.py" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/mov_sismico.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -214,15 +213,7 @@
       <workItem from="1778689321296" duration="2000" />
       <workItem from="1778704725195" duration="47000" />
       <workItem from="1778704802936" duration="124061000" />
-      <workItem from="1784566487091" duration="17758000" />
-    </task>
-    <task id="LOCAL-00044" summary="Cambios al 22 de agosto 2025">
-      <option name="closed" value="true" />
-      <created>1755884075968</created>
-      <option name="number" value="00044" />
-      <option name="presentableId" value="LOCAL-00044" />
-      <option name="project" value="LOCAL" />
-      <updated>1755884075968</updated>
+      <workItem from="1784566487091" duration="30734000" />
     </task>
     <task id="LOCAL-00045" summary="Cambios al 25 de agosto 2025">
       <option name="closed" value="true" />
@@ -608,7 +599,15 @@
       <option name="project" value="LOCAL" />
       <updated>1783112860699</updated>
     </task>
-    <option name="localTasksCounter" value="93" />
+    <task id="LOCAL-00093" summary="modificaciones a archivos en uso y nuevos archivos">
+      <option name="closed" value="true" />
+      <created>1785359563833</created>
+      <option name="number" value="00093" />
+      <option name="presentableId" value="LOCAL-00093" />
+      <option name="project" value="LOCAL" />
+      <updated>1785359563834</updated>
+    </task>
+    <option name="localTasksCounter" value="94" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -616,7 +615,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="modificacion en procesa_edificios.py por error en el nombre" />
     <MESSAGE value="modificaciones en edificios y nuevos plotea" />
     <MESSAGE value="cambio de orden en el plote general para las trazas" />
     <MESSAGE value="mejoras en el ploteo" />
@@ -641,7 +639,8 @@
     <MESSAGE value="nueva version de espectrosGeoJson4.py espectros funcionales de velocidad y desplazamiento y sccortawaves_PRUEBAS ya considera los espectros nuevos" />
     <MESSAGE value="nueva version de espectrosGeoJson4.py para calcular la escala de aprox con el espectro" />
     <MESSAGE value="intentando hacer headmap con jma" />
-    <option name="LAST_COMMIT_MESSAGE" value="intentando hacer headmap con jma" />
+    <MESSAGE value="modificaciones a archivos en uso y nuevos archivos" />
+    <option name="LAST_COMMIT_MESSAGE" value="modificaciones a archivos en uso y nuevos archivos" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

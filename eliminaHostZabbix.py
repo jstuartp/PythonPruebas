@@ -12,7 +12,7 @@ from typing import List
 
 # === CONFIGURACIÓN ===
 ZABBIX_API_URL = "https://zabbix.lis.ucr.ac.cr/api_jsonrpc.php"
-ZABBIX_API_TOKEN = "ed931eb1157f82fcdbc63f9f208794bbfbb5a92b308c1d2d7aa2616df9923faf"  # <- reemplazar por tu token
+ZABBIX_API_TOKEN = "67b9b126567dd1f4eabaa5a1fc6acfc524d421a56a4e1f87535db545be3afe03"  # <- reemplazar por tu token
 HOSTS_FILE = "listado_host_borrar.txt"
 
 # Si el certificado es autofirmado y no quieres validación SSL (no recomendado):
