@@ -77,7 +77,7 @@ OUTPUT_JSON = "/home/lis/waves/imagenes/"         # Carpeta de salida para los J
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"  # Formato ISO para tiempo inicial
 # Dirección del servicio FDSN de su SeisComP (ajuste el host y puerto según su instalación)
 #FDSN_URL = "http://localhost:8080"  # Cambie localhost:8080 si corresponde
-ESTRUCTURAS_SCRIPT ="/home/lis/waves/scripts/corta_edificios.py" #ubicacion del script para activar procesos en el servidor edificios
+ESTRUCTURAS_SCRIPT ="/home/lis/waves/edificios/scripts/corta_edificios.py" #ubicacion del script para activar procesos en el servidor edificios
 
 # Cree el cliente ObsPy apuntando a su servidor FDSN local
 #clientfdsn = Client(base_url=FDSN_URL)
@@ -231,7 +231,7 @@ class EventListener(client.Application):
         tiempo2 = datetime.strptime(tiempo, "%Y-%m-%dT%H:%M:%S.%f")
         inv_path = self.seiscomp_path+"/share/scripts/inventory_full_fdns.xml"
         inf = self.proceso(tiempo,inv_path,evento)
-        parametroa = self.rutaImagenes + evento.publicID() + "/"
+        parametroa = self.rutaImagenes + evento.publicID()
         #print(parametroa)
         #print(self.direccionWebServer)
         if inf == 1:
@@ -242,8 +242,32 @@ class EventListener(client.Application):
             resultspec = subprocess.run(
                 ["python3", self.seiscomp_path + "/share/scripts/lis/espectrosGeoJson4.py", evento.publicID()])
 
+            print("Voy a llamar a estucturas")
+            # proceso para activar evento en servidor estructuras
+            estructuras = subprocess.run([
+                "python3",
+                ESTRUCTURAS_SCRIPT,
+                "--start", evento.creationInfo().creationTime().toString("%Y-%m-%dT%H:%M:%S"),
+                "--event", str(evento.publicID())
+            ])
+            print(estructuras)
+
+
             # proceso para copiar imagenes de ondas
-            result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
+            #result = subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
+            #nuevo copiar imagenes para eliminar las viejas del servidor remoto
+            result = subprocess.run(
+                [
+                    "rsync",
+                    "-avz",
+                    "--delete",
+                    parametroa,
+                    self.direccionWebServer,
+                ],
+                capture_output=True,
+                text=True,
+            )
+
             # waveslogger.info("IMAGENES COPIADAS")
             # result = subprocess.run(['rsync', '-avz', parametroa,self.direccionWebServer])
             waveslogger.info(f"IMAGENES COPIADAS para evento {evento.publicID()}")
@@ -404,7 +428,7 @@ class EventListener(client.Application):
 
         # 2. Cargar inventario completo (ObsPy Inventory)
         inventory = self.load_inventory_sc3(inv_path)
-        waveslogger.info(inventory) #loggeando all el inventario
+        #waveslogger.info(inventory) #loggeando all el inventario
         # 3. Crear cliente SDS
         sds_client = SDSClient(self.SDS_ROOT)
 
@@ -620,6 +644,7 @@ class EventListener(client.Application):
             self.procesos_pendientes.append(res2)
             self.procesos_pendientes.append(res3)
 
+            """
             print("Voy a llamar a estucturas")
             # proceso para activar evento en servidor estructuras
             estructuras = subprocess.Popen(
@@ -629,7 +654,7 @@ class EventListener(client.Application):
             stderr = subprocess.DEVNULL,  # Ignora todos los mensajes de error del hijo
             start_new_session = True  # Desvincula al hijo del padre
             )
-
+            """
 
 
 

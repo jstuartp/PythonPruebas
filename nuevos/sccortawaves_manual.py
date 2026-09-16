@@ -88,6 +88,7 @@ class EventProcessor:
         self.rutaRaiz = "/home/lis/waves/corta/"
         self.rutaImagenes = "/home/lis/waves/imagenes/"
         self.direccionWebServer = "lis@163.178.170.245:/var/cache/graficas_seiscomp/waves"
+        #self.direccionWebServer = "stuart@10.208.36.5:/var/cache/web_seiscomp/waves"
         self.seiscomp_path = os.environ.get("SEISCOMP_ROOT", "/home/lis/seiscomp")
         self.SDS_ROOT = os.path.join(self.seiscomp_path, "var/lib/archive/")
         self.procesos_pendientes = []
@@ -127,14 +128,26 @@ class EventProcessor:
 
         # Procesar los datos
         inf = self.proceso(tiempo, inv_path, self.event_id, dt)
-        parametroa = self.rutaImagenes + self.event_id + "/"
+        parametroa = self.rutaImagenes + self.event_id
 
         if inf == 1:
             for p in self.procesos_pendientes:
                 p.wait()
 
             subprocess.run(["python3", self.seiscomp_path + "/share/scripts/lis/espectrosGeoJson4.py", self.event_id])
-            subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
+            #subprocess.run(['scp', '-r', parametroa, self.direccionWebServer], capture_output=True, text=True)
+            result = subprocess.run(
+                [
+                    "rsync",
+                    "-avz",
+                    "--delete",
+                    parametroa,
+                    self.direccionWebServer,
+                ],
+                capture_output=True,
+                text=True,
+            )
+            #print(result)
             waveslogger.info(f"IMAGENES COPIADAS para evento {self.event_id}")
 
         waveslogger.info(f"Cerrando el log de {self.event_id}")
