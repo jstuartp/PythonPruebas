@@ -474,7 +474,7 @@ class EventListener(client.Application):
                     try:
                         # 1. Definir los objetivos a procesar según la estación
                         if station == "BID0":
-                            waveslogger.info(f"Entrando por lógica especial para {station}...")
+                            waveslogger.info(f"Entrando por logica especial para {station}...")
                             targets = [
                                 {"loc": "00", "sta_name": "BID0"},
                                 {"loc": "01", "sta_name": "BID1"}
