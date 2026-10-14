@@ -4,12 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="modificaciones a archivos en uso y nuevos archivos">
+    <list default="true" id="7ef36a8d-da8b-42d9-9f90-f5dd9ceb0a89" name="Changes" comment="se han cambiado la forma en que se copian las imagenes al serividor html, y errores en los print que tenían tildes">
+      <change afterPath="$PROJECT_DIR$/edificios/corta_manual.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/pythonProject1.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/pythonProject1.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/eliminaHostZabbix.py" beforeDir="false" afterPath="$PROJECT_DIR$/eliminaHostZabbix.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/listado_host_borrar.txt" beforeDir="false" afterPath="$PROJECT_DIR$/listado_host_borrar.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nuevos/jmaV2.py" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/jmaV2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nuevos/mov_sismico.py" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/mov_sismico.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/sccortawaves_PRUEBAS" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nuevos/sccortawaves_manual.py" beforeDir="false" afterPath="$PROJECT_DIR$/nuevos/sccortawaves_manual.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -84,14 +85,15 @@
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;ai.playground.ignore.import.keys.banner.in.settings&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/stuart/trabajo/torreUniversal/manual_sin_catalogo.py&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/stuart/desarollo/python&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
   &quot;keyToStringList&quot;: {
@@ -120,6 +122,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
@@ -135,8 +138,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-PY-253.29346.142" />
-        <option value="bundled-python-sdk-f2b7a9f6281b-6e1f45a539f7-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.29346.142" />
+        <option value="bundled-python-sdk-22d7905c5ecf-5bd6d13a2a75-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-262.10315.23" />
       </set>
     </attachedChunks>
   </component>
@@ -213,31 +215,8 @@
       <workItem from="1778689321296" duration="2000" />
       <workItem from="1778704725195" duration="47000" />
       <workItem from="1778704802936" duration="124061000" />
-      <workItem from="1784566487091" duration="30734000" />
-    </task>
-    <task id="LOCAL-00045" summary="Cambios al 25 de agosto 2025">
-      <option name="closed" value="true" />
-      <created>1756158435694</created>
-      <option name="number" value="00045" />
-      <option name="presentableId" value="LOCAL-00045" />
-      <option name="project" value="LOCAL" />
-      <updated>1756158435694</updated>
-    </task>
-    <task id="LOCAL-00046" summary="Cambios en el escribe LIS y archivos escritos">
-      <option name="closed" value="true" />
-      <created>1756330727809</created>
-      <option name="number" value="00046" />
-      <option name="presentableId" value="LOCAL-00046" />
-      <option name="project" value="LOCAL" />
-      <updated>1756330727809</updated>
-    </task>
-    <task id="LOCAL-00047" summary="Cambios en el escribe LIS y archivos escritos">
-      <option name="closed" value="true" />
-      <created>1756935865301</created>
-      <option name="number" value="00047" />
-      <option name="presentableId" value="LOCAL-00047" />
-      <option name="project" value="LOCAL" />
-      <updated>1756935865301</updated>
+      <workItem from="1784566487091" duration="35690000" />
+      <workItem from="1786996211099" duration="1889000" />
     </task>
     <task id="LOCAL-00048" summary="Cambios en el escribe LIS y archivos escritos">
       <option name="closed" value="true" />
@@ -607,7 +586,31 @@
       <option name="project" value="LOCAL" />
       <updated>1785359563834</updated>
     </task>
-    <option name="localTasksCounter" value="94" />
+    <task id="LOCAL-00094" summary="modificaciones a archivos en uso y nuevos archivos">
+      <option name="closed" value="true" />
+      <created>1786136036049</created>
+      <option name="number" value="00094" />
+      <option name="presentableId" value="LOCAL-00094" />
+      <option name="project" value="LOCAL" />
+      <updated>1786136036049</updated>
+    </task>
+    <task id="LOCAL-00095" summary="modificaciones a archivos en uso y nuevos archivos">
+      <option name="closed" value="true" />
+      <created>1789593778808</created>
+      <option name="number" value="00095" />
+      <option name="presentableId" value="LOCAL-00095" />
+      <option name="project" value="LOCAL" />
+      <updated>1789593778809</updated>
+    </task>
+    <task id="LOCAL-00096" summary="se han cambiado la forma en que se copian las imagenes al serividor html, y errores en los print que tenían tildes">
+      <option name="closed" value="true" />
+      <created>1790011578157</created>
+      <option name="number" value="00096" />
+      <option name="presentableId" value="LOCAL-00096" />
+      <option name="project" value="LOCAL" />
+      <updated>1790011578157</updated>
+    </task>
+    <option name="localTasksCounter" value="97" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -615,7 +618,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="modificaciones en edificios y nuevos plotea" />
     <MESSAGE value="cambio de orden en el plote general para las trazas" />
     <MESSAGE value="mejoras en el ploteo" />
     <MESSAGE value="modificacion en donde se ejecuta el jma linea 461, ya deberia correr aun cuando se recalcule directo del seiscomp" />
@@ -640,7 +642,8 @@
     <MESSAGE value="nueva version de espectrosGeoJson4.py para calcular la escala de aprox con el espectro" />
     <MESSAGE value="intentando hacer headmap con jma" />
     <MESSAGE value="modificaciones a archivos en uso y nuevos archivos" />
-    <option name="LAST_COMMIT_MESSAGE" value="modificaciones a archivos en uso y nuevos archivos" />
+    <MESSAGE value="se han cambiado la forma en que se copian las imagenes al serividor html, y errores en los print que tenían tildes" />
+    <option name="LAST_COMMIT_MESSAGE" value="se han cambiado la forma en que se copian las imagenes al serividor html, y errores en los print que tenían tildes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

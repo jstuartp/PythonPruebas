@@ -404,20 +404,24 @@ class EventProcessor:
                  "/home/lis/waves/sds/" + event_id, "--resultado", "/home/lis/waves/imagenes/" + event_id + "/"]
                 , stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="ignore")
 
+            rutaLIS = os.path.join("/home/lis/waves/LIS/" + evento.publicID())
+            if os.path.exists(rutaLIS):
+                shutil.rmtree(rutaLIS)
+            os.makedirs(rutaLIS, exist_ok=True)  # Crea 'ruta' y 'ruta/raw' de una sola vez
             num_trabajos = 70
             crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(
                 delayed(self.archivoLis)(resultados[s], event_id, dt_obj) for s in range(len(resultados)))
 
-            res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{event_id}/",
-                                     "lis@163.178.101.86:/home/lis/formato_lis/registros_revisados"])
-            res2 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{event_id}/",
-                                     "lis@163.178.109.104:/home/lis/formato_lis/registros_revisados"])
-            res3 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{event_id}/",
-                                     "lis@163.178.174.210:/home/lis/formato_lis/registros_revisados"])
+            #res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{event_id}/",
+            #                         "lis@163.178.101.86:/home/lis/formato_lis/registros_revisados"])
+            #res2 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{event_id}/",
+            #                         "lis@163.178.109.104:/home/lis/formato_lis/registros_revisados"])
+            #res3 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{event_id}/",
+            #                         "lis@163.178.174.210:/home/lis/formato_lis/registros_revisados"])
             res4 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/LIS/{event_id}",
                                    "lis@163.178.109.101:/home/lis/repositorio_archivo_lis/por_eventos/"])
 
-            self.procesos_pendientes.extend([res1, res2, res3])
+            #self.procesos_pendientes.extend([res1, res2, res3])
 
             print("Voy a llamar a estructuras")
             estructuras = subprocess.Popen(
@@ -432,9 +436,11 @@ class EventProcessor:
             for res in resultados:
                 idPga = self.chequeaBdPga(res["estacion"], res["evento"])
                 if not idPga:
-                    self.insertaBd(res)
+                    0
+                    #self.insertaBd(res)
                 else:
-                    self.updateBd(res, idPga)
+                    0
+                    #self.updateBd(res, idPga)
         else:
             waveslogger.info(f"El evento {event_id} No cumple con el umbral de aceleracion ")
 
@@ -444,24 +450,24 @@ class EventProcessor:
         if not fechaEvento:
             waveslogger.info(f"Guardando nuevo evento {event_id} en base de datos")
             self.insertarEvento(datosEvento, maximos[0]["maximos"], maximos[0]["station"], informe)
-            resultJMA = subprocess.run(
-                ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
-                 event_id, "--ruta", OUTPUT_DIR + event_id, "--tipo", "1"])
-            if resultJMA: waveslogger.info("Exito guardando JMA")
+            #resultJMA = subprocess.run(
+            #    ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
+            #     event_id, "--ruta", OUTPUT_DIR + event_id, "--tipo", "1"])
+            #if resultJMA: waveslogger.info("Exito guardando JMA")
         else:
             t0 = UTCDateTime(dt_obj.strftime("%Y-%m-%dT%H:%M:%S"))
             if fechaEvento['fecha'] < t0:
                 waveslogger.info(f"Actualizando evento {event_id} existente en la DB")
                 self.actualizaEvento(datosEvento, event_id, maximos[0]["maximos"], maximos[0]["station"], informe)
-                resultJMA = subprocess.run(
-                    ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
-                     event_id, "--ruta", OUTPUT_DIR + event_id, "--tipo", "2"])
+                #resultJMA = subprocess.run(
+                #    ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
+                #     event_id, "--ruta", OUTPUT_DIR + event_id, "--tipo", "2"])
             elif fechaEvento['fecha'] >= t0:
                 waveslogger.info(f"Insertando evento {event_id} existente en la DB")
                 self.actualizaEvento(datosEvento, event_id, maximos[0]["maximos"], maximos[0]["station"], informe)
-                resultJMA = subprocess.run(
-                    ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
-                     event_id, "--ruta", OUTPUT_DIR + event_id, "--tipo", "1"])
+                #resultJMA = subprocess.run(
+                #    ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
+                #     event_id, "--ruta", OUTPUT_DIR + event_id, "--tipo", "1"])
 
         return informe
 

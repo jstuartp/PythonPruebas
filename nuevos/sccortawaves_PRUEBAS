@@ -625,24 +625,28 @@ class EventListener(client.Application):
 
 
             # se escriben los archivos .LIS
+            rutaLIS = os.path.join("/home/lis/waves/LIS/" + evento.publicID())
+            if os.path.exists(rutaLIS):
+                shutil.rmtree(rutaLIS)
+            os.makedirs(rutaLIS, exist_ok=True)  # Crea 'ruta' y 'ruta/raw' de una sola vez
             num_trabajos = 70  # Utiliza todos los núcleos disponibles
             crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
                 delayed(self.archivoLis)(resultados[s], evento) for s in range(len(resultados)))
             #waveslogger.info("Resultado del archivoLIS %s" % crealis)
             #envia archivos lis a servidor central
-            res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
-                                   "lis@163.178.101.86:/home/lis/formato_lis/registros_revisados"])
-            res2 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
-                                   "lis@163.178.109.104:/home/lis/formato_lis/registros_revisados"])
-            res3 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
-                                   "lis@163.178.174.210:/home/lis/formato_lis/registros_revisados"])
+            #res1 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
+            #                       "lis@163.178.101.86:/home/lis/formato_lis/registros_revisados"])
+            #res2 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
+            #                       "lis@163.178.109.104:/home/lis/formato_lis/registros_revisados"])
+            #res3 = subprocess.Popen(['rsync', '-avz', f"/home/lis/waves/LIS/{evento.publicID()}/",
+            #                       "lis@163.178.174.210:/home/lis/formato_lis/registros_revisados"])
             #envia archivos lis a repositorio stuart
             res4 = subprocess.run(['rsync', '-avz', f"/home/lis/waves/LIS/{evento}",
                                    "lis@163.178.109.101:/home/lis/repositorio_archivo_lis/por_eventos/"])
             # referencio el proceso para esperar a que termine
-            self.procesos_pendientes.append(res1)
-            self.procesos_pendientes.append(res2)
-            self.procesos_pendientes.append(res3)
+            #self.procesos_pendientes.append(res1)
+            #self.procesos_pendientes.append(res2)
+            #self.procesos_pendientes.append(res3)
 
             """
             print("Voy a llamar a estucturas")
@@ -754,10 +758,16 @@ class EventListener(client.Application):
                 # Buscar archivos que contengan la estación en el nombre
                 patron = os.path.join(carpeta, f"*_{resultados['estacion']}_*.mseed")
                 archivos = glob.glob(patron)
-                try:
-                    os.stat("/home/lis/waves/LIS/" + evento.publicID())
-                except:
-                    os.mkdir("/home/lis/waves/LIS/" + evento.publicID())
+
+                #ruta = os.path.join("/home/lis/waves/LIS/" + evento.publicID())
+                #if os.path.exists(ruta):
+                #    shutil.rmtree(ruta)
+                #os.makedirs(ruta, exist_ok=True)  # Crea 'ruta' y 'ruta/raw' de una sola vez
+
+                #try:
+                #    os.stat("/home/lis/waves/LIS/" + evento.publicID())
+                #except:
+                #    os.mkdir("/home/lis/waves/LIS/" + evento.publicID())
 
                 datos = self.obtener_datos_por_id(evento.publicID())
 
