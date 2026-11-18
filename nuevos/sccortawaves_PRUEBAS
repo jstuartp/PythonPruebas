@@ -70,33 +70,33 @@ local_db = 'informes'
 #local_db = 'sismos_lis'
 
 
-# Parámetros configurables
+# Parametros configurables
 #SDS_ROOT = "/home/lis/seiscomp/var/lib/archive/"                # Ruta al SDS de seiscomp
 OUTPUT_DIR = "/home/lis/waves/sds/"         # Carpeta de salida para los MiniSEED
 OUTPUT_JSON = "/home/lis/waves/imagenes/"         # Carpeta de salida para los JSON
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"  # Formato ISO para tiempo inicial
-# Dirección del servicio FDSN de su SeisComP (ajuste el host y puerto según su instalación)
+# Direccion del servicio FDSN de su SeisComP (ajuste el host y puerto segun su instalacion)
 #FDSN_URL = "http://localhost:8080"  # Cambie localhost:8080 si corresponde
 ESTRUCTURAS_SCRIPT ="/home/lis/waves/edificios/scripts/corta_edificios.py" #ubicacion del script para activar procesos en el servidor edificios
 
 # Cree el cliente ObsPy apuntando a su servidor FDSN local
 #clientfdsn = Client(base_url=FDSN_URL)
 
-# Parámetros de PGA
-MIN_PGA_CM_S2 = 2.0                    # Mínimo PGA en cm/s^2
+# Parametros de PGA
+MIN_PGA_CM_S2 = 2.0                    # Minimo PGA en cm/s^2
 TOP_N = 30                             # Cantidad de registros a guardar
 
 
 # Ruta absoluta o relativa al archivo .env
 ruta_env = Path("/home/lis/.env")
 
-# Cargar el archivo .env desde esa ubicación
+# Cargar el archivo .env desde esa ubicacion
 load_dotenv(dotenv_path=ruta_env)
 
 # Esto se ejecuta una sola vez al arrancar el script.
 waveslogger= logging.getLogger("Sccortawaveslogger.")
 waveslogger.setLevel(logging.INFO)
-# Handler de Consola (Para que siempre veas en pantalla que el script está vivo)
+# Handler de Consola (Para que siempre veas en pantalla que el script esta vivo)
 c_handler = logging.StreamHandler(sys.stdout)
 c_format = logging.Formatter('%(asctime)s - GLOBAL - %(message)s')
 c_handler.setFormatter(c_format)
@@ -194,7 +194,7 @@ class EventListener(client.Application):
         f_handler = logging.FileHandler(nombre_archivo)
         f_handler.setLevel(logging.INFO)
 
-        # Formato específico para el archivo
+        # Formato especifico para el archivo
         f_format = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
         f_handler.setFormatter(f_format)
 
@@ -284,7 +284,7 @@ class EventListener(client.Application):
         #inventory = clientfdsn.get_stations(
         #    network="*",  # todas las redes
         #    station="*",  # todas las estaciones
-        #    location="*",  # todos los códigos de localización
+        #    location="*",  # todos los codigos de localizacion
         #    channel="*",  # todos los canales
         #    level="response"  # nivel de detalle: incluye respuesta instrumental
         #)
@@ -293,20 +293,20 @@ class EventListener(client.Application):
 
     def filtro_paso_alto(self,data, cutoff, fs, order=4):
         """
-        Aplica un filtro paso alto para eliminar la desviación de la línea base (drift)
-        que ocurre naturalmente al integrar señales sísmicas.
+        Aplica un filtro paso alto para eliminar la desviacion de la linea base (drift)
+        que ocurre naturalmente al integrar señales sismicas.
         """
         nyq = 0.5 * fs
         normal_cutoff = cutoff / nyq
         b, a = butter(order, normal_cutoff, btype='high', analog=False)
-        # filtfilt aplica el filtro hacia adelante y hacia atrás para no desfasar la onda
+        # filtfilt aplica el filtro hacia adelante y hacia atras para no desfasar la onda
         y = filtfilt(b, a, data)
         return y
 
     def filtro_pasa_banda(self, data, fs, freq_min=0.05, freq_max=25.0, corners=2, taper_percent=0.05):
         """
         Aplica un taper de tipo Hann en los extremos de la señal y luego un
-        filtro pasa banda para aislar las frecuencias sísmicas de interés.
+        filtro pasa banda para aislar las frecuencias sismicas de interés.
         """
         npts = len(data)
 
@@ -319,9 +319,9 @@ class EventListener(client.Application):
             window = np.hanning(2 * taper_length)
             taper_array = np.ones(npts)
 
-            # Atenuación suave al inicio (mitad ascendente de la ventana)
+            # Atenuacion suave al inicio (mitad ascendente de la ventana)
             taper_array[:taper_length] = window[:taper_length]
-            # Atenuación suave al final (mitad descendente de la ventana)
+            # Atenuacion suave al final (mitad descendente de la ventana)
             taper_array[-taper_length:] = window[-taper_length:]
 
             # Aplicamos el taper a los datos originales
@@ -335,7 +335,7 @@ class EventListener(client.Application):
         # Diseño del filtro Butterworth
         b, a = butter(corners, [low, high], btype='bandpass', analog=False)
 
-        # filtfilt aplica el filtro hacia adelante y hacia atrás (fase cero)
+        # filtfilt aplica el filtro hacia adelante y hacia atras (fase cero)
         y = filtfilt(b, a, data)
 
         return y
@@ -374,16 +374,16 @@ class EventListener(client.Application):
         return pgd * 100
 
     def calculate_pga(self,tr, inventory, network, station, location, channel):
-        # Se asume que 'tr' es ya un Trace de aceleración en m/s^2
+        # Se asume que 'tr' es ya un Trace de aceleracion en m/s^2
         # Aplicar la respuesta instrumental (de ser necesario)
-        # Si la respuesta ya está aplicada, omitir el siguiente bloque
+        # Si la respuesta ya esta aplicada, omitir el siguiente bloque
         net = inventory.select(network=network, station=station)
         if net:
             tr.remove_response(inventory=net, output="ACC")
             #print("PUDE REMOVER PARA %s" % tr)
 
 
-        # Calcular PGA (valor máximo absoluto)
+        # Calcular PGA (valor maximo absoluto)
         try:
             tr.detrend("demean")
             tr.detrend("linear")
@@ -420,7 +420,7 @@ class EventListener(client.Application):
 
     def proceso(self,time_inicial_str, inv_path,evento):
         os.makedirs(OUTPUT_DIR, exist_ok=True)
-        # 1. Tiempo inicial y ventanas de búsqueda
+        # 1. Tiempo inicial y ventanas de busqueda
         t0 = UTCDateTime(time_inicial_str)
         t1 = t0 - 180  # 3 minutos antes
         t2 = t0 + 180  # 3 minutos después
@@ -438,7 +438,7 @@ class EventListener(client.Application):
         maximos = []
         informe = 0
 
-        # 4. Recorre todos los canales de aceleración del inventario
+        # 4. Recorre todos los canales de aceleracion del inventario
         for net in inventory:
             for sta in net:
                 if sta.end_date is None:
@@ -472,7 +472,7 @@ class EventListener(client.Application):
 
                     # 5. Leer la traza
                     try:
-                        # 1. Definir los objetivos a procesar según la estación
+                        # 1. Definir los objetivos a procesar segun la estacion
                         if station == "BID0":
                             waveslogger.info(f"Entrando por logica especial para {station}...")
                             targets = [
@@ -490,7 +490,7 @@ class EventListener(client.Application):
                             current_sta_name = target["sta_name"]
 
                             # Se inicializan temporalmente para evitar arrastrar datos
-                            # de una iteración (ej. BID0) a la siguiente (ej. BID1)
+                            # de una iteracion (ej. BID0) a la siguiente (ej. BID1)
                             pgasChannel = []
                             pgvsChannel = []
                             pgdsChannel = []
@@ -513,7 +513,7 @@ class EventListener(client.Application):
 
                             for tr in st:
                                 try:
-                                    # El cálculo requiere el nombre real de la estación en el inventario
+                                    # El calculo requiere el nombre real de la estacion en el inventario
                                     pga = self.calculate_pga(tr, inventory, network, station, current_loc, channel)
                                     waveslogger.info(
                                         f"Estacion: {current_sta_name} canal: {tr.stats.channel} PGA {pga}")
@@ -546,7 +546,7 @@ class EventListener(client.Application):
                                     waveslogger.error(f"Canales no validos: {e}")
                                     continue
 
-                            # 5. Guardar resultados usando el alias de la estación (current_sta_name)
+                            # 5. Guardar resultados usando el alias de la estacion (current_sta_name)
                             maximos.append({
                                 "station": current_sta_name,
                                 "maximos": m
@@ -591,7 +591,7 @@ class EventListener(client.Application):
                         waveslogger.error(f"Error en {network}.{station}: leyendo traza y arreglos {e}__ {sta_info}")
                         #continue
 
-        # 7. Ordenar y seleccionar los 20 registros con mayor PGA
+        # Ordenar y seleccionar los 20 registros con mayor PGA
         #waveslogger.info(streams)
         maximos = sorted(maximos, key=lambda x: -x["maximos"])
 
@@ -629,7 +629,7 @@ class EventListener(client.Application):
             if os.path.exists(rutaLIS):
                 shutil.rmtree(rutaLIS)
             os.makedirs(rutaLIS, exist_ok=True)  # Crea 'ruta' y 'ruta/raw' de una sola vez
-            num_trabajos = 70  # Utiliza todos los núcleos disponibles
+            num_trabajos = 70  # Utiliza todos los nucleos disponibles
             crealis = Parallel(n_jobs=num_trabajos, prefer="threads")(  # prefer puede ser processes o threads
                 delayed(self.archivoLis)(resultados[s], evento) for s in range(len(resultados)))
             #waveslogger.info("Resultado del archivoLIS %s" % crealis)
@@ -648,17 +648,29 @@ class EventListener(client.Application):
             #self.procesos_pendientes.append(res2)
             #self.procesos_pendientes.append(res3)
 
-            """
-            print("Voy a llamar a estucturas")
-            # proceso para activar evento en servidor estructuras
-            estructuras = subprocess.Popen(
-                ["ssh", "lis@163.178.171.47" , f" nohup python3 {ESTRUCTURAS_SCRIPT} --start {evento.creationInfo().creationTime().toString('%Y-%m-%dT%H:%M:%S')}"
-                                               f" --event {str(evento.publicID())}"],
-            stdout = subprocess.DEVNULL,  # Ignora to do lo que el hijo imprima con print()
-            stderr = subprocess.DEVNULL,  # Ignora todos los mensajes de error del hijo
-            start_new_session = True  # Desvincula al hijo del padre
-            )
-            """
+            #se chequea si existe ya un jma para ese evento
+            existe_jma = self.chequea_jma(evento.publicID())
+
+            #si existe se actualiza si no se inserta por unica vez
+            tipo_jma = "2" if existe_jma else "1"
+
+
+            waveslogger.info(f"Ejecutando JMA con tipo {tipo_jma} para el evento {evento.publicID()}")
+            resultJMA = subprocess.run([
+                "python3", self.seiscomp_path + "/share/scripts/lis/jma.py",
+                "--evento", evento.publicID(),
+                "--ruta", OUTPUT_DIR + evento.publicID(),
+                "--tipo", tipo_jma
+            ])
+
+
+
+            if resultJMA.returncode == 0:
+                waveslogger.info(f"Exito ejecutando JMA con tipo {tipo_jma}")
+
+            else:
+                waveslogger.error(f"Error en JMA {resultJMA.stderr}")
+
 
 
 
@@ -674,7 +686,7 @@ class EventListener(client.Application):
                     # si la estacion no esta en la tabla pga -- hacer insert
                     self.insertaBd(res)
                 else:
-                    # si la estación ya esta en la tabla pga -- hacer update
+                    # si la estacion ya esta en la tabla pga -- hacer update
                     self.updateBd(res,idPga)
 
 
@@ -692,17 +704,11 @@ class EventListener(client.Application):
             # si no esta se inserta
             waveslogger.info(f"Guardando nuevo evento {evento.publicID()} en base de datos")
             self.insertarEvento(datosEvento,maximos[0]["maximos"],maximos[0]["station"],informe)
-            # se llama el jma para insertar valores del nuevo evento
-            resultJMA = subprocess.run(
-                ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
-                 evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "1"])
 
-            if(resultJMA):
-                waveslogger.info("Exito guardando JMA")
-            waveslogger.info("Resultado del JMA insertar %s" % resultJMA)
+
 
         else:
-            # si llega un evento mas nuevo, lo actualiza
+            # si llega un evento mas nuevo lo actualiza
             #print(fechaEvento['fecha'])
             t0 = UTCDateTime(evento.creationInfo().creationTime().toString("%Y-%m-%dT%H:%M:%S"))
             #print(t0)
@@ -710,26 +716,40 @@ class EventListener(client.Application):
                 # actualizar evento
                 waveslogger.info(f"Actualizando evento {evento.publicID()} existente en la DB")
                 self.actualizaEvento(datosEvento, evento.publicID(),maximos[0]["maximos"],maximos[0]["station"],informe)
-                # se llama el jma para actualizar valores del evento
-                resultJMA = subprocess.run(
-                    ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
-                     evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "2"])
-                waveslogger.info("Resultado del JMA actualizar %s" % resultJMA)
+
 
             else:
                 if fechaEvento['fecha'] >= t0:
                     # actualizar evento
                     waveslogger.info(f"Insertando evento {evento.publicID()} existente en la DB")
                     self.actualizaEvento(datosEvento, evento.publicID(),maximos[0]["maximos"],maximos[0]["station"],informe)
-                    # se llama el jma para actualizar valores del evento
-                    resultJMA = subprocess.run(
-                        ["python3", self.seiscomp_path + "/share/scripts/lis/jma.py", "--evento",
-                         evento.publicID(), "--ruta", OUTPUT_DIR + evento.publicID(), "--tipo", "1"])
-                    waveslogger.info("Resultado del JMA Insertar %s" % resultJMA)
+
 
         return informe
 
                 # si no hay evento mas nuevo, no se hace nada
+
+    #Funcion para verificar si ya hay datos jma para un evento
+    def chequea_jma(self, evento):
+        conn = pymysql.connect(
+            host=local_host,
+            user=local_user,
+            password=local_password,
+            db=local_db,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        try:
+            with conn.cursor() as cursor:
+                consulta_sql = "SELECT id FROM jma WHERE idEvento = %s LIMIT 1"
+                cursor.execute(consulta_sql, (evento,))
+                resultados = cursor.fetchall()
+            conn.commit()
+        finally:
+            conn.close()
+        return resultados
+
+
 
 
     #funcion para calcular la distancia de epicentro e hipocentro
@@ -741,8 +761,8 @@ class EventListener(client.Application):
         return {
             "dist_epicentral_km": delta_km,
             "dist_hipocentral_km": Rh,
-            "azimuth_deg": az,  # desde el epicentro hacia la estación
-            "back_azimuth_deg": baz  # desde la estación hacia el epicentro
+            "azimuth_deg": az,  # desde el epicentro hacia la estacion
+            "back_azimuth_deg": baz  # desde la estacion hacia el epicentro
         }
 
 
@@ -755,7 +775,7 @@ class EventListener(client.Application):
             # verifica si la estacion supera 2 cm/s**2
             if max(resultados['hnn'],resultados['hne'],resultados['hnz']) >= 2:
                 carpeta = os.path.join(OUTPUT_DIR, evento.publicID())
-                # Buscar archivos que contengan la estación en el nombre
+                # Buscar archivos que contengan la estacion en el nombre
                 patron = os.path.join(carpeta, f"*_{resultados['estacion']}_*.mseed")
                 archivos = glob.glob(patron)
 
@@ -809,13 +829,13 @@ class EventListener(client.Application):
                                        name_col: str = "distrito") -> str:
         """
         Lee el CSV fijo en self.seiscomp_path + "/share/scripts/lis/ciudades.csv",
-        identifica la ciudad más cercana al punto (lat_punto, lon_punto), calcula la
+        identifica la ciudad mas cercana al punto (lat_punto, lon_punto), calcula la
         distancia geodésica (Haversine) y el rumbo desde la ciudad hacia el punto,
-        lo clasifica en octantes cardinales en español y retorna una descripción con
+        lo clasifica en octantes cardinales en español y retorna una descripcion con
         el formato:
-            "<dist> kilómetros al "<OCTANTE>" de "<NombreCiudad>"".
+            "<dist> kilometros al "<OCTANTE>" de "<NombreCiudad>"".
 
-        Parámetros:
+        Parametros:
             lat_punto (float): Latitud del punto objetivo en grados.
             lon_punto (float): Longitud del punto objetivo en grados.
             lat_col (str): Nombre de la columna de latitud en el CSV (default: "latitud").
@@ -823,11 +843,11 @@ class EventListener(client.Application):
             name_col (str): Nombre de la columna con el nombre de ciudad (default: "ciudad").
 
         Retorna:
-            str: Descripción como '<dist> kilómetros al "<OCTANTE>" de "<NombreCiudad>"'.
+            str: Descripcion como '<dist> kilometros al "<OCTANTE>" de "<NombreCiudad>"'.
 
         Excepciones:
             FileNotFoundError: Si el CSV no existe.
-            ValueError: Si faltan columnas requeridas o no hay registros válidos.
+            ValueError: Si faltan columnas requeridas o no hay registros validos.
         """
 
         # --- Ruta fija del CSV ---
@@ -837,7 +857,7 @@ class EventListener(client.Application):
         try:
             df = pd.read_csv(csv_path)
         except FileNotFoundError:
-            raise FileNotFoundError(f"No se encontró el archivo CSV: {csv_path!r}")
+            raise FileNotFoundError(f"No se encontro el archivo CSV: {csv_path!r}")
 
         for col in (lat_col, lon_col, name_col):
             if col not in df.columns:
@@ -845,14 +865,14 @@ class EventListener(client.Application):
 
         df = df.dropna(subset=[lat_col, lon_col, name_col])
         if df.empty:
-            raise ValueError("El CSV no contiene filas válidas (está vacío o con valores nulos).")
+            raise ValueError("El CSV no contiene filas validas (esta vacio o con valores nulos).")
 
         # --- Constantes y conversiones del punto ---
         R = 6371.0088  # Radio medio terrestre (km)
         phi_p = math.radians(lat_punto)
         lam_p = math.radians(lon_punto)
 
-        # --- Búsqueda de la ciudad más cercana (Haversine) ---
+        # --- Busqueda de la ciudad mas cercana (Haversine) ---
         min_dist = float("inf")
         ciudad_min = None
         phi_c_min = None
@@ -880,9 +900,9 @@ class EventListener(client.Application):
                 lam_c_min = lam_c
 
         if ciudad_min is None:
-            raise ValueError("No fue posible determinar la ciudad más cercana.")
+            raise ValueError("No fue posible determinar la ciudad mas cercana.")
 
-        # --- Rumbo (bearing) desde la ciudad más cercana hacia el punto ---
+        # --- Rumbo (bearing) desde la ciudad mas cercana hacia el punto ---
         dlam_min = lam_p - lam_c_min
         y = math.sin(dlam_min) * math.cos(phi_p)
         x = (math.cos(phi_c_min) * math.sin(phi_p) -
@@ -913,7 +933,7 @@ class EventListener(client.Application):
 
         # --- Redondeo y salida ---
         dist_str = f"{min_dist:.1f}"
-        return f'{dist_str} kilómetros al {dir_cardinal} de {ciudad_min}'
+        return f'{dist_str} kilometros al {dir_cardinal} de {ciudad_min}'
 
 
     #funcion que devuelve el tipo de suelo de una estacion particular
@@ -927,7 +947,7 @@ class EventListener(client.Application):
         # Convertir a diccionario: clave=estacion, valor=suelo
         dicc = dict(zip(df['estacion'], df['suelo']))
 
-        # Retornar el valor de suelo si existe la estación
+        # Retornar el valor de suelo si existe la estacion
         return dicc.get(estacion_buscar, None)
 
     #actualiza en caso de que llegue un evento igual, pero con fecha actualizada
@@ -935,7 +955,7 @@ class EventListener(client.Application):
 
         waveslogger.info(
             "Actualizando evento %s " % idEvento)
-        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+        conn = pymysql.connect(  # conexion usa parametros puestos arriba
             host=local_host,
             user= local_user,
             password= local_password,
@@ -976,7 +996,7 @@ class EventListener(client.Application):
     #guarda 3 minutos antes y 3 mins despues del evento
     def cortaWaves(self,streams,evento,t0):
 
-        # 1. Definición de rutas (usando os.path.join para evitar errores con los slashes)
+        # 1. Definicion de rutas (usando os.path.join para evitar errores con los slashes)
         ruta = os.path.join(OUTPUT_DIR, evento) #directorio SDS donde se guardan mseeds
         rutaJson = os.path.join(OUTPUT_JSON, evento) #directorio donde se guardan JSONS
         rutaRaw = os.path.join(ruta, "raw")
@@ -984,7 +1004,7 @@ class EventListener(client.Application):
         localizaciones_permitidas = ["00", "", "01", "11", "12", "13"]
         canales_permitidos = ["HNN", "HNZ", "HNE"]
 
-        # 2. Vaciado y creación de directorios
+        # 2. Vaciado y creacion de directorios
         # Limpiar y recrear directorio de mseed (incluyendo su subcarpeta 'raw')
         if os.path.exists(ruta):
             shutil.rmtree(ruta)
@@ -1047,7 +1067,7 @@ class EventListener(client.Application):
                 trRaw.write(rawFile, format="mseed")
 
                 with open(jsonfname, 'w') as f:
-                    # separators=(',', ':') elimina espacios vacíos para reducir peso
+                    # separators=(',', ':') elimina espacios vacios para reducir peso
                     json.dump(payload, f, separators=(',', ':'))
 
             except Exception as err:
@@ -1058,7 +1078,7 @@ class EventListener(client.Application):
 
     def insertarEvento(self, datos,maxpga,stationpga,informe):
 
-        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+        conn = pymysql.connect(  # conexion usa parametros puestos arriba
             host=local_host,
             user= local_user,
             password= local_password,
@@ -1113,7 +1133,7 @@ class EventListener(client.Application):
                 "--ERROR---------Error data %s " % err)
         else:
             #print(valores)
-            conn = pymysql.connect(  # conexión usa parametros puestos arriba
+            conn = pymysql.connect(  # conexion usa parametros puestos arriba
                 host=local_host,
                 user= local_user,
                 password= local_password,
@@ -1158,7 +1178,7 @@ class EventListener(client.Application):
             #print(datos)
         else:
             #print(valores)
-            conn = pymysql.connect(  # conexión usa parametros puestos arriba
+            conn = pymysql.connect(  # conexion usa parametros puestos arriba
                 host=local_host,
                 user=local_user,
                 password=local_password,
@@ -1187,7 +1207,7 @@ class EventListener(client.Application):
 
     #Consulta a la base para extraer los datos del evento
     def obtener_fecha_id(self,eventoId):
-        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+        conn = pymysql.connect(  # conexion usa parametros puestos arriba
             host=my_host,
             user=my_user,
             password=my_password,
@@ -1221,7 +1241,7 @@ class EventListener(client.Application):
 
     #Consulta a la base para extraer los datos del evento
     def obtener_datos_por_id(self,eventoId):
-        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+        conn = pymysql.connect(  # conexion usa parametros puestos arriba
             host=my_host,
             user=my_user,
             password=my_password,
@@ -1251,7 +1271,7 @@ class EventListener(client.Application):
 
     def chequeaBdPga(self, estacion,evento):
 
-        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+        conn = pymysql.connect(  # conexion usa parametros puestos arriba
             host=local_host,
             user=local_user,
             password=local_password,
@@ -1267,7 +1287,7 @@ class EventListener(client.Application):
 
                 consulta_sql = "select  Pga.idpga as id From Pga WHERE nombre_evento = %s AND estacion = %s"
 
-                # Ejecutar la consulta pasando los parámetros
+                # Ejecutar la consulta pasando los parametros
                 cursor.execute(consulta_sql, (evento, estacion))
                 #print(consulta_sql)
 
@@ -1285,7 +1305,7 @@ class EventListener(client.Application):
 
         waveslogger.info(
             "Chequeando evento %s " %evento)
-        conn = pymysql.connect(  # conexión usa parametros puestos arriba
+        conn = pymysql.connect(  # conexion usa parametros puestos arriba
             host=local_host,
             user=local_user,
             password=local_password,
@@ -1297,7 +1317,7 @@ class EventListener(client.Application):
             with (conn.cursor() as cursor):
                 # Create a new record
                 consulta_sql = "select  fechaEvento as fecha From historico_sismos WHERE idEvento = %s "
-                # Ejecutar la consulta pasando los parámetros
+                # Ejecutar la consulta pasando los parametros
                 cursor.execute(consulta_sql,evento)
                 # Obtener todos los resultados
                 resultados = cursor.fetchone()
